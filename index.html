@@ -274,6 +274,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
         <div class="bc-item"><div class="bc-item-dot" style="background:#f25c6e"></div>6 teses JUD — parceiro advogado<span class="bc-item-tag bg-red">JUD</span></div>
         <div class="bc-item"><div class="bc-item-dot" style="background:#f2924a"></div>Upload SPED — analisa todas as teses<span class="bc-item-tag bg-orange">Novo</span></div>
         <div class="bc-item"><div class="bc-item-dot" style="background:#f2924a"></div>Relatório individual por tese</div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#f2924a"></div>EFD PIS/COFINS — apuração completa<span class="bc-item-tag bg-orange">Novo</span></div>
       </div>
       <div class="bc-footer">
         <div class="bc-status"><div class="bc-status-dot" style="background:#f2924a"></div>12 teses mapeadas e documentadas</div>
@@ -386,9 +387,9 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
       <div class="ri-icon">🎯</div>
       <div class="ri-info"><div class="ri-nome">Processo Comercial</div><div class="ri-desc">Funil + scripts WhatsApp</div></div>
     </div>
-    <div class="rapido-item" onclick="abrirArquivo('jcr_analisador_multiteses.html')">
-      <div class="ri-icon">📁</div>
-      <div class="ri-info"><div class="ri-nome">Central de Arquivos</div><div class="ri-desc">Todos os materiais JCR</div></div>
+    <div class="rapido-item" onclick="abrirArquivo('efd_pis_cofins.html')">
+      <div class="ri-icon">📑</div>
+      <div class="ri-info"><div class="ri-nome">EFD PIS/COFINS</div><div class="ri-desc">Apuração completa — débitos, créditos, retenções</div></div>
     </div>
   </div>
 
@@ -447,6 +448,7 @@ const ARQUIVOS={
   projeto: BASE+'organograma_detalhado_jcr.html',
   conhecimento: BASE+'gclik_conhecimento.html',
   recuperacao: BASE+'jcr_analisador_multiteses.html',
+  efd: BASE+'efd_pis_cofins.html',
   legislacao: BASE+'organograma_detalhado_jcr.html',
   comercial: BASE+'organograma_processo_comercial_jcr.html',
   clientes: BASE+'jcr_analisador_multiteses.html',

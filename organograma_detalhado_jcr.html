@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estrutura do Escritório — JCR + Sócio Contábil</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: #0F1E3C; --navy2: #1B3A6B; --gold: #C9A84C; --gold2: #F0D080;
+  --teal: #1A7F74; --rose: #8B2E4A; --light: #F4F1EB; --white: #FDFCF9;
+  --muted: #7A8499; --slate: #2D3B55;
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--light); color: var(--navy); }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(15,30,60,0.97); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.75rem 2.5rem; border-bottom: 1px solid rgba(201,168,76,0.2);
+}
+.nav-brand { font-family: 'Playfair Display', serif; font-size: 15px; color: var(--gold); font-weight: 700; }
+.nav-links { display: flex; gap: 1.5rem; }
+.nav-links a { font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.55); text-decoration: none; transition: color 0.2s; }
+.nav-links a:hover { color: var(--gold); }
+
+.hero {
+  min-height: 50vh; background: var(--navy);
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  text-align: center; padding: 7rem 2rem 4rem; position: relative; overflow: hidden;
+}
+.hero::before { content: ''; position: absolute; top: -100px; right: -100px; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%); }
+.hero-badge { font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; }
+.hero-badge::before, .hero-badge::after { content: ''; display: inline-block; width: 30px; height: 1px; background: var(--gold); }
+.hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; color: var(--white); line-height: 1.1; margin-bottom: 1rem; }
+.hero h1 span { color: var(--gold); }
+.hero-sub { font-size: 16px; color: rgba(255,255,255,0.5); font-weight: 300; }
+
+section { padding: 4rem 2rem; max-width: 1100px; margin: 0 auto; }
+.section-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem; }
+.section-title { font-family: 'Playfair Display', serif; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; color: var(--navy); margin-bottom: 1.5rem; }
+.section-divider { width: 48px; height: 3px; background: var(--gold); margin-bottom: 2rem; border-radius: 2px; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 2rem; }
+.leg { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+.org-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; justify-content: center; }
+
+.dept {
+  border-radius: 10px; padding: 10px 14px; flex: 1; min-width: 130px; max-width: 210px;
+  cursor: pointer; border: 1px solid transparent; transition: transform 0.15s, opacity 0.15s;
+  position: relative;
+}
+.dept:hover { transform: translateY(-3px); opacity: 0.88; }
+
+.dept-name { font-size: 12px; font-weight: 600; line-height: 1.3; margin-bottom: 3px; }
+.dept-sub { font-size: 10px; font-weight: 400; line-height: 1.3; opacity: 0.75; }
+
+.apex { background:#0F1E3C; border-color:#1B3A6B; max-width:260px; }
+.apex .dept-name { color:#F0D080; } .apex .dept-sub { color:rgba(240,208,128,0.7); }
+.shared { background:#2D3B55; border-color:#3D5070; }
+.shared .dept-name { color:#B5D4F4; } .shared .dept-sub { color:rgba(181,212,244,0.7); }
+.ju { background:#0C447C; border-color:#185FA5; }
+.ju .dept-name { color:#E6F1FB; } .ju .dept-sub { color:rgba(230,241,251,0.7); }
+.ju2 { background:#185FA5; border-color:#378ADD; }
+.ju2 .dept-name { color:#E6F1FB; } .ju2 .dept-sub { color:rgba(230,241,251,0.7); }
+.socio { background:#085041; border-color:#0F6E56; }
+.socio .dept-name { color:#9FE1CB; } .socio .dept-sub { color:rgba(159,225,203,0.7); }
+.juridico { background:#5C1A30; border-color:#8B2E4A; }
+.juridico .dept-name { color:#F4C0D1; } .juridico .dept-sub { color:rgba(244,192,209,0.7); }
+.comercial { background:#633806; border-color:#854F0B; }
+.comercial .dept-name { color:#FAC775; } .comercial .dept-sub { color:rgba(250,199,117,0.7); }
+.tech { background:#26215C; border-color:#534AB7; }
+.tech .dept-name { color:#CECBF6; } .tech .dept-sub { color:rgba(206,203,246,0.7); }
+
+.row-divider { width:100%; height:0.5px; background:rgba(0,0,0,0.12); margin:0.75rem 0; position:relative; }
+.row-label { position:absolute; top:-9px; left:50%; transform:translateX(-50%); background:var(--light); padding:0 10px; font-size:10px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); }
+
+/* MODAL */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 300;
+  background: rgba(10,18,35,0.75); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center; padding: 1.5rem;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--white); border-radius: 20px; max-width: 640px; width: 100%;
+  max-height: 85vh; overflow-y: auto; position: relative;
+  border: 1px solid rgba(0,0,0,0.08);
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-header { padding: 1.75rem 1.75rem 1.25rem; border-bottom: 1px solid rgba(0,0,0,0.07); position: sticky; top: 0; background: var(--white); border-radius: 20px 20px 0 0; z-index: 1; }
+.modal-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
+.modal-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--navy); }
+.modal-close { position: absolute; top: 1.25rem; right: 1.25rem; width: 32px; height: 32px; border-radius: 50%; background: var(--light); border: none; cursor: pointer; font-size: 16px; color: var(--muted); display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+.modal-close:hover { background: rgba(0,0,0,0.1); }
+.modal-body { padding: 1.5rem 1.75rem 2rem; }
+.modal-section { margin-bottom: 1.25rem; }
+.modal-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.6rem; }
+.modal-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.modal-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--slate); line-height: 1.6; }
+.modal-list li::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; margin-top: 7px; }
+.modal-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.modal-tag { font-size: 11px; padding: 4px 10px; border-radius: 6px; background: var(--light); color: var(--slate); border: 1px solid rgba(0,0,0,0.06); }
+.modal-tip { background: var(--navy); border-radius: 10px; padding: 1rem 1.25rem; margin-top: 1rem; }
+.modal-tip p { font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.6; }
+.modal-tip strong { color: var(--gold); }
+
+.funil-section { background: var(--white); }
+.funil-wrap { display: flex; flex-direction: column; gap: 0; }
+.funil-step {
+  background: var(--light); border-radius: 14px; padding: 1.5rem; margin-bottom: 6px;
+  border: 1px solid rgba(0,0,0,0.06); position: relative; overflow: hidden; cursor: pointer;
+  transition: transform 0.15s;
+}
+.funil-step:hover { transform: translateX(4px); }
+.funil-step::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.s1::before{background:#C9A84C;} .s2::before{background:#185FA5;} .s3::before{background:#1A7F74;}
+.s4::before{background:#8B2E4A;} .s5::before{background:#534AB7;} .s6::before{background:#27500A;}
+.funil-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
+.funil-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 5px; }
+.funil-title { font-size: 15px; font-weight: 600; color: var(--navy); }
+.funil-desc { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 1rem; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: 11px; padding: 4px 10px; border-radius: 6px; background: var(--white); color: var(--slate); border: 1px solid rgba(0,0,0,0.08); cursor: pointer; transition: opacity 0.12s; }
+.tag:hover { opacity: 0.7; }
+.arrow { text-align: center; color: var(--muted); font-size: 20px; margin: 2px 0; }
+
+footer { background: var(--navy); padding: 2rem; text-align: center; }
+footer p { font-size: 12px; color: rgba(255,255,255,0.3); letter-spacing: 0.08em; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">JCR — Estrutura do Escritório</div>
+  <div class="nav-links">
+    <a href="#organograma">Organograma</a>
+    <a href="#funil">Funil Comercial</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">Mapa Estratégico</div>
+  <h1>Estrutura do<br><span>Escritório Completo</span></h1>
+  <p class="hero-sub">Clique em qualquer departamento para ver detalhes</p>
+</div>
+
+<div id="organograma">
+<section>
+  <div class="section-eyebrow">Como o escritório se organiza</div>
+  <h2 class="section-title">Organograma Completo</h2>
+  <div class="section-divider"></div>
+
+  <div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:#185FA5"></div>Juliana — fiscal/tributário</div>
+    <div class="leg"><div class="leg-dot" style="background:#0F6E56"></div>Sócio Contábil — contabilidade/DP</div>
+    <div class="leg"><div class="leg-dot" style="background:#8B2E4A"></div>Jurídico — parceiro externo</div>
+    <div class="leg"><div class="leg-dot" style="background:#854F0B"></div>Comercial &amp; marketing</div>
+    <div class="leg"><div class="leg-dot" style="background:#534AB7"></div>Tecnologia</div>
+    <div class="leg"><div class="leg-dot" style="background:#2D3B55"></div>Compartilhado</div>
+  </div>
+
+  <div class="org-row" style="margin-bottom:10px;">
+    <div class="dept apex" onclick="openModal('direcao')"><div class="dept-name">Direção Geral</div><div class="dept-sub">Juliana + Sócio Contábil — sócios</div></div>
+  </div>
+
+  <div class="org-row">
+    <div class="dept shared" onclick="openModal('financeiro')"><div class="dept-name">Financeiro</div><div class="dept-sub">Faturamento, fluxo, contas</div></div>
+    <div class="dept shared" onclick="openModal('atendimento')"><div class="dept-name">Atendimento</div><div class="dept-sub">Recepção, CRM, agenda</div></div>
+    <div class="dept shared" onclick="openModal('rh')"><div class="dept-name">RH Interno</div><div class="dept-sub">Equipe, treinamento</div></div>
+  </div>
+
+  <div class="row-divider"><span class="row-label">operacional</span></div>
+  <div class="org-row">
+    <div class="dept ju" onclick="openModal('fiscal')"><div class="dept-name">Fiscal &amp; Tributário</div><div class="dept-sub">SPED, apuração, obrigações</div></div>
+    <div class="dept ju" onclick="openModal('recuperacao')"><div class="dept-name">Recuperação Tributária</div><div class="dept-sub">ADM: ICMS, PIS/COFINS, SN &nbsp;|&nbsp; JUD: teses</div></div>
+    <div class="dept ju" onclick="openModal('consultoria')"><div class="dept-name">Consultoria Tributária</div><div class="dept-sub">Planejamento, regimes</div></div>
+    <div class="dept socio" onclick="openModal('contabilidade')"><div class="dept-name">Contabilidade</div><div class="dept-sub">Escrituração, balanços</div></div>
+    <div class="dept socio" onclick="openModal('dp')"><div class="dept-name">Depto. Pessoal</div><div class="dept-sub">Folha, eSocial, CLT</div></div>
+  </div>
+  <div class="org-row">
+    <div class="dept ju2" onclick="openModal('passivo')"><div class="dept-name">Gestão de Passivo</div><div class="dept-sub">Parcelamentos, PGFN</div></div>
+    <div class="dept ju2" onclick="openModal('beneficios')"><div class="dept-name">Benefícios Fiscais</div><div class="dept-sub">SC, RO, GO — diferencial</div></div>
+    <div class="dept ju2" onclick="openModal('auditoria')"><div class="dept-name">Auditoria Fiscal</div><div class="dept-sub">Due diligence, revisão</div></div>
+    <div class="dept socio" onclick="openModal('societario')"><div class="dept-name">Societário</div><div class="dept-sub">Abertura, alteração, baixa</div></div>
+    <div class="dept ju2" onclick="openModal('reforma')"><div class="dept-name">Reforma Tributária</div><div class="dept-sub">IBS, CBS — emergente</div></div>
+  </div>
+
+  <div class="row-divider"><span class="row-label">oportunidade estratégica — carteira existente</span></div>
+  <div class="org-row">
+    <div class="dept ju" onclick="openModal('planejamento')" style="max-width:260px;"><div class="dept-name">Planejamento Tributário</div><div class="dept-sub">Regime, reorganização, economia fiscal</div></div>
+    <div class="dept ju" onclick="openModal('analise_carteira')" style="border:2px solid #F0D080;max-width:320px;"><div class="dept-name" style="color:#F0D080;">Análise da Carteira — Recuperação e Passivo</div><div class="dept-sub">Clientes existentes do sócio contábil</div></div>
+  </div>
+
+  <div class="row-divider"><span class="row-label">suporte especializado</span></div>
+  <div class="org-row">
+    <div class="dept juridico" onclick="openModal('juridicoadm')"><div class="dept-name">Jurídico Trib. Adm.</div><div class="dept-sub">CARF, impugnações</div></div>
+    <div class="dept juridico" onclick="openModal('juridicojud')"><div class="dept-name">Jurídico Trib. Judicial</div><div class="dept-sub">Execuções, MS, anulatórias</div></div>
+    <div class="dept juridico" onclick="openModal('trabalhista')"><div class="dept-name">Trabalhista</div><div class="dept-sub">Parceiro externo</div></div>
+    <div class="dept tech" onclick="openModal('tecnologia')"><div class="dept-name">Tecnologia &amp; Sistemas</div><div class="dept-sub">Domínio, automações</div></div>
+  </div>
+
+  <div class="row-divider"><span class="row-label">crescimento &amp; captação</span></div>
+  <div class="org-row">
+    <div class="dept comercial" onclick="openModal('comercial')"><div class="dept-name">Comercial</div><div class="dept-sub">Proposta, funil, CRM</div></div>
+    <div class="dept comercial" onclick="openModal('marketing')"><div class="dept-name">Marketing Digital</div><div class="dept-sub">Instagram, site, WhatsApp</div></div>
+    <div class="dept comercial" onclick="openModal('precificacao')"><div class="dept-name">Precificação</div><div class="dept-sub">Tabela, mensalidade, êxito</div></div>
+    <div class="dept comercial" onclick="openModal('parcerias')"><div class="dept-name">Parcerias</div><div class="dept-sub">Indicações, correspondentes</div></div>
+  </div>
+</section>
+</div>
+
+<!-- FUNIL COMERCIAL -->
+<div class="funil-section" id="funil">
+<section>
+  <div class="section-eyebrow">Como captamos e retemos clientes</div>
+  <h2 class="section-title">Funil Comercial</h2>
+  <div class="section-divider"></div>
+  <div class="funil-wrap">
+    <div class="funil-step s1" onclick="openModal('atração')">
+      <div class="funil-header"><div class="funil-badge" style="background:#FAEEDA;color:#633806;">Etapa 1</div><div class="funil-title">Atração — como o cliente chega</div></div>
+      <div class="funil-desc">Múltiplos canais simultâneos garantem fluxo constante de prospects qualificados.</div>
+      <div class="tags"><span class="tag">Indicação de clientes</span><span class="tag">Diagnóstico gratuito</span><span class="tag">Instagram + site JCR</span><span class="tag">Parceiros estratégicos</span><span class="tag">Prospecção ativa — PGFN</span></div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="funil-step s2" onclick="openModal('qualificacao')">
+      <div class="funil-header"><div class="funil-badge" style="background:#E6F1FB;color:#0C447C;">Etapa 2</div><div class="funil-title">Qualificação — entender a dor</div></div>
+      <div class="funil-desc">Conversa estruturada para identificar regime, problema principal e potencial do prospect antes de investir tempo na proposta.</div>
+      <div class="tags"><span class="tag">WhatsApp Business</span><span class="tag">Ligação de 15 minutos</span><span class="tag">Diagnóstico fiscal</span><span class="tag">Regime + dor principal</span><span class="tag">Scripts por cenário</span><span class="tag">Sinais de prospect qualificado</span></div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="funil-step s3" onclick="openModal('proposta')">
+      <div class="funil-header"><div class="funil-badge" style="background:#E1F5EE;color:#085041;">Etapa 3</div><div class="funil-title">Proposta — valor antes do preço</div></div>
+      <div class="funil-desc">A proposta começa pelo problema do cliente — nunca pela lista de serviços. O preço é apresentado por último.</div>
+      <div class="tags"><span class="tag">Mensalidade fixa</span><span class="tag">Honorário de êxito</span><span class="tag">Projeto fechado</span><span class="tag">Modelo misto</span><span class="tag">Apresentação presencial</span></div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="funil-step s4" onclick="openModal('fechamento')">
+      <div class="funil-header"><div class="funil-badge" style="background:#FBEAF0;color:#5C1A30;">Etapa 4</div><div class="funil-title">Fechamento — converter sem pressionar</div></div>
+      <div class="funil-desc">Os dois maiores motivos de perda são preço e falta de urgência. A resposta é mostrar o custo de não agir.</div>
+      <div class="tags"><span class="tag">Custo de não agir</span><span class="tag">Entrada facilitada</span><span class="tag">Contrato simples</span><span class="tag">Prazo da proposta</span></div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="funil-step s5" onclick="openModal('onboarding')">
+      <div class="funil-header"><div class="funil-badge" style="background:#EEEDFE;color:#3C3489;">Etapa 5</div><div class="funil-title">Onboarding — início da relação</div></div>
+      <div class="funil-desc">A primeira impressão como contratante define a retenção de longo prazo.</div>
+      <div class="tags"><span class="tag">Checklist de documentos</span><span class="tag">Acesso a sistemas</span><span class="tag">Prazos e entregas</span><span class="tag">Kit boas-vindas</span></div>
+    </div>
+    <div class="arrow">↓</div>
+    <div class="funil-step s6" onclick="openModal('fidelizacao')">
+      <div class="funil-header"><div class="funil-badge" style="background:#EAF3DE;color:#27500A;">Recorrente</div><div class="funil-title">Fidelização — crescer com quem já é seu</div></div>
+      <div class="funil-desc">Cliente fidelizado é mais barato que cliente novo. O objetivo é ser indispensável — não apenas útil.</div>
+      <div class="tags"><span class="tag">Relatório mensal</span><span class="tag">Laudo semestral</span><span class="tag">Alertas estratégicos</span><span class="tag">Pedido de indicação</span><span class="tag">Upsell de serviços</span></div>
+    </div>
+  </div>
+</section>
+</div>
+
+<footer><p>JCR Consultoria e Serviços Tributários — Campinas, SP — Abril de 2026</p></footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeOnOverlay(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-eyebrow" id="modal-eyebrow"></div>
+      <div class="modal-title" id="modal-title"></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const data = {
+  direcao: {
+    eyebrow: 'Governança', color: '#C9A84C',
+    title: 'Direção Geral',
+    sections: [
+      { title: 'Responsável', items: ['Juliana e Sócio Contábil — decisões estratégicas conjuntas', 'Reunião semanal de alinhamento operacional', 'Aprovação conjunta de novos contratos e parcerias'] },
+      { title: 'Decisões compartilhadas', items: ['Política comercial e tabela de honorários', 'Contratação de equipe e parceiros', 'Investimentos em tecnologia e sistemas', 'Revisão anual de metas e participação societária'] },
+      { title: 'Ferramentas', items: ['Contrato social ou aditivo societário', 'Ata de reunião para decisões relevantes', 'Gestão financeira compartilhada'] }
+    ],
+    tip: 'Antes de formalizar a sociedade, consulte um advogado especializado em direito societário para definir a estrutura mais vantajosa para ambos.'
+  },
+  financeiro: {
+    eyebrow: 'Gestão interna', color: '#3D5070',
+    title: 'Financeiro',
+    sections: [
+      { title: 'Responsável', items: ['Compartilhado — Juliana e Sócio Contábil', 'Gestão diária pode ser delegada a um assistente administrativo'] },
+      { title: 'Atividades', items: ['Faturamento e emissão de notas fiscais de serviço', 'Controle de fluxo de caixa e contas a receber', 'Pagamento de fornecedores e parceiros', 'Apuração mensal de pró-labore e distribuição de lucros', 'Conciliação bancária e relatórios financeiros'] },
+      { title: 'Ferramentas sugeridas', items: ['Sistema de gestão financeira (ex: Omie, Conta Azul)', 'Planilha de fluxo de caixa mensal', 'Conta bancária PJ exclusiva para o escritório'] }
+    ],
+    tip: 'Separe rigorosamente as finanças pessoais das do escritório desde o primeiro dia. É o erro mais comum em pequenos escritórios e gera conflitos societários.'
+  },
+  atendimento: {
+    eyebrow: 'Gestão interna', color: '#3D5070',
+    title: 'Atendimento ao Cliente',
+    sections: [
+      { title: 'Responsável', items: ['Compartilhado — pode ser delegado a recepcionista ou assistente'] },
+      { title: 'Atividades', items: ['Recepção e triagem de novos contatos (WhatsApp, e-mail, telefone)', 'Agendamento de reuniões e consultas', 'CRM — registro de histórico de cada cliente', 'Envio de documentos e comunicados', 'Controle de prazos e vencimentos de obrigações', 'Pesquisa de satisfação semestral'] },
+      { title: 'Ferramentas sugeridas', items: ['WhatsApp Business com etiquetas de organização', 'CRM simples (ex: Notion, HubSpot free, Trello)', 'Google Agenda compartilhada entre sócios'] }
+    ],
+    tip: 'Tempo máximo de resposta: 2 horas em horário comercial. Velocidade de resposta é percebida como qualidade de serviço pelo cliente.'
+  },
+  rh: {
+    eyebrow: 'Gestão interna', color: '#3D5070',
+    title: 'RH Interno',
+    sections: [
+      { title: 'Responsável', items: ['Compartilhado — Juliana e Sócio Contábil'] },
+      { title: 'Estrutura inicial', items: ['Fase 1: os próprios sócios executam tudo', 'Fase 2: analista fiscal (quando carteira crescer)', 'Fase 3: assistente administrativo', 'Fase 4: segundo analista e recepcionista'] },
+      { title: 'Atividades', items: ['Recrutamento e seleção de analistas fiscais e contábeis', 'Treinamento técnico contínuo da equipe', 'Avaliação de desempenho semestral', 'Gestão de metas e produtividade', 'Cultura do escritório e ambiente de trabalho'] }
+    ],
+    tip: 'O maior erro de escritórios contábeis em crescimento é contratar cedo demais ou tarde demais. Contrate quando você não consegue mais entregar no prazo com qualidade — nem antes, nem depois.'
+  },
+  fiscal: {
+    eyebrow: 'Juliana — área principal', color: '#185FA5',
+    title: 'Fiscal & Tributário',
+    sections: [
+      { title: 'O que é', items: ['Núcleo operacional da área de Juliana', 'Cobre todas as obrigações acessórias e apuração de impostos dos clientes'] },
+      { title: 'Atividades', items: ['Escrituração do SPED Fiscal (EFD ICMS/IPI)', 'EFD Contribuições (PIS/COFINS)', 'ECF — Escrituração Contábil Fiscal', 'DCTF mensal e DCTF-Web', 'Apuração de ICMS, PIS, COFINS, IPI, ISS', 'Conciliação fiscal e revisão de notas fiscais', 'GIA, PGDAS, DEFIS (Simples Nacional)', 'Transmissão de obrigações acessórias'] },
+      { title: 'Execução agora', items: ['Executa já com domínio total', 'Potencial de automação alta — reduz até 60% do tempo operacional'] }
+    ],
+    tip: 'A automação de obrigações acessórias é o maior alavancador de capacidade operacional do escritório. Com os processos automatizados, você atende mais clientes com a mesma equipe.'
+  },
+  recuperacao: {
+    eyebrow: 'Juliana — diferencial principal', color: '#185FA5',
+    title: 'Recuperação Tributária',
+    sections: [
+      { title: 'O que é', items: ['Identificação e aproveitamento de créditos tributários não utilizados', 'Restituição e compensação de valores pagos a maior', 'Um dos serviços de maior valor agregado e melhor conversão comercial', 'ADM = via administrativa (você executa) | JUD = judicial (parceiro advogado)'] },
+      { title: '🟦 ADM — você executa', items: [
+        'Exclusão do ICMS da BC do PIS/COFINS — via PER/DCOMP administrativo',
+        'Exclusão do ICMS-ST da BC do PIS/COFINS — ICMS-ST Destacado',
+        'GLP/Diesel — LC 192 — exclusão da base de cálculo PIS/COFINS',
+        'Relatório Monofásicos SN — créditos indevidos no Simples Nacional',
+        'Relatório PGDAS SN — revisão de apuração e créditos do Simples',
+        'Cálculo Tese Monofásicos SN — levantamento do potencial de restituição',
+        'PER/DCOMP — compensação e ressarcimento de créditos federais',
+        'Créditos de PIS/COFINS — regime não cumulativo (Lucro Real)',
+        'Créditos de ICMS — benefícios fiscais estaduais (SC, RO, GO)'
+      ]},
+      { title: '⚖️ JUD — requer advogado parceiro', items: [
+        'Exclusão do PIS/COFINS da Própria Base — tese jurídica (JUD)',
+        'Exclusão do ISS da BC do PIS/COFINS — tese jurídica (JUD)',
+        'Exclusão do ISS da BC do IRPJ/CSLL — tese jurídica (JUD)',
+        'Exclusão do PIS/COFINS da BC do IRPJ/CSLL — tese jurídica (JUD)',
+        'Inclusão do ICMS na BC do PIS/COFINS — tese reversa, casos específicos (JUD)',
+        'Mandado de Segurança para garantir direito negado na via ADM',
+        'Ação anulatória de débito fiscal'
+      ]},
+      { title: '📂 EFD x SPED — como funciona o módulo', items: [
+        'Compara itens presentes no SPED Fiscal (ICMS/IPI) que NÃO tomaram crédito no SPED Contribuições — aponta itens passíveis de recuperação de PIS/COFINS',
+        'Identifica itens presentes no SPED Contribuições com CST sem tomada de crédito — oportunidade adicional de recuperação',
+        'O sistema gera o comparativo — a análise tributária sobre quais notas têm direito a crédito é responsabilidade sua como consultora',
+        'Você define quais teses aplicar, quais itens realmente têm direito e quais CSTs permitem aproveitamento'
+      ]},
+      { title: '📂 EFD x SPED — arquivos necessários', items: [
+        'SPED Contribuições (PIS e COFINS) — registro C100, C170, C180 e registros de crédito',
+        'SPED Fiscal (ICMS/IPI) — registro C100, C170 e registros de entradas',
+        'Ambos os arquivos do mesmo período que deseja analisar',
+        'Possível analisar múltiplos períodos simultaneamente para maximizar o potencial de recuperação'
+      ]},
+      { title: '📂 EFD x SPED — como usar na prática', items: [
+        '1. Solicitar ao cliente os arquivos SPED dos últimos 5 anos (prazo decadencial)',
+        '2. Rodar o comparativo no sistema para cada período',
+        '3. Analisar os itens apontados — verificar CST, CFOP e natureza de cada item',
+        '4. Aplicar o entendimento tributário: quais realmente têm direito a crédito?',
+        '5. Calcular o potencial de recuperação e apresentar ao cliente',
+        '6. Transmitir PER/DCOMP para os créditos identificados como ADM',
+        '7. Encaminhar ao parceiro jurídico os casos que exigem tese JUD'
+      ]},
+      { title: '📂 ECD — i200/i250', items: [
+        'Escrituração de lançamentos contábeis no SPED Contábil',
+        'i200 — lançamentos de débito e crédito entre contas',
+        'i250 — partidas individuais de cada lançamento',
+        'Essencial para cruzamento entre SPED Contábil e SPED Fiscal na auditoria',
+        'Permite identificar lançamentos contábeis sem contrapartida fiscal'
+      ]},
+      { title: 'Modelo de cobrança', items: [
+        'Honorário de êxito: 10% a 20% do valor recuperado',
+        'Cliente não tem risco inicial — facilita muito a venda',
+        'Diagnóstico inicial gratuito para identificar potencial',
+        'Para teses JUD: dividir honorários com o advogado parceiro'
+      ]}
+    ],
+    tip: 'Comece sempre pelas teses ADM — você executa sozinha, o retorno é mais rápido e o risco para o cliente é zero. As teses JUD têm maior potencial de valor, mas exigem mais tempo e o parceiro jurídico. A estratégia ideal: ADM para recuperar rápido, JUD para maximizar o total.',
+    manual: [
+      {
+        id: 'efd_sped',
+        titulo: 'EFD x SPED — Comparativo PIS/COFINS',
+        tipo: 'ADM',
+        fundamento: 'Lei 10.637/2002 e Lei 10.833/2003 — regime não cumulativo de PIS/COFINS. Art. 3º estabelece os créditos permitidos. Instrução Normativa RFB 2.121/2022.',
+        prazo: 'Últimos 5 anos (prazo decadencial — art. 168 do CTN). Contados da data do pagamento indevido ou a maior.',
+        documentos: [
+          'SPED Contribuições (EFD-PIS/COFINS) — todos os períodos a analisar',
+          'SPED Fiscal (EFD ICMS/IPI) — mesmos períodos',
+          'Notas fiscais de entrada originais (para validação)',
+          'CNPJ e dados cadastrais do cliente',
+          'Procuração eletrônica no e-CAC'
+        ],
+        passos: [
+          'Solicitar ao cliente os arquivos SPED Fiscal e SPED Contribuições dos últimos 5 anos',
+          'Rodar o comparativo no sistema (EFD x SPED) para cada período',
+          'Identificar itens do SPED Fiscal que NÃO tomaram crédito no SPED Contribuições',
+          'Identificar itens do SPED Contribuições com CST sem tomada de crédito',
+          'Para cada item apontado: verificar CFOP, CST, NCM e natureza da operação',
+          'Aplicar o entendimento tributário — quais CSTs permitem crédito? (50, 51, 55, 56, 60, 61, 65, 66)',
+          'Separar itens com direito a crédito confirmado dos itens duvidosos',
+          'Calcular o valor total do crédito identificado por período',
+          'Elaborar planilha demonstrativa com memória de cálculo completa',
+          'Apresentar diagnóstico ao cliente com o valor potencial de recuperação',
+          'Após aprovação: transmitir PER/DCOMP via e-CAC para cada período',
+          'Acompanhar o processamento — prazo médio de 360 dias para análise pela RFB',
+          'Em caso de indeferimento: avaliar apresentação de manifestação de inconformidade ou encaminhar para JUD'
+        ],
+        atencao: [
+          'CSTs que permitem crédito: 50, 51, 55, 56, 60, 61, 65 e 66',
+          'Verificar se o cliente está no regime cumulativo (Lucro Presumido/Simples) — NÃO tem direito a crédito não cumulativo',
+          'Apenas empresas no Lucro Real com PIS/COFINS não cumulativo têm direito pleno',
+          'Atenção a itens monofásicos — CST 04 e 07 não geram crédito na saída',
+          'Créditos de insumos: verificar se o item é efetivamente insumo da atividade (REsp 1.221.170/PR)',
+          'Cada PER/DCOMP deve ser transmitido separadamente por período de apuração'
+        ]
+      },
+      {
+        id: 'icms_pis',
+        titulo: 'Exclusão do ICMS da BC do PIS/COFINS',
+        tipo: 'ADM',
+        fundamento: 'RE 574.706/PR — Tese do Século (STF, 2017). Modulação: créditos anteriores a 15/03/2017 somente por ação judicial (JUD). Créditos após 15/03/2017 podem ser pleiteados administrativamente via PER/DCOMP. IN RFB 2.121/2022.',
+        prazo: 'Período após 15/03/2017 — via ADM (PER/DCOMP). Período anterior a 15/03/2017 — somente via JUD (ação judicial). Prazo decadencial: 5 anos da data do pagamento.',
+        documentos: [
+          'SPED Contribuições de todos os períodos após março/2017',
+          'Notas fiscais de saída com ICMS destacado',
+          'Apurações de PIS/COFINS do período',
+          'EFD ICMS/IPI para cruzamento do ICMS destacado',
+          'Procuração eletrônica no e-CAC'
+        ],
+        passos: [
+          'Verificar se o cliente está no regime não cumulativo (Lucro Real) — pré-requisito',
+          'Levantar o valor do ICMS destacado nas notas fiscais de saída mês a mês',
+          'Calcular o ICMS que foi indevidamente incluído na base de cálculo do PIS/COFINS',
+          'Apurar o crédito: ICMS destacado × alíquota PIS (1,65%) + alíquota COFINS (7,6%)',
+          'Elaborar planilha de memória de cálculo por competência',
+          'Segregar os períodos: pós março/2017 (ADM) e pré março/2017 (JUD)',
+          'Para período ADM: transmitir PER/DCOMP via e-CAC',
+          'Para período JUD: encaminhar ao advogado parceiro para ação judicial',
+          'Acompanhar processamento do PER/DCOMP — prazo médio 360 dias RFB',
+          'Guardar toda a documentação — RFB pode requisitar esclarecimentos'
+        ],
+        atencao: [
+          'ATENÇÃO: modulação do STF divide a tese em dois períodos com tratamentos diferentes',
+          'Pré 15/03/2017: somente judicial — não transmitir PER/DCOMP deste período',
+          'Pós 15/03/2017: administrativo via PER/DCOMP',
+          'O ICMS a excluir é o ICMS destacado na NF de saída — não o ICMS efetivamente pago',
+          'Empresas no Lucro Presumido: a tese tem aplicação mais restrita — avaliar caso a caso',
+          'Simples Nacional: não se aplica — regime próprio de tributação'
+        ]
+      },
+      {
+        id: 'icms_st',
+        titulo: 'Exclusão do ICMS-ST da BC do PIS/COFINS',
+        tipo: 'ADM',
+        fundamento: 'Extensão do RE 574.706/PR ao ICMS-ST. STJ — REsp 1.896.678 e REsp 1.958.265 (Tema 1.125). ICMS-ST destacado na NF também compõe indevidamente a base do PIS/COFINS.',
+        prazo: 'Últimos 5 anos — via ADM para o período após definição jurisprudencial consolidada. Verificar data de início caso a caso.',
+        documentos: [
+          'SPED Contribuições dos períodos a analisar',
+          'Notas fiscais de entrada com ICMS-ST destacado',
+          'EFD ICMS/IPI — registros de ICMS-ST (C197, C110)',
+          'GIA-ST ou DAPI estadual para cruzamento',
+          'Procuração eletrônica no e-CAC'
+        ],
+        passos: [
+          'Identificar se o cliente opera como substituto tributário ou substituído',
+          'Levantar notas fiscais de entrada com ICMS-ST destacado',
+          'Extrair do SPED Fiscal os registros C110 e C197 com ICMS-ST por período',
+          'Calcular o ICMS-ST incluído indevidamente na BC de PIS/COFINS',
+          'Apurar o crédito: ICMS-ST × alíquota PIS (1,65%) + COFINS (7,6%)',
+          'Elaborar memória de cálculo por competência e por fornecedor',
+          'Transmitir PER/DCOMP via e-CAC por período de apuração',
+          'Monitorar o processamento e responder eventuais diligências da RFB'
+        ],
+        atencao: [
+          'Tese mais recente — jurisprudência ainda em consolidação, avaliar risco de cada caso',
+          'ICMS-ST destacado vs. ICMS-ST recolhido — atenção à diferença no cálculo',
+          'Aplicável apenas para contribuintes do PIS/COFINS no regime não cumulativo',
+          'Manter toda a documentação das NFs com ICMS-ST para suportar o PER/DCOMP'
+        ]
+      },
+      {
+        id: 'glp',
+        titulo: 'GLP/Diesel — LC 192 (Exclusão da BC PIS/COFINS)',
+        tipo: 'ADM',
+        fundamento: 'Lei Complementar 192/2022 — instituiu alíquota uniforme e monofásica para combustíveis (gasolina, diesel, GLP, querosene de aviação, biodiesel). Exclusão da incidência do PIS/COFINS para distribuidores e varejistas.',
+        prazo: 'Aplica-se a partir de março/2022 (vigência da LC 192/2022). Prazo decadencial de 5 anos.',
+        documentos: [
+          'SPED Contribuições a partir de março/2022',
+          'Notas fiscais de compra de GLP/Diesel',
+          'Demonstrativo de apuração de PIS/COFINS do período',
+          'Registro de atividade econômica (CNAE) confirmando distribuição ou revenda',
+          'Procuração eletrônica no e-CAC'
+        ],
+        passos: [
+          'Confirmar CNAE do cliente — distribuidora ou revendedora de combustíveis',
+          'Verificar se recolheu PIS/COFINS sobre GLP ou Diesel após março/2022',
+          'Levantar NFs de compra e venda de combustíveis do período',
+          'Calcular o PIS/COFINS recolhido indevidamente após a LC 192',
+          'Elaborar memória de cálculo por competência',
+          'Transmitir PER/DCOMP para cada período de apuração indevida',
+          'Acompanhar processamento junto à RFB'
+        ],
+        atencao: [
+          'Aplicável apenas a distribuidores e varejistas — não ao produtor/importador (que recolhe o monofásico)',
+          'Vigência: março/2022 — não há direito antes dessa data por esta tese',
+          'Verificar se o cliente não é contribuinte substituto que já recolheu o monofásico',
+          'CNAE deve estar relacionado à distribuição ou comércio de combustíveis'
+        ]
+      },
+      {
+        id: 'monofasicos_sn',
+        titulo: 'Monofásicos SN — Relatório e Cálculo de Tese',
+        tipo: 'ADM',
+        fundamento: 'Art. 18, §§ 4º e 14 da LC 123/2006. Resolução CGSN 140/2018. Empresas do Simples Nacional que comercializam produtos sujeitos à tributação monofásica (substituição tributária de PIS/COFINS) não devem recolher PIS/COFINS sobre esses itens no DAS. Se recolheram, têm direito à restituição.',
+        prazo: 'Últimos 5 anos. Data de início: verificar quando o cliente passou a comercializar produtos monofásicos.',
+        documentos: [
+          'PGDAS de todos os períodos a analisar',
+          'Notas fiscais de venda dos produtos monofásicos (farma, bebidas, combustíveis, autopeças)',
+          'SPED Fiscal ou relatório de vendas por NCM',
+          'Relatório de produtos monofásicos do sistema (gerado automaticamente)',
+          'Extrato do Simples Nacional no e-CAC'
+        ],
+        passos: [
+          'Confirmar que o cliente é do Simples Nacional',
+          'Identificar quais produtos vendidos são monofásicos (verificar NCM)',
+          'Principais segmentos: farmacêutico, bebidas, combustíveis, autopeças, perfumaria',
+          'Gerar o Relatório Monofásicos SN no sistema',
+          'Verificar no PGDAS se o cliente segregou corretamente as receitas monofásicas',
+          'Calcular o PIS/COFINS recolhido a maior no DAS sobre esses produtos',
+          'Gerar o Cálculo Tese Monofásicos SN no sistema para quantificar o crédito',
+          'Elaborar demonstrativo do valor a restituir por período',
+          'Protocolar pedido de restituição via e-CAC (PERDCOMP-Web para SN)',
+          'Acompanhar o processamento junto à RFB'
+        ],
+        atencao: [
+          'Lista de produtos monofásicos: consultar Anexo da IN RFB 2.121/2022',
+          'O cliente precisa ter segregado (ou deixado de segregar) as receitas monofásicas no PGDAS',
+          'Verificar se o cliente é apenas revendedor — produtor/importador recolhe normalmente',
+          'Atenção ao Anexo em que o cliente está enquadrado no Simples (I, II, III)',
+          'Crédito pode ser restituído em dinheiro ou compensado com DAS futuro'
+        ]
+      },
+      {
+        id: 'pgdas_sn',
+        titulo: 'Relatório PGDAS SN — Revisão de Apuração',
+        tipo: 'ADM',
+        fundamento: 'LC 123/2006 e Resolução CGSN 140/2018. O PGDAS-D é a declaração de apuração mensal do Simples Nacional. Erros de enquadramento, segregação de receitas ou alíquotas podem gerar recolhimentos a maior passíveis de restituição.',
+        prazo: 'Últimos 5 anos. Verificar histórico completo de apurações no e-CAC.',
+        documentos: [
+          'Relatório PGDAS de todos os períodos (extraído do sistema)',
+          'DAS pagos de cada competência',
+          'Notas fiscais de entrada e saída do período',
+          'SPED Fiscal (se obrigado)',
+          'Declaração de informações do Simples (DEFIS) de cada ano'
+        ],
+        passos: [
+          'Extrair o Relatório PGDAS SN do sistema para todos os períodos',
+          'Verificar segregação de receitas: exportação, substituição tributária, imunes/isentas',
+          'Conferir o Anexo de enquadramento — empresa pode estar no Anexo errado',
+          'Identificar receitas com redução de alíquota não aplicada (ex: exportação)',
+          'Verificar se produtos monofásicos foram segregados corretamente',
+          'Recalcular o DAS correto para cada período com as devidas segregações',
+          'Calcular a diferença entre o DAS pago e o DAS correto',
+          'Elaborar demonstrativo do crédito por competência',
+          'Protocolar pedido de restituição ou compensação via e-CAC',
+          'Acompanhar o resultado junto à RFB'
+        ],
+        atencao: [
+          'Erro de Anexo é o mais comum — verificar CNAE principal e atividades preponderantes',
+          'Receitas de exportação têm redução de 100% de PIS/COFINS e ISS',
+          'Atividades com substituição tributária de ICMS devem ser segregadas',
+          'Verificar sublimites estaduais — podem alterar a apuração de ICMS e ISS',
+          'Retificação do PGDAS pode ser necessária antes do pedido de restituição'
+        ]
+      },
+      {
+        id: 'pis_cofins_base',
+        titulo: 'Exclusão PIS/COFINS da Própria Base',
+        tipo: 'JUD',
+        fundamento: 'Tese do "Gross Up Reverso" — PIS e COFINS não devem compor sua própria base de cálculo. Extensão lógica do RE 574.706/PR (STF). O sistema calcula a base correta sem a inclusão desses tributos e destaca o valor a recuperar. Sem modulação definitiva — avaliar risco por caso.',
+        prazo: 'Últimos 5 anos — somente via ação judicial. Acompanhar evolução jurisprudencial antes de protocolar.',
+        documentos: [
+          'SPED Contribuições (PIS e COFINS) de todos os períodos a analisar',
+          'Apurações mensais de PIS/COFINS',
+          'Relatório gerado pelo sistema com cálculo do Gross Up Reverso',
+          'Procuração para o advogado parceiro',
+          'Dados cadastrais completos da empresa'
+        ],
+        passos: [
+          'Verificar se o cliente está no regime não cumulativo (Lucro Real) — pré-requisito principal',
+          'Carregar o SPED Contribuições dos períodos no sistema',
+          'Gerar o relatório "Exclusão do PIS/COFINS da Própria Base"',
+          'O sistema calcula a base correta sem a inclusão do PIS/COFINS e compara com os valores pagos',
+          'Verificar o valor a recuperar nas colunas finais — sem correção SELIC',
+          'VALIDAR: verificar se há regimes especiais, receitas com deduções ou outros fatores que impactam a base',
+          'VALIDAR: confirmar que não há exceções não identificadas automaticamente pelo sistema',
+          'Apresentar diagnóstico ao cliente com o valor estimado (sem SELIC)',
+          'Encaminhar ao advogado parceiro para ajuizamento',
+          'Dar suporte técnico-contábil ao advogado durante o processo'
+        ],
+        atencao: [
+          'O sistema NÃO identifica automaticamente regimes especiais ou receitas com deduções — validação manual obrigatória',
+          'Valores apresentados SEM correção SELIC — o valor real com juros será calculado pelo advogado',
+          'Tese ainda em consolidação — avaliar risco jurídico caso a caso antes de apresentar ao cliente',
+          'Não aplicável para Simples Nacional ou Lucro Presumido',
+          'Validar as informações ANTES de apresentar à empresa'
+        ]
+      },
+      {
+        id: 'iss_pis_cofins',
+        titulo: 'Exclusão do ISS da BC do PIS/COFINS',
+        tipo: 'JUD',
+        fundamento: 'Extensão do RE 574.706/PR ao ISS. ISS não deve compor a base de cálculo do PIS/COFINS por não constituir receita da empresa, mas sim receita do município. O sistema identifica as receitas sujeitas ao ISS e calcula o abatimento da base. Válida especialmente para prestadores de serviços.',
+        prazo: 'Últimos 5 anos — somente via ação judicial. Acompanhar evolução jurisprudencial.',
+        documentos: [
+          'SPED Contribuições (PIS e COFINS) dos períodos a analisar',
+          'Registros A100/A170 do EFD Contribuições — prestação de serviços',
+          'NFS-e de saída com ISS destacado e PIS/COFINS recolhido',
+          'Guias de recolhimento de ISS de cada competência',
+          'Procuração para o advogado parceiro'
+        ],
+        passos: [
+          'Confirmar que o cliente é prestador de serviços com ISS destacado nas NFS-e',
+          'Verificar se escritura pelo Bloco A (A100/A170) — obrigatório para esta tese',
+          'ATENÇÃO: NÃO se aplica para Lucro Presumido com escrituração consolidada (Bloco F)',
+          'Carregar o SPED Contribuições no sistema e gerar o relatório de ISS da BC do PIS/COFINS',
+          'O sistema identifica receitas sujeitas ao ISS e calcula o abatimento da base',
+          'Verificar o valor pago indevidamente e o valor a recuperar nas colunas finais (sem SELIC)',
+          'VALIDAR: conferir regimes especiais de ISS, serviços isentos ou fatores de impacto não automáticos',
+          'VALIDAR: confirmar que o ISS destacado nas NFS-e foi efetivamente recolhido',
+          'Apresentar diagnóstico ao cliente com valor estimado',
+          'Encaminhar ao advogado parceiro para ajuizamento'
+        ],
+        atencao: [
+          'NÃO se aplica para Lucro Presumido com escrituração consolidada (Bloco F)',
+          'Requer registros A100/A170 no EFD Contribuições — Bloco A de prestação de serviços',
+          'Sistema não identifica automaticamente regimes especiais de ISS ou serviços isentos — validar manualmente',
+          'ISS varia por município — verificar alíquota correta para cada tipo de serviço',
+          'Valores sem correção SELIC — será aplicada pelo advogado no ajuizamento',
+          'Validar informações ANTES de apresentar à empresa'
+        ]
+      },
+      {
+        id: 'iss_irpj_csll',
+        titulo: 'Exclusão do ISS da BC do IRPJ/CSLL',
+        tipo: 'JUD',
+        fundamento: 'Tese análoga aplicada ao Lucro Presumido. ISS não deve compor a receita bruta base para o percentual de presunção do IRPJ/CSLL. Requer registros A100/A170 do EFD Contribuições e Bloco P da ECF. Tese em desenvolvimento jurisprudencial — não se aplica ao Lucro Real.',
+        prazo: 'Últimos 5 anos — somente via ação judicial.',
+        documentos: [
+          'EFD Contribuições dos períodos — registros A100/A170',
+          'NFS-e de saída com ISS destacado',
+          'ECF — Bloco P (apuração IRPJ/CSLL Lucro Presumido)',
+          'DARF de IRPJ e CSLL de cada competência',
+          'Procuração para o advogado parceiro'
+        ],
+        passos: [
+          'Confirmar que o cliente é do Lucro Presumido — tese NÃO se aplica ao Lucro Real',
+          'Verificar que é prestador de serviços com ISS destacado nas NFS-e',
+          'Levantar a receita bruta de serviços e o ISS recolhido em cada competência',
+          'Verificar registros A100/A170 do EFD Contribuições e Bloco P da ECF',
+          'Calcular a base de presunção correta (receita bruta — ISS)',
+          'Recalcular o IRPJ/CSLL sobre a base corrigida e apurar o valor pago a maior',
+          'Elaborar memória de cálculo por competência',
+          'Encaminhar ao advogado parceiro com toda a documentação'
+        ],
+        atencao: [
+          'Aplica-se SOMENTE ao Lucro Presumido — Lucro Real não se aplica',
+          'Percentuais de presunção variam por atividade: 32% para maioria dos serviços',
+          'Tese em construção — risco jurídico maior — avaliar viabilidade caso a caso',
+          'Cruzar com os registros da ECF Bloco P para validar os valores apurados',
+          'Validar se o ISS foi efetivamente destacado e recolhido em cada NFS-e'
+        ]
+      },
+      {
+        id: 'pis_cofins_irpj',
+        titulo: 'Exclusão PIS/COFINS da BC do IRPJ/CSLL',
+        tipo: 'JUD',
+        fundamento: 'Tese análoga à exclusão do ICMS/ISS, aplicada ao PIS e COFINS sobre a base do IRPJ/CSLL no Lucro Presumido. PIS e COFINS não constituem receita da empresa e não deveriam compor a base de presunção. Tese em desenvolvimento jurisprudencial.',
+        prazo: 'Últimos 5 anos — somente via ação judicial.',
+        documentos: [
+          'SPED Contribuições dos períodos a analisar',
+          'ECF — Bloco P (IRPJ/CSLL Lucro Presumido)',
+          'DARF de PIS, COFINS, IRPJ e CSLL por competência',
+          'Apurações mensais de PIS/COFINS',
+          'Procuração para o advogado parceiro'
+        ],
+        passos: [
+          'Confirmar Lucro Presumido — tese NÃO se aplica ao Lucro Real',
+          'Levantar PIS e COFINS recolhidos em cada competência',
+          'Calcular a base de presunção correta (receita bruta — PIS — COFINS)',
+          'Recalcular IRPJ/CSLL sobre a base corrigida e apurar o valor pago a maior',
+          'Cruzar com Bloco P da ECF para validar as apurações',
+          'Elaborar memória de cálculo detalhada por competência',
+          'Encaminhar ao advogado com toda a documentação de suporte'
+        ],
+        atencao: [
+          'Aplica-se SOMENTE ao Lucro Presumido',
+          'Tese em desenvolvimento — maior risco jurídico — avaliar caso a caso',
+          'Não ajuizar sem análise prévia do advogado sobre viabilidade no caso concreto',
+          'Combinar com outras teses apenas após análise individual de cada uma'
+        ]
+      },
+      {
+        id: 'icms_inclusao',
+        titulo: 'Inclusão do ICMS na BC do PIS/COFINS (entradas)',
+        tipo: 'JUD',
+        fundamento: 'Tese judicial vigente a partir de 05/2023. Visa aumentar o crédito de PIS/COFINS nas entradas incluindo o ICMS na base das compras — equilíbrio para cenários onde a empresa comprava com alíquota menor de ICMS e vendia com alíquota maior. Tese oposta à exclusão do ICMS das saídas.',
+        prazo: 'A partir de maio/2023 — tese recente. Somente via ação judicial.',
+        documentos: [
+          'SPED Contribuições dos períodos a analisar',
+          'SPED Fiscal (ICMS/IPI) dos mesmos períodos',
+          'Registros C100/C170 do EFD Contribuições — entradas com ICMS e PIS/COFINS creditado',
+          'NF-e de entrada com ICMS destacado',
+          'Procuração para o advogado parceiro'
+        ],
+        passos: [
+          'Confirmar Lucro Real com PIS/COFINS não cumulativo — obrigatório',
+          'Verificar se há diferença relevante entre alíquota de ICMS nas compras vs. vendas',
+          'Carregar SPED Contribuições e SPED Fiscal no sistema',
+          'Gerar relatório "Inclusão do ICMS na BC do PIS/COFINS" — entradas',
+          'O sistema calcula o novo valor de crédito com ICMS incluído na base das compras',
+          'Verificar valor a recuperar nas colunas finais — sem correção SELIC',
+          'VALIDAR: confirmar CFOP, CST e NCM nas entradas — sistema não identifica erros automaticamente',
+          'Apresentar diagnóstico ao cliente e encaminhar ao advogado para ajuizamento'
+        ],
+        atencao: [
+          'NÃO se aplica ao Lucro Presumido',
+          'Tese recente — vigência a partir de 05/2023 — não retroagir sem análise jurídica',
+          'Requer C100/C170 escriturados individualmente no EFD Contribuições — não Bloco F',
+          'Sistema não identifica classificações incorretas — validar CFOP, CST e NCM manualmente',
+          'Valores sem correção SELIC — será aplicada pelo advogado',
+          'Analisar viabilidade: o ganho adicional justifica o custo da ação judicial?'
+        ]
+      },
+      {
+        id: 'ecd_completo',
+        titulo: 'ECD — i200/i250 (Completo)',
+        tipo: 'ADM',
+        fundamento: 'IN RFB 2.003/2021 — obrigatoriedade da ECD (Escrituração Contábil Digital). Blocos i200 (lançamentos contábeis) e i250 (partidas individuais) contêm o detalhamento de todos os lançamentos por conta contábil e período. Ferramenta de auditoria e cruzamento contábil-fiscal.',
+        prazo: 'Análise retroativa conforme necessidade. Prazo de guarda: 5 anos. ECD obrigatória para Lucro Real e Lucro Presumido acima do limite de receita.',
+        documentos: [
+          'Arquivo ECD (Escrituração Contábil Digital) do(s) período(s) a analisar',
+          'Plano de contas da empresa para interpretação dos lançamentos',
+          'Balancetes mensais para cruzamento'
+        ],
+        passos: [
+          'Solicitar ao cliente o arquivo ECD de cada ano a analisar',
+          'Carregar o arquivo ECD no sistema',
+          'Gerar o relatório i200/i250 — sistema extrai e organiza todos os lançamentos por período',
+          'Usar para conferência detalhada de contas contábeis por período',
+          'Cruzar os lançamentos com os registros do SPED Fiscal e SPED Contribuições',
+          'Identificar lançamentos sem contrapartida fiscal — possível inconsistência ou crédito não aproveitado',
+          'Usar como base para auditorias fiscais e preparação de teses contábeis',
+          'Interpretar os lançamentos com o plano de contas da empresa em mãos'
+        ],
+        atencao: [
+          'O sistema APENAS organiza os dados declarados na ECD — interpretação é responsabilidade do usuário',
+          'Lançamentos i200/i250 precisam ser analisados junto ao plano de contas da empresa',
+          'Uso principal: cruzamento contábil-fiscal em auditorias e preparação de teses',
+          'Empresas do Simples Nacional geralmente não são obrigadas à ECD',
+          'Arquivos ECD podem ser grandes — verificar capacidade de processamento'
+        ]
+      }
+    ]
+  },
+  consultoria: {
+    eyebrow: 'Juliana — aprender e desenvolver', color: '#185FA5',
+    title: 'Consultoria Tributária',
+    sections: [
+      { title: 'O que é', items: ['Serviço consultivo de alto valor — pago por projeto ou mensalidade premium', 'Diferencia o escritório de simples "cumpridores de obrigações"'] },
+      { title: 'Serviços', items: ['Planejamento tributário — escolha e mudança de regime', 'Reorganização societária com foco tributário', 'Análise de viabilidade tributária antes de abrir empresa', 'Consultoria em operações especiais (importação, exportação, venda à ordem)', 'Parecer tributário por escrito', 'Consultoria pontual por hora (para empresas maiores)'] },
+      { title: 'O que aprender', items: ['Planejamento tributário avançado — cursos específicos', 'Reorganização societária — parceria com advogado societário', 'Precificação de serviços consultivos por valor entregue, não por hora'] }
+    ],
+    tip: 'Consultoria é o serviço de maior margem do escritório. Uma hora de consultoria bem posicionada vale mais que um dia de obrigações acessórias.'
+  },
+  contabilidade: {
+    eyebrow: 'Sócio Contábil — estrutura existente', color: '#0F6E56',
+    title: 'Contabilidade',
+    sections: [
+      { title: 'Responsável', items: ['Sócio Contábil — área principal e estruturada'] },
+      { title: 'Atividades', items: ['Escrituração contábil — lançamentos diários', 'Apuração de resultado mensal (DRE)', 'Elaboração de balanço patrimonial', 'DMPL — Demonstração das Mutações do Patrimônio Líquido', 'Notas explicativas', 'Conciliação contábil e bancária', 'Entrega de ECF e ECD (SPED Contábil)'] },
+      { title: 'Integração com Juliana', items: ['A contabilidade alimenta a base para a consultoria tributária', 'Dados contábeis são essenciais para planejamento tributário', 'Auditoria fiscal cruza com escrituração contábil'] }
+    ]
+  },
+  dp: {
+    eyebrow: 'Sócio Contábil — estrutura existente', color: '#0F6E56',
+    title: 'Departamento Pessoal',
+    sections: [
+      { title: 'Responsável', items: ['Sócio Contábil — área principal e estruturada'] },
+      { title: 'Atividades', items: ['Elaboração de folha de pagamento mensal', 'Cálculo e pagamento de 13º salário e férias', 'Rescisões contratuais (TRCT)', 'Admissão e demissão — documentação completa', 'eSocial — todas as obrigações', 'DCTFWeb — apuração de INSS e IRRF', 'FGTS Digital — GFIP e GRRF', 'CAGED, RAIS e obrigações acessórias trabalhistas', 'PPP e LTCAT para empresas com insalubridade'] }
+    ],
+    tip: 'O DP tem altíssima demanda recorrente e baixa sazonalidade — é o coração financeiro mensal do escritório.'
+  },
+  passivo: {
+    eyebrow: 'Juliana — executa já', color: '#185FA5',
+    title: 'Gestão de Passivo Fiscal',
+    sections: [
+      { title: 'O que é', items: ['Análise, negociação e regularização de débitos tributários', 'Um dos serviços mais demandados por PMEs com histórico de irregularidades'] },
+      { title: 'Atividades', items: ['Levantamento completo de débitos (PGFN, SEFAZ, Prefeitura)', 'Análise de viabilidade de parcelamento vs. contestação', 'Negociação de parcelamentos federais: REFIS, PERT, PGFN', 'Programas estaduais: Recupera Mais SC, PEP SP e similares', 'Acompanhamento de execuções fiscais com parceiro jurídico', 'Emissão de certidões negativas após regularização', 'Defesa em autuações — impugnações administrativas'] },
+      { title: 'Você tem experiência com', items: ['Recupera Mais SC — Lei 19.673/2025', 'PGFN — parcelamentos e execuções fiscais', 'Análise comparativa de programas de regularização'] }
+    ],
+    tip: 'Gestão de passivo é o serviço com maior urgência para o cliente — ele já está com o problema. Isso acelera muito o fechamento do contrato.'
+  },
+  beneficios: {
+    eyebrow: 'Juliana — diferencial regional', color: '#185FA5',
+    title: 'Benefícios Fiscais Estaduais',
+    sections: [
+      { title: 'Seu diferencial', items: ['Expertise consolidada em SC e RO — área escassa no mercado de Campinas', 'Clientes de importação/exportação pagam mais e permanecem mais tempo'] },
+      { title: 'Estados com maior potencial', items: ['Santa Catarina — Pro-Emprego, Pró-Cargas, Recupera Mais, ICMS diferenciado para importadores', 'Rondônia — benefícios para indústria e comércio atacadista', 'Goiás — FOMENTAR e PRODUZIR para empresas de médio porte', 'Espírito Santo — INVEST-ES para importadores', 'Mato Grosso — PRODEIC para indústria'] },
+      { title: 'Como comercializar', items: ['Diagnóstico gratuito de aproveitamento de benefícios', 'Laudo de viabilidade de transferência de operações', 'Consultoria de estruturação de filial em estado beneficiado'] }
+    ],
+    tip: 'Esse é o serviço mais difícil de copiar — exige conhecimento específico de legislação estadual que a maioria dos escritórios de SP não tem. É seu maior diferencial competitivo.'
+  },
+  auditoria: {
+    eyebrow: 'Juliana — aprender e desenvolver', color: '#185FA5',
+    title: 'Auditoria Fiscal',
+    sections: [
+      { title: 'O que é', items: ['Revisão técnica de obrigações e apurações de períodos anteriores', 'Identificação de erros, riscos e oportunidades de crédito'] },
+      { title: 'Modalidades', items: ['Due diligence fiscal — antes de compra/venda de empresa', 'Auditoria preventiva — identificar riscos antes da fiscalização', 'Revisão de SPED dos últimos 5 anos', 'Auditoria de contratos de importação/exportação', 'Laudo de risco tributário — entregável periódico de alto valor'] },
+      { title: 'O que aprender', items: ['Metodologia de due diligence fiscal — cursos e livros específicos', 'Precificação por projeto fechado', 'Laudo escrito com linguagem executiva para os sócios do cliente'] }
+    ],
+    tip: 'O laudo de risco tributário é o produto mais fácil de vender para a carteira existente do Sócio Contábil. Já tem o cliente — só precisa entregar um relatório que ele nunca viu antes.'
+  },
+  societario: {
+    eyebrow: 'Sócio Contábil — estrutura existente', color: '#0F6E56',
+    title: 'Societário',
+    sections: [
+      { title: 'Responsável', items: ['Sócio Contábil — área principal e estruturada'] },
+      { title: 'Atividades', items: ['Abertura de empresas — CNPJ, alvará, inscrições estadual e municipal', 'Alterações contratuais — mudança de sócios, endereço, atividade', 'Encerramento de empresas — baixa no CNPJ', 'Transformação de regime (MEI para ME, ME para EPP)', 'Registro na Junta Comercial', 'Regularização de empresas com pendências cadastrais', 'Emissão de certidões de regularidade'] }
+    ]
+  },
+  reforma: {
+    eyebrow: 'Juliana — emergente e estratégico', color: '#185FA5',
+    title: 'Reforma Tributária',
+    sections: [
+      { title: 'Por que é urgente', items: ['A Reforma Tributária (EC 132/2023) cria IBS, CBS e IS em substituição a PIS, COFINS, IPI, ICMS e ISS', 'Período de transição: 2026 a 2032 — empresas precisam se adaptar agora', 'Pouquíssimos escritórios dominam o tema — enorme janela de oportunidade'] },
+      { title: 'Serviços que você pode oferecer', items: ['Diagnóstico de impacto da reforma para cada cliente', 'Simulação de carga tributária no novo modelo vs. atual', 'Adaptação de sistemas e processos para IBS/CBS', 'Consultoria para empresas do Simples Nacional — mudanças específicas', 'Palestras e workshops para clientes (serviço adicional pago)', 'Monitoramento de regulamentações e novas normas'] },
+      { title: 'O que estudar agora', items: ['Lei Complementar 214/2025 — regulamenta IBS e CBS', 'Regulamentação do Comitê Gestor do IBS', 'Nota Técnica 007 — NFS-e com campos IBS/CBS'] }
+    ],
+    tip: 'Quem educar o cliente sobre a Reforma Tributária agora vai fidelizá-lo por anos. É o maior evento tributário do Brasil em 50 anos — e a maioria dos contadores ainda não sabe explicar.'
+  },
+  juridicoadm: {
+    eyebrow: 'Parceiro externo — área administrativa', color: '#8B2E4A',
+    title: 'Jurídico Tributário Administrativo',
+    sections: [
+      { title: 'O que é', items: ['Contestação de autuações e débitos dentro do sistema administrativo — sem precisar ir à Justiça', 'Você identifica o problema, o parceiro jurídico executa a defesa'] },
+      { title: 'Atividades do parceiro', items: ['Impugnação de auto de infração (prazo: 30 dias da notificação)', 'Recurso voluntário ao CARF (Conselho Administrativo de Recursos Fiscais)', 'Recurso especial e extraordinário no CARF', 'Defesa em processos administrativos estaduais (TIT/SP, TATE/SC etc.)', 'Consulta formal à Receita Federal ou SEFAZ'] },
+      { title: 'Como funcionar', items: ['Você identifica a autuação e avalia o mérito com o cliente', 'Aciona o parceiro jurídico especializado', 'Honorários divididos: sua parte pela análise e gestão, parceiro pela execução', 'Cliente fica com você — o jurídico é suporte invisível'] }
+    ],
+    tip: 'Nunca indique um advogado que você não conhece bem. Feche uma parceria formal com 1 ou 2 especialistas de confiança — os honorários compartilhados são a prática padrão do mercado.'
+  },
+  juridicojud: {
+    eyebrow: 'Parceiro externo — área judicial', color: '#8B2E4A',
+    title: 'Jurídico Tributário Judicial',
+    sections: [
+      { title: 'O que é', items: ['Ações judiciais tributárias — exigem advogado habilitado na OAB', 'Você apoia com os dados técnicos, o advogado executa a ação'] },
+      { title: 'Tipos de ação', items: ['Mandado de Segurança — garantir direito negado administrativamente', 'Ação Anulatória — cancelar débito fiscal na Justiça', 'Embargos à execução — contestar penhora e bloqueio de bens (SISBAJUD)', 'Ação declaratória — declarar direito tributário antes da autuação', 'Teses tributárias — exclusão do ICMS do PIS/COFINS, modulação STF'] },
+      { title: 'Sua contribuição técnica', items: ['Análise do mérito tributário para o advogado', 'Cálculo do valor discutido e simulação de cenários', 'Levantamento da documentação fiscal necessária', 'Acompanhamento técnico do processo'] }
+    ],
+    tip: 'A parceria com um bom advogado tributarista é um dos ativos mais valiosos do escritório. Ele traz casos que precisam de análise contábil — você traz casos que precisam de ação judicial.'
+  },
+  trabalhista: {
+    eyebrow: 'Parceiro externo', color: '#8B2E4A',
+    title: 'Trabalhista',
+    sections: [
+      { title: 'Quando acionar', items: ['Reclamações trabalhistas movidas por ex-funcionários dos clientes', 'Dúvidas sobre enquadramento sindical e convenções coletivas', 'Análise de contratos de trabalho atípicos (teletrabalho, intermitente)', 'Processos de terceirização e prestação de serviços'] },
+      { title: 'Como funcionar', items: ['Parceiro advogado trabalhista para encaminhamento dos clientes', 'Você mantém o cliente — o trabalhista presta o serviço jurídico', 'Honorários combinados por encaminhamento ou divisão de êxito'] }
+    ]
+  },
+  tecnologia: {
+    eyebrow: 'Suporte operacional', color: '#534AB7',
+    title: 'Tecnologia & Sistemas',
+    sections: [
+      { title: 'Sistemas essenciais', items: ['Sistema contábil/fiscal: Domínio Sistemas, Questor ou Thomson Reuters', 'Emissor de NF-e e NFS-e: conforme SEFAZ e prefeitura do cliente', 'SPED: validador da Receita Federal', 'e-CAC: procuração eletrônica de todos os clientes', 'eSocial e DCTFWeb: via portal gov.br ou sistema integrado'] },
+      { title: 'Automações que você pode implementar', items: ['Scripts Python para comparação de arquivos SPED', 'Planilhas automatizadas para conciliação fiscal e DIME', 'Dashboard de vencimentos e obrigações dos clientes', 'Ferramentas de comparação entre bases de dados (Domínio vs. GClick)', 'Geração automática de relatórios mensais para clientes'] },
+      { title: 'Diferenciais tecnológicos', items: ['Dashboard de saúde fiscal — cliente vê situação em tempo real', 'Alertas automáticos de vencimentos por WhatsApp', 'Repositório digital de documentos de cada cliente'] }
+    ],
+    tip: 'Você já tem experiência comprovada em automação fiscal — isso é um diferencial real. A maioria dos escritórios ainda faz tudo manualmente. Use essa vantagem para escalar sem contratar proporcionalmente.'
+  },
+  comercial: {
+    eyebrow: 'Crescimento & captação', color: '#854F0B',
+    title: 'Comercial',
+    sections: [
+      { title: 'Atividades', items: ['Prospecção ativa de novos clientes', 'Gestão do funil de vendas (CRM)', 'Apresentação e negociação de propostas', 'Acompanhamento de prospects em aberto', 'Gestão de metas de captação mensais'] },
+      { title: 'Processo comercial', items: ['Atração → Qualificação → Proposta → Fechamento → Onboarding → Fidelização', 'Scripts de WhatsApp por cenário (Instagram, indicação, prospecção ativa)', 'Diagnóstico gratuito como porta de entrada principal', 'Proposta apresentada presencialmente ou por vídeo — nunca só por mensagem'] },
+      { title: 'Metas sugeridas para o início', items: ['Mês 1–3: 3 a 5 clientes na carteira', 'Mês 4–6: 8 a 12 clientes', 'Mês 7–12: 15 a 25 clientes recorrentes'] }
+    ],
+    tip: 'Nunca mande tabela de preços sem antes qualificar o cliente. Preço sem contexto sempre parece caro. Preço depois do diagnóstico sempre parece justo.'
+  },
+  marketing: {
+    eyebrow: 'Crescimento & captação', color: '#854F0B',
+    title: 'Marketing Digital',
+    sections: [
+      { title: 'Canais ativos', items: ['Instagram JCR — conteúdo diário sobre fiscal, MEI, PGFN, Reforma Tributária', 'Site JCR — premium, navy/gold, posicionado como escritório estabelecido', 'WhatsApp Business — primeiro contato e qualificação'] },
+      { title: 'Estratégia de conteúdo', items: ['Postagens diárias com linguagem acessível sobre temas tributários', 'CTA sempre direcionando para WhatsApp', 'Conteúdo sobre Reforma Tributária — alto engajamento e diferencial', 'Cases de recuperação tributária (valores recuperados, sem identificar clientes)', 'Alertas de prazo — gera urgência e posiciona o escritório como especialista'] },
+      { title: 'O que construir agora', items: ['Google Meu Negócio — aparece nas buscas locais de Campinas', 'LinkedIn — para prospecção de empresas de médio porte', 'Newsletter mensal por e-mail para a base de contatos'] }
+    ],
+    tip: 'O Instagram já está sendo construído. Consistência é mais importante que perfeição — 1 post por dia durante 90 dias cria presença real no mercado.'
+  },
+  precificacao: {
+    eyebrow: 'Crescimento & captação', color: '#854F0B',
+    title: 'Precificação',
+    sections: [
+      { title: 'Modelos de cobrança', items: ['Mensalidade fixa — obrigações acessórias, contabilidade, DP recorrente', 'Honorário de êxito — 10% a 20% sobre valor recuperado (recuperação tributária)', 'Projeto fechado — due diligence, planejamento, consultoria pontual', 'Misto — mensalidade + êxito para clientes com passivo e obrigações simultâneas', 'Hora técnica — para consultorias de alta complexidade (R$ 300 a R$ 600/h)'] },
+      { title: 'Referência de valores — Campinas SP', items: ['MEI e Simples Nacional básico: R$ 150 a R$ 400/mês', 'Lucro Presumido: R$ 400 a R$ 900/mês', 'Lucro Real: R$ 800 a R$ 2.500/mês', 'Consultoria tributária avulsa: R$ 1.500 a R$ 5.000/projeto', 'Recuperação tributária: 10 a 20% do valor recuperado'] },
+      { title: 'Regras de ouro', items: ['Nunca concorra por preço — concorra por especialização', 'Mostre o valor antes de mostrar o preço', 'Reajuste anual pelo IPCA no contrato desde o início', 'Honorário de êxito sempre com teto de prazo definido'] }
+    ],
+    tip: 'Escritório de recuperação tributária especializado em SC e RO pode cobrar 30% a 50% mais que escritório generalista. Especialização justifica preço premium.'
+  },
+  parcerias: {
+    eyebrow: 'Crescimento & captação', color: '#854F0B',
+    title: 'Parcerias Estratégicas',
+    sections: [
+      { title: 'Tipos de parceiro', items: ['Advogados tributaristas — encaminhamento mútuo de casos', 'Advogados trabalhistas — defesa dos clientes em reclamações', 'Consultores financeiros e de crédito — clientes em comum', 'Corretores de seguro empresarial — base de clientes PJ', 'Bancos e fintechs — clientes que precisam de regularização para crédito', 'Escritórios contábeis de outras cidades — correspondentes para clientes de SC e RO'] },
+      { title: 'Como formalizar', items: ['Acordo de indicação com percentual sobre honorários (5% a 10% é padrão)', 'Contrato simples de parceria — por escrito sempre', 'Reunião trimestral para alinhamento de indicações'] },
+      { title: 'Parcerias de aprendizado', items: ['Associações contábeis (CRC SP, Sescon)', 'Grupos de contadores no WhatsApp e LinkedIn', 'Eventos e congressos tributários para networking'] }
+    ],
+    tip: 'Uma boa parceria com 2 ou 3 advogados tributaristas resolve o seu maior gap — o jurídico — e ainda gera receita de indicação nos dois sentidos.'
+  },
+  planejamento: {
+    eyebrow: 'Juliana — aprender e desenvolver', color: '#185FA5',
+    title: 'Planejamento Tributário',
+    sections: [
+      { title: 'O que é', items: ['Análise estratégica para reduzir legalmente a carga tributária do cliente', 'Um dos serviços de maior valor percebido e melhor margem do escritório', 'Pode ser entregue como projeto fechado ou incluído na mensalidade premium'] },
+      { title: 'Tipos de planejamento', items: ['Escolha e mudança de regime tributário (Simples → Presumido → Real)', 'Simulação comparativa de carga tributária por regime', 'Planejamento de distribuição de lucros para redução de IR dos sócios', 'Reorganização societária — criação de holding, separação de atividades', 'Planejamento de benefícios fiscais estaduais — filial em SC, RO ou GO', 'Planejamento sucessório com foco tributário', 'Análise de viabilidade de abertura de nova empresa ou CNPJ'] },
+      { title: 'Como comercializar', items: ['Ofereça a simulação gratuita de regime como porta de entrada', 'Apresente economia potencial em reais — não em percentual', 'Inclua revisão anual de planejamento nos contratos de mensalidade premium', 'Para empresas em crescimento: antecipe a discussão antes da mudança de faixa'] },
+      { title: 'O que aprender', items: ['Planejamento tributário — cursos CFC, Ibet, FGV', 'Holding familiar e patrimonial — parceria com advogado societário', 'Tributação de lucros e dividendos — impacto pós-Reforma Tributária', 'Precificação de serviços consultivos por valor entregue, não por hora'] }
+    ],
+    tip: 'A pergunta certa para vender planejamento é: "Você sabe quanto está pagando de imposto a mais do que poderia?" Quando o cliente vê o número, ele quer resolver. Uma simulação bem feita fecha contratos que nunca seriam fechados com abordagem tradicional.'
+  },
+  analise_carteira: {
+    eyebrow: 'Oportunidade estratégica — carteira existente', color: '#C9A84C',
+    title: 'Análise da Carteira — Recuperação e Passivo',
+    sections: [
+      { title: 'Por que é uma oportunidade enorme', items: ['O sócio contábil já tem a confiança dos clientes — custo de aquisição zero', 'A carteira existente nunca teve esse serviço — é receita nova sobre base já fidelizada', 'Você precisa apenas de acesso aos dados fiscais que o escritório já possui', 'É o caminho mais rápido para gerar receita no primeiro mês da sociedade'] },
+      { title: 'Como fazer a análise — Recuperação Tributária', items: ['Solicitar SPED Fiscal e EFD Contribuições dos últimos 5 anos de cada cliente', 'Verificar se os créditos de PIS/COFINS foram aproveitados corretamente', 'Analisar se há créditos de ICMS não utilizados (especialmente importadores)', 'Verificar apuração de IRPJ/CSLL — pagamentos a maior são comuns', 'Estimar o potencial de recuperação antes de apresentar ao cliente', 'Apresentar ao cliente apenas os casos com potencial real — não prometa o que não encontrou'] },
+      { title: 'Como fazer a análise — Gestão de Passivo', items: ['Consultar situação de cada cliente no PGFN (Regularize) e SEFAZ', 'Identificar clientes com execuções fiscais ativas', 'Verificar certidões negativas — quem está irregular?', 'Analisar débitos de FGTS e INSS no eSocial/CNIS', 'Priorizar clientes com maior volume de débito e maior capacidade de pagamento', 'Mapear quais programas especiais se encaixam para cada cliente (PERT, Recupera Mais etc.)'] },
+      { title: 'Como apresentar ao sócio contábil', items: ['Proponha uma varredura completa da carteira como primeiro projeto conjunto', 'Apresente como serviço adicional que aumenta o valor percebido pelo cliente', 'Divida os honorários de êxito conforme acordado na sociedade', 'Comece pelos 10 maiores clientes — maior potencial, menor esforço de relacionamento'] },
+      { title: 'Como apresentar ao cliente final', items: ['Marque reunião com o cliente apresentado pelo sócio', '"Fizemos uma análise dos últimos 5 anos e encontramos R$ X em créditos não aproveitados"', 'Mostre o diagnóstico antes de falar em contrato', 'Proposta: honorário de êxito sobre o que for recuperado — cliente não tem risco'] }
+    ],
+    tip: 'Essa é a jogada mais inteligente desta sociedade. Em vez de começar do zero na captação, você entra com um portfólio pronto. Uma carteira de 50 clientes contábeis pode esconder R$ 500.000 a R$ 2.000.000 em créditos e débitos renegociáveis. Vale mapear tudo antes de qualquer outra ação comercial.'
+  },
+  atração: {
+    eyebrow: 'Funil comercial — etapa 1', color: '#C9A84C',
+    title: 'Atração de Clientes',
+    sections: [
+      { title: 'Indicação', items: ['Principal fonte de clientes no início', 'Peça indicação ativamente após resolver um problema', 'Crie o hábito: "Você conhece alguém que pode precisar desse serviço?"', 'Ofereça um mês de desconto para clientes que indicarem'] },
+      { title: 'Diagnóstico gratuito', items: ['Maior conversão de todas as estratégias', 'Oferece análise inicial sem custo', 'Mostra o problema encontrado', 'Fecha contrato para resolver — converte muito bem'] },
+      { title: 'Instagram + site', items: ['Conteúdo diário sobre Reforma Tributária, MEI, PGFN, IRPF', 'CTA sempre direciona para WhatsApp', 'Site posicionado como escritório estabelecido'] },
+      { title: 'Prospecção ativa — PGFN', items: ['Empresas com débitos no PGFN são públicas no portal', 'Identifique prospects por CNAE e porte', 'Ofereça o diagnóstico gratuito diretamente'] }
+    ]
+  },
+  qualificacao: {
+    eyebrow: 'Funil comercial — etapa 2', color: '#185FA5',
+    title: 'Qualificação pelo WhatsApp',
+    sections: [
+      { title: 'Cenário 1 — Instagram ou site', items: ['Msg 1: "Olá, [nome]! Me conta — você tem empresa aberta ou está pensando em abrir?"', 'Msg 2: "Qual o regime tributário? Simples, Presumido ou Real?"', 'Msg 3: "O que te motivou a buscar assessoria agora?"', 'Msg 4: "Posso fazer um diagnóstico rápido — sem custo. Você teria 20 minutos essa semana?"'] },
+      { title: 'Cenário 2 — indicação', items: ['Msg 1: "Olá, [nome]! O [fulano] me falou de você. Qual a principal dificuldade na parte fiscal da empresa agora?"', 'Indicação já tem confiança — vá direto ao problema'] },
+      { title: 'Cenário 3 — prospecção ativa', items: ['Msg 1: "Olá, [nome]. Sou a Juliana, consultora tributária. Empresas do seu segmento frequentemente têm créditos não aproveitados. Toparia uma análise gratuita de 20 minutos?"'] },
+      { title: 'Regras de ouro', items: ['Uma pergunta por vez — mensagem longa assusta', 'Responder em até 2h em horário comercial', 'Nunca mandar preço antes de qualificar', 'Sem áudio — use texto', 'Sempre fechar com próximo passo claro', 'Usar o nome da pessoa sempre'] }
+    ],
+    tip: 'Prospect que responde rápido e com detalhes, menciona valores ou prazos, já teve problema com Receita ou SEFAZ, ou está trocando de contador — vale investir. Prospect que responde em monossílabos ou só pesquisa preço — não é o momento.'
+  },
+  proposta: {
+    eyebrow: 'Funil comercial — etapa 3', color: '#1A7F74',
+    title: 'Proposta Comercial',
+    sections: [
+      { title: 'Estrutura da proposta', items: ['1. Começa pelo problema do cliente — nunca pela lista de serviços', '2. Mostra o que você encontrou no diagnóstico', '3. Apresenta a solução com prazo e entregáveis claros', '4. Valor por último — depois que o cliente já viu o valor'] },
+      { title: 'Modelos de cobrança', items: ['Mensalidade fixa — obrigações recorrentes e contabilidade', 'Honorário de êxito — recuperação tributária (10% a 20%)', 'Projeto fechado — due diligence, planejamento, consultoria', 'Misto — mensalidade + êxito para clientes com passivo e obrigações'] },
+      { title: 'Como apresentar', items: ['Presencialmente ou por videochamada — nunca só por mensagem', 'Leve o diagnóstico impresso ou em apresentação', 'Deixe o cliente falar sobre o problema antes de apresentar a solução'] }
+    ],
+    tip: 'Nunca mande proposta por WhatsApp sem antes conversar. A proposta sem contexto sempre parece cara. A proposta depois do diagnóstico sempre parece um investimento.'
+  },
+  fechamento: {
+    eyebrow: 'Funil comercial — etapa 4', color: '#8B2E4A',
+    title: 'Fechamento',
+    sections: [
+      { title: 'Como contornar objeções', items: ['Objeção de preço → mostre o custo de não agir (quanto perde por mês sem créditos ou com multas)', 'Objeção de urgência → defina prazo para a proposta e explique o que acontece se esperar', 'Objeção de confiança → ofereça primeiro mês de diagnóstico com desconto'] },
+      { title: 'Táticas de fechamento', items: ['Entrada facilitada — primeiro mês com desconto ou diagnóstico gratuito', 'Contrato simples e claro — cliente desconfia de contrato complicado', 'Prazo da proposta — "essa condição é válida até sexta-feira"', 'Pequeno compromisso — "posso te mandar o contrato para você analisar?"'] },
+      { title: 'Sinais de que está pronto para fechar', items: ['Pergunta sobre início, prazo ou forma de pagamento', 'Pede para ver o contrato', 'Compara com o que já gasta com contador atual', 'Menciona o problema de novo com mais detalhes'] }
+    ]
+  },
+  onboarding: {
+    eyebrow: 'Funil comercial — etapa 5', color: '#534AB7',
+    title: 'Onboarding do Cliente',
+    sections: [
+      { title: 'Checklist de documentos', items: ['Contrato Social e alterações', 'CNPJ e inscrições estadual e municipal', 'Últimas declarações entregues (SPED, ECF, DCTF)', 'Extratos bancários dos últimos 3 meses', 'Notas fiscais de entrada e saída dos últimos 12 meses', 'Certidões de débitos (PGFN, SEFAZ, prefeitura)'] },
+      { title: 'Acesso a sistemas', items: ['Procuração eletrônica no e-CAC (Receita Federal)', 'Acesso ao portal SEFAZ estadual', 'Login no eSocial e DCTFWeb', 'Credenciais do sistema contábil atual (para migração)'] },
+      { title: 'Kit boas-vindas', items: ['E-mail formal de boas-vindas com dados de contato', 'Cronograma das primeiras entregas', 'Guia de "o que você precisa me enviar mensalmente"', 'Whatsapp direto de Juliana para urgências'] }
+    ],
+    tip: 'A experiência de onboarding define a retenção. Um cliente bem recebido nos primeiros 30 dias fica em média 3 anos. Um cliente mal recebido cancela em 90 dias.'
+  },
+  fidelizacao: {
+    eyebrow: 'Funil comercial — recorrente', color: '#27500A',
+    title: 'Fidelização',
+    sections: [
+      { title: 'Entregas de valor recorrente', items: ['Relatório mensal — o que foi feito, o que está pendente, alertas', 'Laudo de risco semestral — riscos, créditos não aproveitados e oportunidades', 'Alertas estratégicos — vencimentos, mudanças de lei, novas oportunidades'] },
+      { title: 'Como pedir indicação', items: ['"Você tem algum conhecido empresário que também poderia se beneficiar?"', 'Peça sempre após entregar um resultado — recuperação, regularização, economia', 'Ofereça incentivo: desconto ou mês grátis para quem indicar'] },
+      { title: 'Upsell — crescer com o cliente', items: ['Cliente no Simples → ofereça planejamento de migração para Presumido', 'Cliente com obrigações → ofereça diagnóstico de passivo', 'Cliente regularizado → ofereça consultoria de benefícios fiscais', 'Cliente de SC/RO → ofereça laudo de aproveitamento de benefícios'] }
+    ],
+    tip: 'Upsell é sempre mais fácil que captação. Cliente que já confia em você compra mais sem precisar de todo o processo de qualificação e proposta.'
+  }
+};
+
+function openModal(id) {
+  const d = data[id];
+  if (!d) return;
+  document.getElementById('modal-eyebrow').textContent = d.eyebrow;
+  document.getElementById('modal-eyebrow').style.color = d.color || '#C9A84C';
+  document.getElementById('modal-title').textContent = d.title;
+
+  let html = '';
+
+  // Sections normais
+  if (d.sections) {
+    d.sections.forEach(s => {
+      html += `<div class="modal-section">
+        <div class="modal-section-title">${s.title}</div>
+        <ul class="modal-list">`;
+      s.items.forEach(item => {
+        html += `<li><span>${item}</span></li>`;
+      });
+      html += `</ul></div>`;
+    });
+  }
+
+  if (d.tip) {
+    html += `<div class="modal-tip"><p><strong>Dica estratégica:</strong> ${d.tip}</p></div>`;
+  }
+
+  // Manual de procedimentos
+  if (d.manual && d.manual.length > 0) {
+    html += `<div style="margin-top:1.5rem;">
+      <div class="modal-section-title" style="font-size:12px;color:#C9A84C;border-bottom:2px solid #C9A84C;padding-bottom:6px;margin-bottom:1rem;">
+        MANUAL DE PROCEDIMENTOS
+      </div>`;
+
+    // Tabs de navegação
+    html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem;" id="manual-tabs">`;
+    d.manual.forEach((m, i) => {
+      const bg = m.tipo === 'ADM' ? '#E6F1FB' : '#FBEAF0';
+      const cor = m.tipo === 'ADM' ? '#0C447C' : '#5C1A30';
+      const ativo = i === 0 ? 'border:2px solid #C9A84C;' : 'border:1px solid rgba(0,0,0,0.1);';
+      html += `<button onclick="showTese(${i})" id="tab-${i}"
+        style="font-size:10px;font-weight:600;padding:5px 10px;border-radius:6px;cursor:pointer;background:${bg};color:${cor};${ativo}transition:all 0.15s;">
+        <span style="margin-right:4px;">${m.tipo === 'ADM' ? '🟦' : '⚖️'}</span>${m.titulo.split('—')[0].trim()}
+      </button>`;
+    });
+    html += `</div>`;
+
+    // Conteúdo de cada tese
+    d.manual.forEach((m, i) => {
+      const tipoBg = m.tipo === 'ADM' ? '#E6F1FB' : '#FBEAF0';
+      const tipoCor = m.tipo === 'ADM' ? '#0C447C' : '#5C1A30';
+      html += `<div id="tese-${i}" style="display:${i===0?'block':'none'};">
+
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;padding:10px 14px;background:var(--light);border-radius:10px;">
+          <span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:5px;background:${tipoBg};color:${tipoCor};">${m.tipo}</span>
+          <span style="font-size:14px;font-weight:600;color:var(--navy);">${m.titulo}</span>
+        </div>
+
+        <div class="modal-section">
+          <div class="modal-section-title">⚖ Fundamento Legal</div>
+          <div style="font-size:13px;color:var(--slate);line-height:1.7;background:var(--light);padding:10px 14px;border-radius:8px;border-left:3px solid #C9A84C;">${m.fundamento}</div>
+        </div>
+
+        <div class="modal-section">
+          <div class="modal-section-title">⏱ Prazo</div>
+          <div style="font-size:13px;color:var(--slate);line-height:1.7;background:var(--light);padding:10px 14px;border-radius:8px;border-left:3px solid #185FA5;">${m.prazo}</div>
+        </div>
+
+        <div class="modal-section">
+          <div class="modal-section-title">📁 Documentos Necessários</div>
+          <ul class="modal-list">
+            ${m.documentos.map(doc => `<li><span>${doc}</span></li>`).join('')}
+          </ul>
+        </div>
+
+        <div class="modal-section">
+          <div class="modal-section-title">📋 Passo a Passo</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            ${m.passos.map((p, pi) => `
+              <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 12px;background:var(--light);border-radius:8px;font-size:13px;color:var(--slate);">
+                <span style="width:22px;height:22px;border-radius:50%;background:var(--navy);color:#F0D080;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${pi+1}</span>
+                <span style="line-height:1.5;">${p}</span>
+              </div>`).join('')}
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <div class="modal-section-title" style="color:#8B2E4A;">⚠ Pontos de Atenção</div>
+          <ul class="modal-list">
+            ${m.atencao.map(a => `<li style="color:#8B2E4A;"><span>${a}</span></li>`).join('')}
+          </ul>
+        </div>
+      </div>`;
+    });
+
+    html += `</div>`;
+  }
+
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function showTese(idx) {
+  document.querySelectorAll('[id^="tese-"]').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.style.border = '1px solid rgba(0,0,0,0.1)');
+  const tese = document.getElementById('tese-' + idx);
+  const tab = document.getElementById('tab-' + idx);
+  if (tese) tese.style.display = 'block';
+  if (tab) tab.style.border = '2px solid #C9A84C';
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function closeOnOverlay(e) {
+  if (e.target === document.getElementById('modal')) closeModal();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+const style = document.createElement('style');
+style.textContent = `.modal-list li::before { background: var(--dot-color, #C9A84C) !important; }`;
+document.head.appendChild(style);
+</script>
+</body>
+</html>

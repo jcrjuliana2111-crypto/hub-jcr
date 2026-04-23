@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estrutura do Escritório — JCR + Wesley</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: #0F1E3C; --navy2: #1B3A6B; --gold: #C9A84C; --gold2: #F0D080;
+  --teal: #1A7F74; --rose: #8B2E4A; --light: #F4F1EB; --white: #FDFCF9;
+  --muted: #7A8499; --slate: #2D3B55;
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--light); color: var(--navy); }
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(15,30,60,0.97); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.75rem 2.5rem; border-bottom: 1px solid rgba(201,168,76,0.2);
+}
+.nav-brand { font-family: 'Playfair Display', serif; font-size: 15px; color: var(--gold); font-weight: 700; }
+.nav-links { display: flex; gap: 1.5rem; }
+.nav-links a { font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.55); text-decoration: none; transition: color 0.2s; }
+.nav-links a:hover { color: var(--gold); }
+.hero { min-height: 50vh; background: var(--navy); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 7rem 2rem 4rem; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -100px; right: -100px; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%); }
+.hero-badge { font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; }
+.hero-badge::before, .hero-badge::after { content: ''; display: inline-block; width: 30px; height: 1px; background: var(--gold); }
+.hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; color: var(--white); line-height: 1.1; margin-bottom: 1rem; }
+.hero h1 span { color: var(--gold); }
+.hero-sub { font-size: 15px; color: rgba(255,255,255,0.45); font-weight: 300; }
+.hint { font-size: 11px; color: rgba(255,255,255,0.25); margin-top: 1.5rem; letter-spacing: 0.08em; }
+section { padding: 3.5rem 2rem; max-width: 1100px; margin: 0 auto; }
+.section-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem; }
+.section-title { font-family: 'Playfair Display', serif; font-size: clamp(1.4rem, 2.5vw, 1.9rem); font-weight: 700; color: var(--navy); margin-bottom: 1.5rem; }
+.section-divider { width: 48px; height: 3px; background: var(--gold); margin-bottom: 2rem; border-radius: 2px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 2rem; }
+.leg { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.org-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; justify-content: center; }
+.dept { border-radius: 10px; padding: 10px 14px; flex: 1; min-width: 130px; max-width: 200px; cursor: pointer; border: 1px solid transparent; transition: transform 0.15s, box-shadow 0.15s; position: relative; }
+.dept:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+.dept-name { font-size: 12px; font-weight: 600; line-height: 1.3; margin-bottom: 3px; }
+.dept-sub { font-size: 10px; font-weight: 400; line-height: 1.3; opacity: 0.75; }
+.dept-arrow { font-size: 9px; position: absolute; bottom: 6px; right: 8px; opacity: 0.5; }
+.apex { background:#0F1E3C; border-color:#1B3A6B; max-width:260px; }
+.apex .dept-name { color:#F0D080; } .apex .dept-sub { color:rgba(240,208,128,0.7); } .apex .dept-arrow { color:#F0D080; }
+.shared { background:#2D3B55; border-color:#3D5070; }
+.shared .dept-name { color:#B5D4F4; } .shared .dept-sub { color:rgba(181,212,244,0.7); } .shared .dept-arrow { color:#B5D4F4; }
+.ju { background:#0C447C; border-color:#185FA5; }
+.ju .dept-name { color:#E6F1FB; } .ju .dept-sub { color:rgba(230,241,251,0.7); } .ju .dept-arrow { color:#E6F1FB; }
+.ju2 { background:#185FA5; border-color:#378ADD; }
+.ju2 .dept-name { color:#E6F1FB; } .ju2 .dept-sub { color:rgba(230,241,251,0.7); } .ju2 .dept-arrow { color:#E6F1FB; }
+.wesley { background:#085041; border-color:#0F6E56; }
+.wesley .dept-name { color:#9FE1CB; } .wesley .dept-sub { color:rgba(159,225,203,0.7); } .wesley .dept-arrow { color:#9FE1CB; }
+.juridico { background:#5C1A30; border-color:#8B2E4A; }
+.juridico .dept-name { color:#F4C0D1; } .juridico .dept-sub { color:rgba(244,192,209,0.7); } .juridico .dept-arrow { color:#F4C0D1; }
+.comercial { background:#633806; border-color:#854F0B; }
+.comercial .dept-name { color:#FAC775; } .comercial .dept-sub { color:rgba(250,199,117,0.7); } .comercial .dept-arrow { color:#FAC775; }
+.tech { background:#26215C; border-color:#534AB7; }
+.tech .dept-name { color:#CECBF6; } .tech .dept-sub { color:rgba(206,203,246,0.7); } .tech .dept-arrow { color:#CECBF6; }
+.row-divider { width:100%; height:0.5px; background:rgba(0,0,0,0.1); margin:0.75rem 0; position:relative; }
+.row-label { position:absolute; top:-9px; left:50%; transform:translateX(-50%); background:var(--light); padding:0 10px; font-size:10px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:200; display:flex; align-items:center; justify-content:center; padding:1.5rem; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal { background:var(--white); border-radius:20px; max-width:640px; width:100%; max-height:85vh; overflow-y:auto; padding:2rem; transform:translateY(20px); transition:transform 0.2s; position:relative; }
+.modal-overlay.open .modal { transform:translateY(0); }
+.modal-close { position:absolute; top:1rem; right:1rem; width:32px; height:32px; border-radius:50%; background:var(--light); border:none; cursor:pointer; font-size:16px; color:var(--muted); display:flex; align-items:center; justify-content:center; transition:background 0.15s; }
+.modal-close:hover { background:rgba(0,0,0,0.1); }
+.modal-badge { font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; padding:3px 10px; border-radius:5px; display:inline-block; margin-bottom:0.75rem; }
+.modal-title { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:700; color:var(--navy); margin-bottom:0.5rem; }
+.modal-resp { font-size:12px; color:var(--muted); margin-bottom:1.25rem; padding-bottom:1.25rem; border-bottom:1px solid rgba(0,0,0,0.07); }
+.modal-section { margin-bottom:1.25rem; }
+.modal-section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:0.6rem; }
+.modal-list { list-style:none; display:flex; flex-direction:column; gap:6px; }
+.modal-list li { display:flex; align-items:flex-start; gap:10px; font-size:13px; color:var(--slate); line-height:1.55; }
+.modal-list li::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--gold); flex-shrink:0; margin-top:7px; }
+.modal-alert { background:var(--light); border-radius:0 10px 10px 0; padding:1rem; font-size:13px; color:var(--slate); line-height:1.6; border-left:3px solid var(--gold); margin-top:1rem; }
+.funil-step { background:var(--white); border-radius:14px; padding:1.5rem; margin-bottom:6px; border:1px solid rgba(0,0,0,0.06); position:relative; overflow:hidden; cursor:pointer; transition:transform 0.15s; }
+.funil-step:hover { transform:translateX(3px); }
+.funil-step::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; }
+.s1::before{background:#C9A84C;}.s2::before{background:#185FA5;}.s3::before{background:#1A7F74;}.s4::before{background:#8B2E4A;}.s5::before{background:#534AB7;}.s6::before{background:#27500A;}
+.funil-header { display:flex; align-items:center; gap:12px; margin-bottom:0.75rem; }
+.funil-badge { font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:4px 10px; border-radius:5px; }
+.funil-title { font-size:14px; font-weight:600; color:var(--navy); }
+.funil-desc { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:0.75rem; }
+.tags { display:flex; flex-wrap:wrap; gap:6px; }
+.tag { font-size:11px; padding:4px 10px; border-radius:6px; background:var(--light); color:var(--slate); border:1px solid rgba(0,0,0,0.06); }
+.arrow { text-align:center; color:var(--muted); font-size:20px; margin:2px 0; }
+.bg-alt { background:var(--white); }
+footer { background:var(--navy); padding:2rem; text-align:center; }
+footer p { font-size:12px; color:rgba(255,255,255,0.3); letter-spacing:0.08em; }
+@media(max-width:700px){nav{padding:.75rem 1.25rem;}.nav-links{display:none;}}
+</style>
+</head>
+<body>
+
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-box">
+    <button class="modal-close" onclick="closeModalBtn()">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<nav>
+  <div class="nav-brand">JCR — Estrutura do Escritório</div>
+  <div class="nav-links">
+    <a href="#organograma">Organograma</a>
+    <a href="#funil">Funil Comercial</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">Mapa Estratégico</div>
+  <h1>Estrutura do<br><span>Escritório Completo</span></h1>
+  <p class="hero-sub">Organograma, departamentos e processo comercial — JCR + Wesley</p>
+  <p class="hint">Clique em qualquer bloco para ver os detalhes completos</p>
+</div>
+
+<div id="organograma">
+<section>
+  <div class="section-eyebrow">Como o escritório se organiza</div>
+  <h2 class="section-title">Organograma Completo</h2>
+  <div class="section-divider"></div>
+  <div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:#185FA5"></div>Juliana — fiscal/tributário</div>
+    <div class="leg"><div class="leg-dot" style="background:#0F6E56"></div>Wesley — contabilidade/DP</div>
+    <div class="leg"><div class="leg-dot" style="background:#8B2E4A"></div>Jurídico — parceiro externo</div>
+    <div class="leg"><div class="leg-dot" style="background:#854F0B"></div>Comercial &amp; marketing</div>
+    <div class="leg"><div class="leg-dot" style="background:#534AB7"></div>Tecnologia</div>
+    <div class="leg"><div class="leg-dot" style="background:#2D3B55"></div>Compartilhado</div>
+  </div>
+  <div class="org-row" style="margin-bottom:10px;">
+    <div class="dept apex" onclick="openModal('direcao')"><div class="dept-name">Direção Geral</div><div class="dept-sub">Juliana + Wesley — sócios</div><div class="dept-arrow">▼</div></div>
+  </div>
+  <div class="org-row">
+    <div class="dept shared" onclick="openModal('financeiro')"><div class="dept-name">Financeiro</div><div class="dept-sub">Faturamento, fluxo, contas</div><div class="dept-arrow">▼</div></div>
+    <div class="dept shared" onclick="openModal('atendimento')"><div class="dept-name">Atendimento</div><div class="dept-sub">Recepção, CRM, agenda</div><div class="dept-arrow">▼</div></div>
+    <div class="dept shared" onclick="openModal('rh')"><div class="dept-name">RH Interno</div><div class="dept-sub">Equipe, treinamento</div><div class="dept-arrow">▼</div></div>
+  </div>
+  <div class="row-divider"><span class="row-label">operacional</span></div>
+  <div class="org-row">
+    <div class="dept ju" onclick="openModal('fiscal')"><div class="dept-name">Fiscal &amp; Tributário</div><div class="dept-sub">SPED, apuração, obrigações</div><div class="dept-arrow">▼</div></div>
+    <div class="dept ju" onclick="openModal('recuperacao')"><div class="dept-name">Recuperação Tributária</div><div class="dept-sub">Créditos, PER/DCOMP, êxito</div><div class="dept-arrow">▼</div></div>
+    <div class="dept ju" onclick="openModal('consultoria')"><div class="dept-name">Consultoria Tributária</div><div class="dept-sub">Planejamento, regimes</div><div class="dept-arrow">▼</div></div>
+    <div class="dept wesley" onclick="openModal('contabilidade')"><div class="dept-name">Contabilidade</div><div class="dept-sub">Escrituração, balanços</div><div class="dept-arrow">▼</div></div>
+    <div class="dept wesley" onclick="openModal('dp')"><div class="dept-name">Depto. Pessoal</div><div class="dept-sub">Folha, eSocial, CLT</div><div class="dept-arrow">▼</div></div>
+  </div>
+  <div class="org-row">
+    <div class="dept ju2" onclick="openModal('passivo')"><div class="dept-name">Gestão de Passivo</div><div class="dept-sub">Parcelamentos, PGFN</div><div class="dept-arrow">▼</div></div>
+    <div class="dept ju2" onclick="openModal('beneficios')"><div class="dept-name">Benefícios Fiscais</div><div class="dept-sub">SC, RO, GO — diferencial</div><div class="dept-arrow">▼</div></div>
+    <div class="dept ju2" onclick="openModal('auditoria')"><div class="dept-name">Auditoria Fiscal</div><div class="dept-sub">Due diligence, revisão</div><div class="dept-arrow">▼</div></div>
+    <div class="dept wesley" onclick="openModal('societario')"><div class="dept-name">Societário</div><div class="dept-sub">Abertura, alteração, baixa</div><div class="dept-arrow">▼</div></div>
+    <div class="dept ju2" onclick="openModal('reforma')"><div class="dept-name">Reforma Tributária</div><div class="dept-sub">IBS, CBS — emergente</div><div class="dept-arrow">▼</div></div>
+  </div>
+  <div class="row-divider"><span class="row-label">suporte especializado</span></div>
+  <div class="org-row">
+    <div class="dept juridico" onclick="openModal('juridicoadm')"><div class="dept-name">Jurídico Trib. Adm.</div><div class="dept-sub">CARF, impugnações</div><div class="dept-arrow">▼</div></div>
+    <div class="dept juridico" onclick="openModal('juridicojud')"><div class="dept-name">Jurídico Trib. Judicial</div><div class="dept-sub">Execuções, MS, anulatórias</div><div class="dept-arrow">▼</div></div>
+    <div class="dept juridico" onclick="openModal('trabalhista')"><div class="dept-name">Trabalhista</div><div class="dept-sub">Parceiro externo</div><div class="dept-arrow">▼</div></div>
+    <div class="dept tech" onclick="openModal('tecnologia')"><div class="dept-name">Tecnologia &amp; Sistemas</div><div class="dept-sub">Domínio, automações</div><div class="dept-arrow">▼</div></div>
+  </div>
+  <div class="row-divider"><span class="row-label">crescimento &amp; captação</span></div>
+  <div class="org-row">
+    <div class="dept comercial" onclick="openModal('comercial')"><div class="dept-name">Comercial</div><div class="dept-sub">Proposta, funil, CRM</div><div class="dept-arrow">▼</div></div>
+    <div class="dept comercial" onclick="openModal('marketing')"><div class="dept-name">Marketing Digital</div><div class="dept-sub">Instagram, site, WhatsApp</div><div class="dept-arrow">▼</div></div>
+    <div class="dept comercial" onclick="openModal('precificacao')"><div class="dept-name">Precificação</div><div class="dept-sub">Tabela, mensalidade, êxito</div><div class="dept-arrow">▼</div></div>
+    <div class="dept comercial" onclick="openModal('parcerias')"><div class="dept-name">Parcerias</div><div class="dept-sub">Indicações, correspondentes</div><div class="dept-arrow">▼</div></div>
+  </div>
+</section>
+</div>
+
+<div class="bg-alt" id="funil">
+<section>
+  <div class="section-eyebrow">Como captamos e retemos clientes</div>
+  <h2 class="section-title">Funil Comercial</h2>
+  <div class="section-divider"></div>
+  <div class="funil-step s1" onclick="openModal('fat_atracao')">
+    <div class="funil-header"><div class="funil-badge" style="background:#FAEEDA;color:#633806;">Etapa 1</div><div class="funil-title">Atração — como o cliente chega</div></div>
+    <div class="funil-desc">Múltiplos canais garantem fluxo constante de prospects qualificados. Clique para ver cada canal detalhado.</div>
+    <div class="tags"><span class="tag">Indicação</span><span class="tag">Diagnóstico gratuito</span><span class="tag">Instagram + site</span><span class="tag">Parceiros</span><span class="tag">Prospecção ativa</span></div>
+  </div>
+  <div class="arrow">↓</div>
+  <div class="funil-step s2" onclick="openModal('fat_qualificacao')">
+    <div class="funil-header"><div class="funil-badge" style="background:#E6F1FB;color:#0C447C;">Etapa 2</div><div class="funil-title">Qualificação — entender a dor</div></div>
+    <div class="funil-desc">Scripts de WhatsApp por cenário, perguntas essenciais e sinais de prospect qualificado. Clique para ver tudo.</div>
+    <div class="tags"><span class="tag">WhatsApp Business</span><span class="tag">Ligação 15 min</span><span class="tag">Diagnóstico fiscal</span><span class="tag">Scripts por cenário</span></div>
+  </div>
+  <div class="arrow">↓</div>
+  <div class="funil-step s3" onclick="openModal('fat_proposta')">
+    <div class="funil-header"><div class="funil-badge" style="background:#E1F5EE;color:#085041;">Etapa 3</div><div class="funil-title">Proposta — valor antes do preço</div></div>
+    <div class="funil-desc">Estrutura da proposta, modelos de cobrança e regras de ouro da apresentação. Clique para ver.</div>
+    <div class="tags"><span class="tag">Mensalidade fixa</span><span class="tag">Honorário de êxito</span><span class="tag">Projeto fechado</span><span class="tag">Modelo misto</span></div>
+  </div>
+  <div class="arrow">↓</div>
+  <div class="funil-step s4" onclick="openModal('fat_fechamento')">
+    <div class="funil-header"><div class="funil-badge" style="background:#FBEAF0;color:#5C1A30;">Etapa 4</div><div class="funil-title">Fechamento — converter sem pressionar</div></div>
+    <div class="funil-desc">Como responder às principais objeções e criar urgência de forma natural. Clique para ver os scripts.</div>
+    <div class="tags"><span class="tag">Custo de não agir</span><span class="tag">Entrada facilitada</span><span class="tag">Contrato simples</span><span class="tag">Prazo da proposta</span></div>
+  </div>
+  <div class="arrow">↓</div>
+  <div class="funil-step s5" onclick="openModal('fat_onboarding')">
+    <div class="funil-header"><div class="funil-badge" style="background:#EEEDFE;color:#3C3489;">Etapa 5</div><div class="funil-title">Onboarding — início da relação</div></div>
+    <div class="funil-desc">Checklist completo de documentos, primeiros passos e kit boas-vindas. Clique para ver.</div>
+    <div class="tags"><span class="tag">Checklist documentos</span><span class="tag">Acesso e-CAC</span><span class="tag">Prazos e entregas</span><span class="tag">Kit boas-vindas</span></div>
+  </div>
+  <div class="arrow">↓</div>
+  <div class="funil-step s6" onclick="openModal('fat_fidelizacao')">
+    <div class="funil-header"><div class="funil-badge" style="background:#EAF3DE;color:#27500A;">Recorrente</div><div class="funil-title">Fidelização — crescer com quem já é seu</div></div>
+    <div class="funil-desc">Relatório mensal, laudo semestral, pedido de indicação e upsell de serviços. Clique para ver.</div>
+    <div class="tags"><span class="tag">Relatório mensal</span><span class="tag">Laudo semestral</span><span class="tag">Alertas</span><span class="tag">Indicação</span><span class="tag">Upsell</span></div>
+  </div>
+</section>
+</div>
+
+<footer><p>JCR Consultoria e Serviços Tributários — Campinas, SP — Abril de 2026</p></footer>
+
+<script>
+const data = {
+  direcao:{badge:'Direção Geral',badgeStyle:'background:#0F1E3C;color:#F0D080;',title:'Direção Geral',resp:'Responsabilidade: Juliana + Wesley — decisões conjuntas',sections:[{title:'Funções principais',items:['Definição da estratégia e posicionamento do escritório','Aprovação de novos clientes e contratos relevantes','Decisões sobre contratações e investimentos','Política de precificação e descontos','Governança societária — reuniões periódicas de resultado','Resolução de conflitos internos']},{title:'Modelo de governança sugerido',items:['Reunião semanal de alinhamento operacional (30 min)','Reunião mensal de resultado e estratégia (2h)','Decisões acima de R$ 5.000 — aprovação conjunta','Cada sócio tem autonomia operacional na sua área']}],alert:'Recomendado: definir por escrito as regras de governança antes do início da sociedade — evita conflitos futuros.'},
+  financeiro:{badge:'Compartilhado',badgeStyle:'background:#2D3B55;color:#B5D4F4;',title:'Financeiro',resp:'Responsabilidade: Compartilhada — gestão conjunta',sections:[{title:'Rotinas mensais',items:['Emissão de notas fiscais e cobranças','Controle de inadimplência — régua de cobrança','Pagamento de fornecedores e despesas fixas','Apuração de resultado e divisão de pró-labore','Controle de honorários de êxito a receber']},{title:'Ferramentas recomendadas',items:['Sistema de gestão financeira: Conta Azul, Omie ou Asaas','Planilha de controle de honorários de êxito','Conta bancária PJ exclusiva do escritório','Cartão corporativo para despesas operacionais']}],alert:'Fundamental: separar completamente as finanças pessoais das do escritório desde o primeiro dia.'},
+  atendimento:{badge:'Compartilhado',badgeStyle:'background:#2D3B55;color:#B5D4F4;',title:'Atendimento ao Cliente',resp:'Responsabilidade: Compartilhada',sections:[{title:'Processos de atendimento',items:['Recepção de novos contatos via WhatsApp, e-mail e telefone','Triagem inicial e encaminhamento ao sócio responsável','Agendamento de reuniões e visitas','Gestão de prazos e entregas — comunicação proativa','Registro de demandas em sistema de CRM']},{title:'Padrões de qualidade',items:['Resposta em até 2h no horário comercial','Tom profissional mas acessível — sem jargão excessivo','Atualização proativa sobre andamento dos serviços','Pesquisa de satisfação semestral com a carteira']}]},
+  rh:{badge:'Compartilhado',badgeStyle:'background:#2D3B55;color:#B5D4F4;',title:'RH Interno',resp:'Responsabilidade: Compartilhada',sections:[{title:'Gestão da equipe',items:['Recrutamento e seleção de analistas fiscais e contábeis','Onboarding de novos colaboradores','Avaliação de desempenho semestral','Plano de desenvolvimento individual','Gestão de férias e banco de horas']},{title:'Quando contratar',items:['Analista fiscal: quando a carteira fiscal superar 15 clientes ativos','Assistente administrativo: quando o volume operacional travar os sócios','Estagiário: alternativa de custo mais baixo para tarefas auxiliares']}],alert:'Prioridade: contratar o primeiro analista fiscal assim que a carteira permitir — libera Juliana para consultoria e recuperação, que têm maior valor agregado.'},
+  fiscal:{badge:'Juliana',badgeStyle:'background:#0C447C;color:#E6F1FB;',title:'Fiscal & Tributário',resp:'Responsabilidade: Juliana — área principal',sections:[{title:'Serviços executados',items:['Escrituração fiscal — EFD ICMS/IPI e EFD Contribuições','Apuração de ICMS, PIS, COFINS, IRPJ e CSLL','Entrega de obrigações acessórias: SPED, DCTF, ECF','Controle de créditos de entrada e apuração de saldo credor','Classificação fiscal: NCM, CFOP, CST','Revisão de notas fiscais de entrada e saída','Atendimento a fiscalizações da Receita Federal e SEFAZ']},{title:'Ferramentas utilizadas',items:['SPED Fiscal (EFD ICMS/IPI) e EFD Contribuições','Sistema Domínio ou equivalente','e-CAC e plataformas estaduais (SEFAZ SP, SC, RO)','Planilhas de controle e automações próprias']}]},
+  recuperacao:{badge:'Juliana',badgeStyle:'background:#0C447C;color:#E6F1FB;',title:'Recuperação Tributária',resp:'Responsabilidade: Juliana — principal diferencial do escritório',sections:[{title:'Tipos de recuperação',items:['Créditos de ICMS: entradas não aproveitadas, ativo imobilizado, energia elétrica','Créditos de PIS/COFINS: insumos, ativo imobilizado, fretes — regime não cumulativo','IRPJ/CSLL: pagamentos a maior, deduções não utilizadas','Contribuição Previdenciária: revisão de base sobre verbas indenizatórias']},{title:'Como cobrar — honorário de êxito',items:['Diagnóstico inicial sem custo — levanta o potencial de crédito','Contrato com percentual sobre o valor recuperado: 10% a 20%','Cliente não tem risco: só paga se receber','Prazo médio: 60 a 180 dias dependendo da modalidade']},{title:'Instrumentos',items:['PER/DCOMP — Pedido Eletrônico de Ressarcimento e Compensação','GIA-ST para créditos interestaduais','e-CAC para acompanhamento e protocolo federal']}],alert:'Oportunidade imediata: oferecer diagnóstico gratuito para toda a carteira atual do Wesley — grande parte provavelmente tem créditos não aproveitados.'},
+  consultoria:{badge:'Juliana',badgeStyle:'background:#0C447C;color:#E6F1FB;',title:'Consultoria Tributária',resp:'Responsabilidade: Juliana — em desenvolvimento',sections:[{title:'Serviços consultivos',items:['Planejamento tributário: escolha e comparativo de regimes — Simples x Presumido x Real','Reorganização societária para otimização fiscal','Análise de operações triangulares, venda à ordem e interestaduais','Emissão de pareceres tributários sobre operações específicas','Consultoria sobre Reforma Tributária — IBS, CBS e IS']},{title:'Como precificar',items:['Projeto fechado com escopo definido: R$ 2.000 a R$ 15.000','Retainer mensal de consultoria: R$ 800 a R$ 2.500/mês','Parecer pontual: R$ 500 a R$ 2.000 por documento']}],alert:'Área a desenvolver: planejamento tributário avançado e reorganização societária requerem aprofundamento. Recomendo cursos específicos e parceria com advogado tributarista.'},
+  contabilidade:{badge:'Wesley',badgeStyle:'background:#085041;color:#9FE1CB;',title:'Contabilidade',resp:'Responsabilidade: Wesley — estrutura existente',sections:[{title:'Serviços',items:['Escrituração contábil — lançamentos diários','Apuração de resultado mensal (DRE)','Elaboração de balanço patrimonial','Conciliação bancária e de contas','Relatórios gerenciais para clientes','Atendimento a auditorias externas','Declaração de IRPJ via ECF']}]},
+  dp:{badge:'Wesley',badgeStyle:'background:#085041;color:#9FE1CB;',title:'Departamento Pessoal',resp:'Responsabilidade: Wesley',sections:[{title:'Rotinas mensais',items:['Processamento de folha de pagamento','Apuração e recolhimento de INSS e IRRF','Controle de ponto e banco de horas','Gestão de benefícios: VT, VR, plano de saúde','Declaração via eSocial e DCTFWeb','FGTS Digital — apuração e recolhimento']},{title:'Rotinas periódicas',items:['13º salário: parcelas em novembro e dezembro','Férias: cálculo, concessão e controle','Rescisões: TRCT, homologação, CAGED','RAIS e DIRF anuais']}]},
+  passivo:{badge:'Juliana',badgeStyle:'background:#185FA5;color:#E6F1FB;',title:'Gestão de Passivo Fiscal',resp:'Responsabilidade: Juliana',sections:[{title:'O que é',items:['Levantamento completo de débitos tributários do cliente','Análise de exigibilidade, prescrição e decadência','Comparativo entre modalidades de parcelamento','Negociação com PGFN e SERFs estaduais']},{title:'Programas disponíveis',items:['PGFN — parcelamento ordinário e transação tributária','PERT-SN — parcelamento especial para Simples Nacional','Recupera Mais SC — Lei 19.673/2025: desconto de até 100% de juros e multas','Programas de regularização estaduais — SP, SC, RO e outros']},{title:'Como precificar',items:['Diagnóstico: R$ 1.500 a R$ 5.000','Percentual sobre economia gerada (desconto obtido): 10% a 15%','Acompanhamento do parcelamento: R$ 300 a R$ 800/mês']}]},
+  beneficios:{badge:'Juliana',badgeStyle:'background:#185FA5;color:#E6F1FB;',title:'Benefícios Fiscais Estaduais',resp:'Responsabilidade: Juliana — diferencial competitivo real',sections:[{title:'Santa Catarina — principal expertise',items:['Recupera Mais SC (Lei 19.673/2025): desconto de juros e multas para débitos de ICMS','Pro-Emprego: redução de alíquota para empresas geradoras de empregos','Tratamento diferenciado para importação via Itajaí e São Francisco do Sul','Regime especial para distribuidores e atacadistas']},{title:'Rondônia',items:['FUNTEC e PRODERO: benefícios para industrialização','Redução de ICMS para setores estratégicos: agronegócio, madeira, pecuária','Regimes especiais para grandes contribuintes']},{title:'Como vender',items:['Mapeamento de clientes com operações interestaduais','Diagnóstico gratuito para identificar benefícios aplicáveis','Cobrança: projeto fechado + percentual sobre economia gerada']}],alert:'Este é um dos seus maiores diferenciais em Campinas. Pouquíssimos escritórios locais têm expertise real em benefícios fiscais de outros estados.'},
+  auditoria:{badge:'Juliana',badgeStyle:'background:#185FA5;color:#E6F1FB;',title:'Auditoria Fiscal',resp:'Responsabilidade: Juliana — a desenvolver',sections:[{title:'Due diligence fiscal',items:['Revisão completa da situação fiscal antes de compra ou fusão de empresa','Levantamento de passivos ocultos: débitos não provisionados, autos de infração','Análise de conformidade dos últimos 5 anos','Relatório executivo com riscos e recomendações']},{title:'Revisão fiscal periódica',items:['Auditoria das obrigações acessórias do cliente','Identificação de erros de classificação: NCM, CFOP, CST','Revisão de créditos não aproveitados nos últimos 60 meses','Laudo de risco tributário — relatório semestral de valor']},{title:'Precificação',items:['Due diligence: R$ 5.000 a R$ 25.000 conforme porte','Revisão fiscal anual: R$ 2.000 a R$ 8.000','Laudo de risco semestral: R$ 800 a R$ 2.500']}]},
+  societario:{badge:'Wesley',badgeStyle:'background:#085041;color:#9FE1CB;',title:'Societário',resp:'Responsabilidade: Wesley',sections:[{title:'Serviços',items:['Abertura de empresa: CNPJ, alvará, inscrições estadual e municipal','Alteração contratual: sócios, endereço, atividade, capital','Encerramento: distrato e baixa de CNPJ','Transformação de regime: MEI para ME, ME para EPP','Análise de enquadramento no Simples Nacional']}]},
+  reforma:{badge:'Juliana',badgeStyle:'background:#185FA5;color:#E6F1FB;',title:'Reforma Tributária',resp:'Responsabilidade: Juliana — área emergente e escassa',sections:[{title:'O que mudou (Lei 157/2025)',items:['IBS: substitui ICMS e ISS — gestão compartilhada entre estados e municípios','CBS: substitui PIS e COFINS — gestão federal','IS (Imposto Seletivo): incide sobre produtos prejudiciais à saúde e ao meio ambiente','Transição: 2026 a 2033 — convivência entre sistemas antigo e novo']},{title:'Como ajudar os clientes',items:['Diagnóstico de impacto: como o IBS/CBS afeta a carga de cada cliente','Adequação de sistemas para os novos campos exigidos em NF-e e NFS-e','Simulação comparativa: carga atual vs. estimada pós-reforma','Orientação sobre aproveitamento de créditos no período de transição']},{title:'Por que é diferencial agora',items:['A maioria dos escritórios ainda não domina a reforma na prática','Clientes estão ansiosos e precisam de orientação clara e confiável','Quem educar o cliente agora cria vínculo de longo prazo','Possibilidade de cobrar workshops para

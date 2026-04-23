@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EFD Contribuições — Apuração PIS/COFINS</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #484f58;
+    --green: #3fb950;
+    --green-dim: #1a3a21;
+    --red: #f85149;
+    --red-dim: #3a1a1a;
+    --blue: #58a6ff;
+    --blue-dim: #1a2a3a;
+    --yellow: #d29922;
+    --yellow-dim: #2a2010;
+    --accent: #238636;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* HEADER */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-logo {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 12px; font-weight: 600;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .header-title {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .header-sub {
+    font-size: 12px;
+    color: var(--text2);
+    font-family: var(--mono);
+  }
+  .header-sep { flex: 1; }
+  .badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: var(--mono);
+    background: var(--blue-dim);
+    color: var(--blue);
+    border: 1px solid var(--blue);
+  }
+
+  /* MAIN LAYOUT */
+  .main { display: flex; min-height: calc(100vh - 57px); }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    background: var(--bg2);
+    position: sticky;
+    top: 57px;
+    height: calc(100vh - 57px);
+    overflow-y: auto;
+  }
+  .sidebar-section {
+    padding: 0 16px 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-top: 16px;
+  }
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text2);
+    border-left: 2px solid transparent;
+    transition: all .15s;
+    font-family: var(--mono);
+  }
+  .sidebar-item:hover { background: var(--bg3); color: var(--text); }
+  .sidebar-item.active {
+    background: var(--bg3);
+    color: var(--green);
+    border-left-color: var(--green);
+  }
+  .sidebar-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--text3);
+    flex-shrink: 0;
+  }
+  .sidebar-item.active .sidebar-dot { background: var(--green); }
+
+  /* CONTENT */
+  .content { flex: 1; padding: 28px 32px; overflow-x: auto; }
+
+  /* UPLOAD ZONE */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 60px 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    background: var(--bg2);
+    margin-bottom: 28px;
+  }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--green); background: var(--green-dim); }
+  .upload-icon { font-size: 40px; margin-bottom: 12px; }
+  .upload-title { font-size: 16px; font-weight: 500; margin-bottom: 6px; }
+  .upload-sub { font-size: 13px; color: var(--text2); font-family: var(--mono); }
+  .upload-btn {
+    margin-top: 18px;
+    padding: 9px 24px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: var(--sans);
+    transition: opacity .15s;
+  }
+  .upload-btn:hover { opacity: .85; }
+
+  /* SECTION */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* STATS GRID */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .stat-label {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 8px;
+  }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 600;
+    font-family: var(--mono);
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .stat-value.green { color: var(--green); }
+  .stat-value.red { color: var(--red); }
+  .stat-value.blue { color: var(--blue); }
+  .stat-value.yellow { color: var(--yellow); }
+  .stat-sub { font-size: 11px; color: var(--text2); margin-top: 4px; font-family: var(--mono); }
+
+  /* TABLE */
+  .table-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .table-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .table-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .table-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+    background: var(--bg3);
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    padding: 8px 14px;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--text2);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 14px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg3); }
+  td.right, th.right { text-align: right; }
+  td.green { color: var(--green); }
+  td.red { color: var(--red); }
+  td.blue { color: var(--blue); }
+  td.yellow { color: var(--yellow); }
+  td.muted { color: var(--text2); }
+
+  /* APURAÇÃO CARD */
+  .apuracao-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  @media(max-width:700px){ .apuracao-grid { grid-template-columns: 1fr; } }
+  .apuracao-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .apuracao-card-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .apuracao-card-header.pis { background: #0d1a2e; color: var(--blue); border-bottom-color: #1a3050; }
+  .apuracao-card-header.cofins { background: #1a2a0d; color: var(--green); border-bottom-color: #2a4010; }
+  .apuracao-row {
+    padding: 9px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    font-family: var(--mono);
+  }
+  .apuracao-row:last-child { border-bottom: none; }
+  .apuracao-row.total {
+    background: var(--bg3);
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .apuracao-row.payable {
+    background: var(--red-dim);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--red);
+  }
+  .apuracao-row.credit-balance {
+    background: var(--green-dim);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--green);
+  }
+  .apuracao-desc { color: var(--text2); }
+  .apuracao-val { font-weight: 500; }
+
+  /* REGISTRO VIEWER */
+  .reg-filter {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .reg-chip {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--mono);
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .reg-chip:hover, .reg-chip.active {
+    background: var(--blue-dim);
+    color: var(--blue);
+    border-color: var(--blue);
+  }
+
+  /* EMPTY / STATUS */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text2);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; opacity: .4; }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    width: 100%;
+    height: 3px;
+    background: var(--bg3);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 2px;
+    transition: width .3s;
+  }
+
+  /* ALERT */
+  .alert {
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: var(--mono);
+    margin-bottom: 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .alert.info { background: var(--blue-dim); color: var(--blue); border: 1px solid #1a3a5a; }
+  .alert.warn { background: var(--yellow-dim); color: var(--yellow); border: 1px solid #3a3010; }
+
+  /* PAGE TITLE */
+  .page-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-family: var(--mono);
+  }
+  .page-sub {
+    font-size: 12px;
+    color: var(--text2);
+    font-family: var(--mono);
+    margin-bottom: 20px;
+  }
+
+  /* SAMPLE BUTTON */
+  .sample-link {
+    color: var(--blue);
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: var(--mono);
+    background: none;
+    border: none;
+    padding: 0;
+  }
+  .sample-link:hover { color: #79bcff; }
+
+  #file-input { display: none; }
+
+  .chip-reg {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    font-family: var(--mono);
+    background: var(--bg3);
+    color: var(--text2);
+    border: 1px solid var(--border);
+    margin-right: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">EFD</div>
+  <div>
+    <div class="header-title">EFD Contribuições</div>
+    <div class="header-sub">Apuração PIS/COFINS — Lucro Real</div>
+  </div>
+  <div class="header-sep"></div>
+  <div class="badge" id="status-badge">Aguardando arquivo</div>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="sidebar-section">Navegação</div>
+    <div class="sidebar-item active" data-tab="upload">
+      <div class="sidebar-dot"></div> Upload / Arquivo
+    </div>
+    <div class="sidebar-item" data-tab="apuracao">
+      <div class="sidebar-dot"></div> Apuração Final
+    </div>
+    <div class="sidebar-item" data-tab="debitos">
+      <div class="sidebar-dot"></div> Débitos (Saídas)
+    </div>
+    <div class="sidebar-item" data-tab="creditos">
+      <div class="sidebar-dot"></div> Créditos (Entradas)
+    </div>
+    <div class="sidebar-item" data-tab="retencoes">
+      <div class="sidebar-dot"></div> Retenções na Fonte
+    </div>
+    <div class="sidebar-item" data-tab="registros">
+      <div class="sidebar-dot"></div> Todos os Registros
+    </div>
+
+    <div class="sidebar-section" style="margin-top:24px">Arquivo</div>
+    <div class="sidebar-item" id="sidebar-info" style="flex-direction:column; align-items:flex-start; gap:4px; cursor:default;">
+      <span style="font-size:11px; color:var(--text3)">—</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- UPLOAD -->
+    <div class="section active" id="tab-upload">
+      <div class="page-title">Upload do arquivo EFD</div>
+      <div class="page-sub">Arraste ou selecione o arquivo .txt gerado pelo SPED/EFD Contribuições</div>
+
+      <div class="upload-zone" id="drop-zone">
+        <div class="upload-icon">📂</div>
+        <div class="upload-title">Arquivo EFD Contribuições</div>
+        <div class="upload-sub">Formato: texto delimitado por | (pipe) — Layout Receita Federal</div>
+        <button class="upload-btn" id="btn-choose">Selecionar arquivo</button>
+        <input type="file" id="file-input" accept=".txt,.TXT">
+        <br><br>
+        <button class="sample-link" id="btn-sample">▶ Carregar dados de exemplo para demonstração</button>
+      </div>
+
+      <div class="alert info">
+        <span>ℹ</span>
+        <div>
+          O arquivo é processado <strong>100% no navegador</strong> — nenhum dado é enviado para servidores externos.
+          Registros suportados: 0000, 0150, A100, C010, C100, C170, C180, C500, C600, D100, F100, F200, M100, M105, M110, M200, M400, M500, M505, M510, M600.
+        </div>
+      </div>
+    </div>
+
+    <!-- APURAÇÃO -->
+    <div class="section" id="tab-apuracao">
+      <div class="page-title">Apuração Final — PIS/COFINS</div>
+      <div class="page-sub" id="apuracao-periodo">Período: —</div>
+
+      <div class="stats-grid" id="stats-resumo">
+        <div class="stat-card"><div class="stat-label">Total Débitos PIS</div><div class="stat-value blue" id="s-deb-pis">R$ 0,00</div></div>
+        <div class="stat-card"><div class="stat-label">Total Créditos PIS</div><div class="stat-value green" id="s-cred-pis">R$ 0,00</div></div>
+        <div class="stat-card"><div class="stat-label">Total Débitos COFINS</div><div class="stat-value blue" id="s-deb-cof">R$ 0,00</div></div>
+        <div class="stat-card"><div class="stat-label">Total Créditos COFINS</div><div class="stat-value green" id="s-cred-cof">R$ 0,00</div></div>
+      </div>
+
+      <div class="apuracao-grid">
+        <div class="apuracao-card">
+          <div class="apuracao-card-header pis">◆ PIS / Pasep — Apuração</div>
+          <div class="apuracao-row"><span class="apuracao-desc">Receita bruta total</span><span class="apuracao-val" id="p-rec">R$ 0,00</span></div>
+          <div class="apuracao-row"><span class="apuracao-desc">Base de cálculo</span><span class="apuracao-val" id="p-base">R$ 0,00</span></div>
+          <div class="apuracao-row"><span class="apuracao-desc">Débito apurado (1,65%)</span><span class="apuracao-val blue" id="p-deb">R$ 0,00</span></div>
+          <div class="apuracao-row"><span class="apuracao-desc">(-) Créditos apurados</span><span class="apuracao-val green" id="p-cred">R$ 0,00</span></div>
+          <div class="apuracao-row"><span class="apuracao-desc">(-) Retenções na fonte</span><span class="apuracao-val" id="p-ret">R$ 0,00</span></div>
+          <div class="apuracao-row total"><span class="apuracao-desc">Saldo apurado</span><span class="apuracao-val" id="p-saldo">R$ 0,00</span></div>
+          <div class="apuracao-row" id="p-row-result"><span class="apuracao-desc">PIS a recolher</span><span class="apuracao-val" id="p-result">R$ 0,00</span></div>
+        </div>
+
+        <div class="apuracao-card">
+          <div class="apuracao-card-header cofins">◆ COFINS — Apuração</div>
+          <div class="apuracao-row"><span class="apuracao-desc">Receita bruta total</span><span class="apuracao-val" id="c-rec">R$ 0,00</span></div>
+          <div class="apuracao-row"><span class="apuracao-desc">Base de cálculo</span><span class="apuracao-val" id="c-base">R$ 0,00</span></div>
+          <div class="apuracao-row"><span class="apuracao-desc">Débito apurado (7,60%)</span><span class="apuracao-val blue" id="c-deb">R$ 0,00</span></div>
+          <div class="apuracao-row"><span class="apuracao-desc">(-) Créditos apurados</span><span class="apuracao-val green" id="c-cred">R$ 0,00</span></div>
+          <div class="apuracao-row"><span class="apuracao-desc">(-) Retenções na fonte</span><span class="apuracao-val" id="c-ret">R$ 0,00</span></div>
+          <div class="apuracao-row total"><span class="apuracao-desc">Saldo apurado</span><span class="apuracao-val" id="c-saldo">R$ 0,00</span></div>
+          <div class="apuracao-row" id="c-row-result"><span class="apuracao-desc">COFINS a recolher</span><span class="apuracao-val" id="c-result">R$ 0,00</span></div>
+        </div>
+      </div>
+
+      <!-- M200/M600 -->
+      <div class="table-wrap" id="m200-wrap" style="display:none">
+        <div class="table-header"><div class="table-title">Registro M200 — Contribuição para o PIS/Pasep</div></div>
+        <div class="table-scroll"><table id="m200-table"></table></div>
+      </div>
+      <div class="table-wrap" id="m600-wrap" style="display:none">
+        <div class="table-header"><div class="table-title">Registro M600 — COFINS</div></div>
+        <div class="table-scroll"><table id="m600-table"></table></div>
+      </div>
+    </div>
+
+    <!-- DÉBITOS -->
+    <div class="section" id="tab-debitos">
+      <div class="page-title">Débitos — Receitas e Saídas</div>
+      <div class="page-sub">Documentos que geram débito de PIS/COFINS (C100, A100, F100, C500, C600)</div>
+      <div id="debitos-content"><div class="empty"><div class="empty-icon">📄</div>Nenhum arquivo carregado</div></div>
+    </div>
+
+    <!-- CRÉDITOS -->
+    <div class="section" id="tab-creditos">
+      <div class="page-title">Créditos — Entradas e Apurações</div>
+      <div class="page-sub">Documentos e registros que geram crédito de PIS/COFINS (C100 entrada, M105, M505)</div>
+      <div id="creditos-content"><div class="empty"><div class="empty-icon">📄</div>Nenhum arquivo carregado</div></div>
+    </div>
+
+    <!-- RETENÇÕES -->
+    <div class="section" id="tab-retencoes">
+      <div class="page-title">Retenções na Fonte</div>
+      <div class="page-sub">Registros de retenção de PIS/COFINS na fonte (M110, M510)</div>
+      <div id="retencoes-content"><div class="empty"><div class="empty-icon">📄</div>Nenhum arquivo carregado</div></div>
+    </div>
+
+    <!-- TODOS OS REGISTROS -->
+    <div class="section" id="tab-registros">
+      <div class="page-title">Todos os Registros</div>
+      <div class="page-sub">Visualização linha a linha do arquivo EFD</div>
+      <div class="reg-filter" id="reg-chips"></div>
+      <div id="registros-content"><div class="empty"><div class="empty-icon">📄</div>Nenhum arquivo carregado</div></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+// ============================================================
+// UTILITIES
+// ============================================================
+const fmt = (v) => {
+  const n = parseFloat(v) || 0;
+  return 'R$ ' + n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+};
+const fmtN = (v) => (parseFloat(v)||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+
+// ============================================================
+// TAB NAVIGATION
+// ============================================================
+$$('.sidebar-item[data-tab]').forEach(el => {
+  el.addEventListener('click', () => {
+    $$('.sidebar-item').forEach(i => i.classList.remove('active'));
+    $$('.section').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+    $(`#tab-${el.dataset.tab}`).classList.add('active');
+  });
+});
+
+// ============================================================
+// EFD PARSER
+// ============================================================
+let parsedData = null;
+
+function parseEFD(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const data = {
+    reg0000: null,
+    reg0150: [],
+    regA100: [], regC100: [], regC170: [], regC180: [],
+    regC500: [], regC600: [], regD100: [], regF100: [], regF200: [],
+    regM100: [], regM105: [], regM110: [],
+    regM200: null,
+    regM400: [], regM500: [], regM505: [], regM510: [],
+    regM600: null,
+    allRegs: {}
+  };
+
+  lines.forEach(line => {
+    const f = line.split('|');
+    if (f.length < 2) return;
+    const reg = f[1];
+    if (!data.allRegs[reg]) data.allRegs[reg] = [];
+    data.allRegs[reg].push(f);
+
+    switch(reg) {
+      case '0000': data.reg0000 = f; break;
+      case '0150': data.reg0150.push(f); break;
+      case 'A100': data.regA100.push(f); break;
+      case 'C100': data.regC100.push(f); break;
+      case 'C170': data.regC170.push(f); break;
+      case 'C180': data.regC180.push(f); break;
+      case 'C500': data.regC500.push(f); break;
+      case 'C600': data.regC600.push(f); break;
+      case 'D100': data.regD100.push(f); break;
+      case 'F100': data.regF100.push(f); break;
+      case 'F200': data.regF200.push(f); break;
+      case 'M100': data.regM100.push(f); break;
+      case 'M105': data.regM105.push(f); break;
+      case 'M110': data.regM110.push(f); break;
+      case 'M200': data.regM200 = f; break;
+      case 'M400': data.regM400.push(f); break;
+      case 'M500': data.regM500.push(f); break;
+      case 'M505': data.regM505.push(f); break;
+      case 'M510': data.regM510.push(f); break;
+      case 'M600': data.regM600 = f; break;
+    }
+  });
+  return data;
+}
+
+// ============================================================
+// APURAÇÃO
+// ============================================================
+function calcApuracao(data) {
+  let debPIS = 0, credPIS = 0, retPIS = 0;
+  let debCOF = 0, credCOF = 0, retCOF = 0;
+  let recBrutaPIS = 0, recBrutaCOF = 0;
+  let basePIS = 0, baseCOF = 0;
+
+  // M200 — PIS
+  if (data.regM200) {
+    const m = data.regM200;
+    // |M200|VL_TOT_CONT_NC_PER|VL_TOT_CRED_DESC|VL_TOT_CRED_DESC_ANT|VL_TOT_CONT_NC_DEV|VL_RET_NC|VL_OUT_DED_NC|VL_CONT_NC_REC|VL_TOT_CONT_CUM_PER|VL_RET_CUM|VL_OUT_DED_CUM|VL_CONT_CUM_REC|VL_TOT_CONT_REC
+    debPIS = parseFloat(m[2])||0;
+    credPIS = parseFloat(m[3])||0;
+    retPIS = parseFloat(m[6])||0;
+  } else {
+    // Calcula a partir dos registros
+    data.regM100.forEach(m => { debPIS += parseFloat(m[17])||0; });
+    data.regM105.forEach(m => { credPIS += parseFloat(m[4])||0; });
+    data.regM110.forEach(m => { retPIS += parseFloat(m[3])||0; });
+    // From C100 (saídas)
+    data.regC100.forEach(c => {
+      const ind = c[8]; // IND_OPER: 0=entrada, 1=saída
+      if (ind === '1') {
+        debPIS += parseFloat(c[28])||0;
+        debCOF += parseFloat(c[29])||0;
+        recBrutaPIS += parseFloat(c[16])||0;
+      } else {
+        credPIS += parseFloat(c[28])||0;
+        credCOF += parseFloat(c[29])||0;
+      }
+    });
+    data.regA100.forEach(c => {
+      if (c[8] === '1') {
+        debPIS += parseFloat(c[24])||0;
+        debCOF += parseFloat(c[25])||0;
+        recBrutaPIS += parseFloat(c[12])||0;
+      } else {
+        credPIS += parseFloat(c[24])||0;
+        credCOF += parseFloat(c[25])||0;
+      }
+    });
+  }
+
+  if (data.regM600) {
+    const m = data.regM600;
+    debCOF = parseFloat(m[2])||0;
+    credCOF = parseFloat(m[3])||0;
+    retCOF = parseFloat(m[6])||0;
+  }
+
+  // Fallback base de cálculo a partir de M400
+  data.regM400.forEach(m => { recBrutaPIS += parseFloat(m[4])||0; basePIS += parseFloat(m[4])||0; });
+  data.regM500.forEach(m => { recBrutaCOF += parseFloat(m[4])||0; baseCOF += parseFloat(m[4])||0; });
+  if (basePIS === 0 && recBrutaPIS > 0) basePIS = recBrutaPIS;
+  if (baseCOF === 0 && recBrutaCOF > 0) baseCOF = recBrutaCOF;
+
+  // M110 / M510 retenções
+  data.regM110.forEach(m => { retPIS += parseFloat(m[3])||0; });
+  data.regM510.forEach(m => { retCOF += parseFloat(m[3])||0; });
+
+  const saldoPIS = debPIS - credPIS - retPIS;
+  const saldoCOF = debCOF - credCOF - retCOF;
+
+  return { debPIS, credPIS, retPIS, saldoPIS, recBrutaPIS, basePIS,
+           debCOF, credCOF, retCOF, saldoCOF, recBrutaCOF, baseCOF };
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function fmtData(d) {
+  // Aceita DDMMAAAA ou AAAAMMDD (8 dígitos)
+  if (!d || d.length < 8) return d||'—';
+  const s = d.replace(/\D/g,'');
+  if (s.length === 8) {
+    // Detecta formato: se primeiros 2 dígitos > 31 é AAAAMMDD
+    if (parseInt(s.slice(0,2)) > 31) {
+      // AAAAMMDD → DD/MM/AAAA
+      return s.slice(6,8)+'/'+s.slice(4,6)+'/'+s.slice(0,4);
+    }
+    // DDMMAAAA → DD/MM/AAAA
+    return s.slice(0,2)+'/'+s.slice(2,4)+'/'+s.slice(4,8);
+  }
+  return d;
+}
+
+function renderApuracao(data, ap) {
+  // Header info — Layout EFD Contribuições registro 0000:
+  // |0000|COD_VER|TIPO_ESCRIT|IND_SIT_ESP|DT_INI|DT_FIN|NOME|CNPJ|UF|COD_MUN|SUFRAMA|IND_NAT_PJ|IND_ATIV
+  // posições:  1       2          3           4      5     6    7    8   9       10      11         12       13
+  let periodo = '—', cnpj = '—', empresa = '—';
+  if (data.reg0000) {
+    const f = data.reg0000;
+    const dtIni = fmtData(f[4]||'');
+    const dtFin = fmtData(f[5]||'');
+    periodo = (dtIni && dtFin) ? `${dtIni} a ${dtFin}` : '—';
+    cnpj = f[7]||f[8]||'—';
+    empresa = f[6]||f[9]||'—';
+  }
+  $('#apuracao-periodo').textContent = `Empresa: ${empresa} | CNPJ: ${cnpj} | Período: ${periodo}`;
+  $('#status-badge').textContent = empresa || 'Arquivo carregado';
+
+  // Stats
+  $('#s-deb-pis').textContent = fmt(ap.debPIS);
+  $('#s-cred-pis').textContent = fmt(ap.credPIS);
+  $('#s-deb-cof').textContent = fmt(ap.debCOF);
+  $('#s-cred-cof').textContent = fmt(ap.credCOF);
+
+  // PIS
+  $('#p-rec').textContent = fmt(ap.recBrutaPIS || ap.debPIS / 0.0165);
+  $('#p-base').textContent = fmt(ap.basePIS || ap.debPIS / 0.0165);
+  $('#p-deb').textContent = fmt(ap.debPIS);
+  $('#p-cred').textContent = fmt(ap.credPIS);
+  $('#p-ret').textContent = fmt(ap.retPIS);
+  $('#p-saldo').textContent = fmt(ap.saldoPIS);
+  const pRow = $('#p-row-result');
+  const pRes = $('#p-result');
+  if (ap.saldoPIS > 0) {
+    pRow.className = 'apuracao-row payable';
+    pRow.querySelector('.apuracao-desc').textContent = 'PIS a recolher';
+    pRes.textContent = fmt(ap.saldoPIS);
+  } else {
+    pRow.className = 'apuracao-row credit-balance';
+    pRow.querySelector('.apuracao-desc').textContent = 'Saldo credor PIS';
+    pRes.textContent = fmt(Math.abs(ap.saldoPIS));
+  }
+
+  // COFINS
+  $('#c-rec').textContent = fmt(ap.recBrutaCOF || ap.debCOF / 0.076);
+  $('#c-base').textContent = fmt(ap.baseCOF || ap.debCOF / 0.076);
+  $('#c-deb').textContent = fmt(ap.debCOF);
+  $('#c-cred').textContent = fmt(ap.credCOF);
+  $('#c-ret').textContent = fmt(ap.retCOF);
+  $('#c-saldo').textContent = fmt(ap.saldoCOF);
+  const cRow = $('#c-row-result');
+  const cRes = $('#c-result');
+  if (ap.saldoCOF > 0) {
+    cRow.className = 'apuracao-row payable';
+    cRow.querySelector('.apuracao-desc').textContent = 'COFINS a recolher';
+    cRes.textContent = fmt(ap.saldoCOF);
+  } else {
+    cRow.className = 'apuracao-row credit-balance';
+    cRow.querySelector('.apuracao-desc').textContent = 'Saldo credor COFINS';
+    cRes.textContent = fmt(Math.abs(ap.saldoCOF));
+  }
+
+  // M200 / M600 raw
+  if (data.regM200) {
+    renderRawTable('m200-table', data.regM200,
+      ['Reg','Vl Tot Cont NC','Vl Tot Cred','Vl Cred Ant','Vl Cont Dev','Vl Ret NC','Vl Out Ded','Vl Cont Rec','Vl Tot Cont Cum','Vl Ret Cum','Vl Out Ded Cum','Vl Cont Cum Rec','Vl Tot Cont Rec']);
+    $('#m200-wrap').style.display = 'block';
+  }
+  if (data.regM600) {
+    renderRawTable('m600-table', data.regM600,
+      ['Reg','Vl Tot Cont NC','Vl Tot Cred','Vl Cred Ant','Vl Cont Dev','Vl Ret NC','Vl Out Ded','Vl Cont Rec','Vl Tot Cont Cum','Vl Ret Cum','Vl Out Ded Cum','Vl Cont Cum Rec','Vl Tot Cont Rec']);
+    $('#m600-wrap').style.display = 'block';
+  }
+}
+
+function renderRawTable(tableId, fields, headers) {
+  const t = document.getElementById(tableId);
+  const hRow = `<tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr>`;
+  const dRow = `<tr>${fields.slice(1).map((v,i)=>
+    i>0 && !isNaN(parseFloat(v)) && v!==''
+      ? `<td class="right ${parseFloat(v)>0?'blue':''}">${fmtN(v)}</td>`
+      : `<td>${v||'—'}</td>`
+  ).join('')}</tr>`;
+  t.innerHTML = `<thead>${hRow}</thead><tbody>${dRow}</tbody>`;
+}
+
+function renderDebitos(data) {
+  const docs = [];
+  // C100 saídas
+  data.regC100.filter(c=>c[8]==='1').forEach(c=>{
+    docs.push({ reg:'C100', chave:c[9]||'', data:c[10]||'', cfop:c[18]||'', vl:parseFloat(c[16])||0,
+      pis:parseFloat(c[28])||0, cofins:parseFloat(c[29])||0 });
+  });
+  // A100 saídas
+  data.regA100.filter(c=>c[8]==='1').forEach(c=>{
+    docs.push({ reg:'A100', chave:c[4]||'', data:c[6]||'', cfop:'', vl:parseFloat(c[12])||0,
+      pis:parseFloat(c[24])||0, cofins:parseFloat(c[25])||0 });
+  });
+  // F100 / F200
+  data.regF100.forEach(c=>{
+    docs.push({ reg:'F100', chave:c[3]||'', data:c[4]||'', cfop:'', vl:parseFloat(c[7])||0,
+      pis:parseFloat(c[12])||0, cofins:parseFloat(c[13])||0 });
+  });
+
+  if (!docs.length) {
+    $('#debitos-content').innerHTML = '<div class="empty"><div class="empty-icon">✅</div>Nenhum débito encontrado nos registros carregados</div>';
+    return;
+  }
+
+  const totVl = docs.reduce((s,d)=>s+d.vl,0);
+  const totPIS = docs.reduce((s,d)=>s+d.pis,0);
+  const totCOF = docs.reduce((s,d)=>s+d.cofins,0);
+
+  const rows = docs.map(d=>`<tr>
+    <td><span class="chip-reg">${d.reg}</span></td>
+    <td class="muted">${d.data}</td>
+    <td class="muted">${d.cfop||'—'}</td>
+    <td>${d.chave.substring(0,22)||'—'}</td>
+    <td class="right">${fmtN(d.vl)}</td>
+    <td class="right blue">${fmtN(d.pis)}</td>
+    <td class="right blue">${fmtN(d.cofins)}</td>
+  </tr>`).join('');
+
+  $('#debitos-content').innerHTML = `
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">Documentos — Débitos</div>
+        <div class="table-count">${docs.length} docs</div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>Reg</th><th>Data</th><th>CFOP</th><th>Chave/Doc</th>
+            <th class="right">Valor (R$)</th><th class="right">PIS (R$)</th><th class="right">COFINS (R$)</th>
+          </tr></thead>
+          <tbody>${rows}
+            <tr style="font-weight:600; background:var(--bg3)">
+              <td colspan="4" style="color:var(--text2); font-size:11px">TOTAL</td>
+              <td class="right">${fmtN(totVl)}</td>
+              <td class="right blue">${fmtN(totPIS)}</td>
+              <td class="right blue">${fmtN(totCOF)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderCreditos(data) {
+  const docs = [];
+  // C100 entradas
+  data.regC100.filter(c=>c[8]==='0').forEach(c=>{
+    docs.push({ reg:'C100', chave:c[9]||'', data:c[10]||'', cfop:c[18]||'', vl:parseFloat(c[16])||0,
+      pis:parseFloat(c[28])||0, cofins:parseFloat(c[29])||0, tipo:'Entrada NF' });
+  });
+  // M105
+  data.regM105.forEach(m=>{
+    docs.push({ reg:'M105', chave:'—', data:'—', cfop:'—', vl:parseFloat(m[3])||0,
+      pis:parseFloat(m[4])||0, cofins:0, tipo:'Crédito PIS '+m[2] });
+  });
+  // M505
+  data.regM505.forEach(m=>{
+    docs.push({ reg:'M505', chave:'—', data:'—', cfop:'—', vl:parseFloat(m[3])||0,
+      pis:0, cofins:parseFloat(m[4])||0, tipo:'Crédito COFINS '+m[2] });
+  });
+
+  if (!docs.length) {
+    $('#creditos-content').innerHTML = '<div class="empty"><div class="empty-icon">✅</div>Nenhum crédito encontrado nos registros carregados</div>';
+    return;
+  }
+
+  const totVl = docs.reduce((s,d)=>s+d.vl,0);
+  const totPIS = docs.reduce((s,d)=>s+d.pis,0);
+  const totCOF = docs.reduce((s,d)=>s+d.cofins,0);
+
+  const rows = docs.map(d=>`<tr>
+    <td><span class="chip-reg">${d.reg}</span></td>
+    <td>${d.tipo}</td>
+    <td class="muted">${d.data}</td>
+    <td class="muted">${d.cfop}</td>
+    <td class="right">${fmtN(d.vl)}</td>
+    <td class="right green">${fmtN(d.pis)}</td>
+    <td class="right green">${fmtN(d.cofins)}</td>
+  </tr>`).join('');
+
+  $('#creditos-content').innerHTML = `
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">Documentos — Créditos</div>
+        <div class="table-count">${docs.length} registros</div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>Reg</th><th>Tipo</th><th>Data</th><th>CFOP</th>
+            <th class="right">Valor (R$)</th><th class="right">PIS (R$)</th><th class="right">COFINS (R$)</th>
+          </tr></thead>
+          <tbody>${rows}
+            <tr style="font-weight:600; background:var(--bg3)">
+              <td colspan="4" style="color:var(--text2); font-size:11px">TOTAL</td>
+              <td class="right">${fmtN(totVl)}</td>
+              <td class="right green">${fmtN(totPIS)}</td>
+              <td class="right green">${fmtN(totCOF)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderRetencoes(data) {
+  const rets = [];
+  data.regM110.forEach(m=>{
+    rets.push({ reg:'M110', cod:m[2]||'—', vl_cred:parseFloat(m[3])||0, pis:parseFloat(m[3])||0, cofins:0 });
+  });
+  data.regM510.forEach(m=>{
+    rets.push({ reg:'M510', cod:m[2]||'—', vl_cred:parseFloat(m[3])||0, pis:0, cofins:parseFloat(m[3])||0 });
+  });
+
+  if (!rets.length) {
+    $('#retencoes-content').innerHTML = '<div class="empty"><div class="empty-icon">✅</div>Nenhuma retenção encontrada (M110/M510)</div>';
+    return;
+  }
+
+  const totPIS = rets.reduce((s,r)=>s+r.pis,0);
+  const totCOF = rets.reduce((s,r)=>s+r.cofins,0);
+
+  const rows = rets.map(r=>`<tr>
+    <td><span class="chip-reg">${r.reg}</span></td>
+    <td class="muted">${r.cod}</td>
+    <td class="right yellow">${fmtN(r.pis||0)}</td>
+    <td class="right yellow">${fmtN(r.cofins||0)}</td>
+  </tr>`).join('');
+
+  $('#retencoes-content').innerHTML = `
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">Retenções na fonte (M110/M510)</div>
+        <div class="table-count">${rets.length} registros</div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Reg</th><th>Código</th><th class="right">PIS (R$)</th><th class="right">COFINS (R$)</th></tr></thead>
+          <tbody>${rows}
+            <tr style="font-weight:600; background:var(--bg3)">
+              <td colspan="2" style="color:var(--text2); font-size:11px">TOTAL</td>
+              <td class="right yellow">${fmtN(totPIS)}</td>
+              <td class="right yellow">${fmtN(totCOF)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderRegistros(data) {
+  const chips = Object.keys(data.allRegs).sort();
+  const chipsHtml = chips.map(r=>`<div class="reg-chip" data-reg="${r}">${r} <span style="opacity:.5">(${data.allRegs[r].length})</span></div>`).join('');
+  $('#reg-chips').innerHTML = chipsHtml;
+
+  let currentFilter = null;
+  const renderTable = (reg) => {
+    const rows = data.allRegs[reg]||[];
+    if (!rows.length) { $('#registros-content').innerHTML = '<div class="empty"><div class="empty-icon">🔍</div>Nenhum registro</div>'; return; }
+    const maxCols = Math.max(...rows.map(r=>r.length));
+    const thead = `<tr>${Array.from({length:maxCols-1},(_,i)=>`<th>${i}</th>`).join('')}</tr>`;
+    const tbody = rows.map(r=>`<tr>${r.slice(1).map(v=>`<td>${v||''}</td>`).join('')}</tr>`).join('');
+    $('#registros-content').innerHTML = `
+      <div class="table-wrap">
+        <div class="table-header"><div class="table-title">Registro ${reg}</div><div class="table-count">${rows.length} ocorrências</div></div>
+        <div class="table-scroll"><table><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>
+      </div>`;
+  };
+
+  $$('.reg-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      $$('.reg-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      renderTable(chip.dataset.reg);
+    });
+  });
+
+  $('#registros-content').innerHTML = '<div class="empty"><div class="empty-icon">☝️</div>Selecione um tipo de registro acima</div>';
+}
+
+// ============================================================
+// LOAD DATA
+// ============================================================
+function loadData(text) {
+  const data = parseEFD(text);
+  parsedData = data;
+  const ap = calcApuracao(data);
+
+  // Sidebar info
+  let info = '—';
+  if (data.reg0000) info = (data.reg0000[9]||'').substring(0,20);
+  $('#sidebar-info').innerHTML = `
+    <span style="font-size:12px; color:var(--text); font-weight:500">${info}</span>
+    <span style="font-size:11px; color:var(--text3)">${Object.values(data.allRegs).reduce((s,a)=>s+a.length,0)} registros</span>`;
+
+  renderApuracao(data, ap);
+  renderDebitos(data);
+  renderCreditos(data);
+  renderRetencoes(data);
+  renderRegistros(data);
+
+  // Switch to apuração tab
+  $$('.sidebar-item').forEach(i=>i.classList.remove('active'));
+  $$('.section').forEach(s=>s.classList.remove('active'));
+  $('[data-tab="apuracao"]').classList.add('active');
+  $('#tab-apuracao').classList.add('active');
+}
+
+// ============================================================
+// FILE INPUT
+// ============================================================
+$('#btn-choose').addEventListener('click', ()=>$('#file-input').click());
+$('#file-input').addEventListener('change', e=>{
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => loadData(ev.target.result);
+  reader.readAsText(f, 'latin1');
+});
+
+const dz = $('#drop-zone');
+dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', ()=>dz.classList.remove('drag'));
+dz.addEventListener('drop', e=>{
+  e.preventDefault(); dz.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => loadData(ev.target.result);
+  reader.readAsText(f, 'latin1');
+});
+
+// ============================================================
+// SAMPLE DATA — arquivo EFD simulado
+// ============================================================
+$('#btn-sample').addEventListener('click', ()=>{
+  const sample = [
+    '|0000|002|G|0|01012024|31012024|EMPRESA DEMO COMERCIO LTDA|11222333000181|SP|3550308||0|1|',
+    '|0150|001|FORNECEDOR ALPHA LTDA|00111222000133|BR||SP|SAO PAULO||||',
+    '|0150|002|FORNECEDOR BETA SA|00444555000177|BR||SP|CAMPINAS||||',
+    // Bloco C — NF saída 1
+    '|C010|00111222000133|',
+    '|C100|1|1|001|55|00|0101|01012024|01012024|100000.00||1800|00|||100000.00||0|0|||||||||1650.00|7600.00|0|0|0|',
+    '|C170|1|PRODUTO A|UN|500.00|80000.00|||||||||||||1320.00|6080.00|',
+    '|C170|2|PRODUTO B|UN|200.00|20000.00|||||||||||||330.00|1520.00|',
+    // NF saída 2
+    '|C100|1|1|002|55|00|0102|05012024|05012024|50000.00||1800|00|||50000.00||0|0|||||||||825.00|3800.00|0|0|0|',
+    '|C100|1|1|003|55|00|0103|10012024|10012024|75000.00||1800|00|||75000.00||0|0|||||||||1237.50|5700.00|0|0|0|',
+    // NF entrada (crédito)
+    '|C010|00444555000177|',
+    '|C100|0|1|101|55|00|1102|08012024|08012024|40000.00||1101|00|||40000.00||0|0|||||||||660.00|3040.00|0|0|0|',
+    '|C100|0|1|102|55|00|1102|15012024|15012024|25000.00||1101|00|||25000.00||0|0|||||||||412.50|1900.00|0|0|0|',
+    // Bloco M — PIS
+    '|M100|01|0|01012024|31012024|1.65|225000.00|3712.50|0.00|0.00|0.00|0.00|0.00|0.00|0.00|0.00|3712.50|',
+    '|M105|01|49|65000.00|1072.50|0.00|1072.50|',
+    '|M110|03|350.00|',
+    '|M200|3712.50|1072.50|0.00|0.00|350.00|0.00|2290.00|0.00|0.00|0.00|0.00|2290.00|',
+    // Bloco M — COFINS
+    '|M500|01|0|01012024|31012024|7.60|225000.00|17100.00|0.00|0.00|0.00|0.00|0.00|0.00|0.00|0.00|17100.00|',
+    '|M505|01|49|65000.00|4940.00|0.00|4940.00|',
+    '|M510|03|1610.00|',
+    '|M600|17100.00|4940.00|0.00|0.00|1610.00|0.00|10550.00|0.00|0.00|0.00|0.00|10550.00|',
+    '|9999|',
+  ].join('\n');
+  loadData(sample);
+});
+</script>
+</body>
+</html>

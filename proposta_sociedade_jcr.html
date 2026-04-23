@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposta de Sociedade — JCR + Wesley</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #0F1E3C; --navy2: #1B3A6B; --gold: #C9A84C; --gold2: #F0D080;
+    --teal: #1A7F74; --rose: #8B2E4A; --light: #F4F1EB; --white: #FDFCF9;
+    --muted: #7A8499; --slate: #2D3B55;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--light); color: var(--navy); }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(15,30,60,0.97); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.75rem 2.5rem; border-bottom: 1px solid rgba(201,168,76,0.2);
+  }
+  .nav-brand { font-family: 'Playfair Display', serif; font-size: 15px; color: var(--gold); font-weight: 700; }
+  .nav-links { display: flex; gap: 1.5rem; }
+  .nav-links a {
+    font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(255,255,255,0.55); text-decoration: none; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh; background: var(--navy);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center; padding: 6rem 2rem 4rem; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: -100px; right: -100px;
+    width: 500px; height: 500px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%);
+  }
+  .hero::after {
+    content: ''; position: absolute; bottom: -80px; left: -80px;
+    width: 400px; height: 400px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(26,127,116,0.07) 0%, transparent 70%);
+  }
+  .hero-badge {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;
+  }
+  .hero-badge::before, .hero-badge::after { content: ''; display: inline-block; width: 30px; height: 1px; background: var(--gold); }
+  .hero h1 {
+    font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 900; color: var(--white); line-height: 1.1; margin-bottom: 1rem;
+  }
+  .hero h1 span { color: var(--gold); }
+  .hero-sub { font-size: 18px; color: rgba(255,255,255,0.5); font-weight: 300; max-width: 500px; margin-bottom: 3rem; }
+  .hero-meta {
+    display: flex; gap: 3rem; justify-content: center; flex-wrap: wrap;
+  }
+  .hero-meta-item { text-align: center; }
+  .hero-meta-value { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--gold); }
+  .hero-meta-label { font-size: 11px; color: rgba(255,255,255,0.4); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+  .scroll-hint { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); font-size: 11px; color: rgba(255,255,255,0.3); letter-spacing: 0.1em; text-transform: uppercase; animation: bounce 2s infinite; }
+  @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(6px)} }
+
+  /* SECTIONS */
+  section { padding: 5rem 2rem; max-width: 1000px; margin: 0 auto; }
+  .section-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 0.5rem;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 700; color: var(--navy); margin-bottom: 1.5rem; line-height: 1.2;
+  }
+  .section-divider { width: 48px; height: 3px; background: var(--gold); margin-bottom: 2rem; border-radius: 2px; }
+
+  /* CARDS */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+  .card {
+    background: var(--white); border-radius: 16px; padding: 1.75rem;
+    border: 1px solid rgba(0,0,0,0.06); position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--gold);
+  }
+  .card-num {
+    font-family: 'Playfair Display', serif; font-size: 3rem; font-weight: 900;
+    color: rgba(201,168,76,0.15); position: absolute; top: 0.5rem; right: 1rem;
+    line-height: 1;
+  }
+  .card-title { font-size: 15px; font-weight: 600; color: var(--navy); margin-bottom: 0.75rem; }
+  .card-body { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+  /* TABLE */
+  .table-wrap { background: var(--white); border-radius: 16px; overflow: hidden; border: 1px solid rgba(0,0,0,0.06); }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: var(--navy); }
+  thead th { padding: 1rem 1.25rem; text-align: left; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); }
+  tbody tr { border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(201,168,76,0.04); }
+  td { padding: 0.9rem 1.25rem; font-size: 14px; color: var(--slate); vertical-align: top; }
+  td:first-child { font-weight: 500; color: var(--navy); width: 40%; }
+
+  /* LIST */
+  .styled-list { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; }
+  .styled-list li {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: var(--white); border-radius: 10px; padding: 1rem 1.25rem;
+    border: 1px solid rgba(0,0,0,0.05); font-size: 14px; color: var(--slate); line-height: 1.6;
+  }
+  .styled-list li::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--gold); flex-shrink: 0; margin-top: 7px;
+  }
+
+  /* TWO COL */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .col-card { background: var(--white); border-radius: 14px; padding: 1.5rem; border: 1px solid rgba(0,0,0,0.06); }
+  .col-title { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--gold); display: inline-block; }
+
+  /* STEPS */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: flex; gap: 1.5rem; align-items: flex-start;
+    padding: 1.25rem 0; border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .step:last-child { border-bottom: none; }
+  .step-num {
+    width: 36px; height: 36px; border-radius: 50%; background: var(--navy);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 700; color: var(--gold);
+  }
+  .step-content { flex: 1; }
+  .step-title { font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+  .step-body { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ALERT */
+  .alert {
+    background: var(--navy); border-radius: 16px; padding: 2rem 2.5rem;
+    border-left: 4px solid var(--gold); margin-top: 2rem;
+  }
+  .alert p { font-size: 15px; color: rgba(255,255,255,0.75); line-height: 1.7; }
+  .alert strong { color: var(--gold); }
+
+  /* SIGNATURE */
+  .signature { text-align: center; padding: 4rem 2rem; background: var(--navy); margin-top: 4rem; }
+  .signature-line { width: 280px; height: 1px; background: rgba(201,168,76,0.4); margin: 2rem auto 0.75rem; }
+  .signature-name { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--white); }
+  .signature-role { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+  .signature-date { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 1.5rem; letter-spacing: 0.08em; }
+
+  .bg-alt { background: var(--white); }
+  .bg-navy { background: var(--navy); }
+  .bg-navy .section-title { color: var(--white); }
+  .bg-navy .section-eyebrow { color: var(--gold2); }
+
+  @media (max-width: 640px) {
+    .two-col { grid-template-columns: 1fr; }
+    .hero-meta { gap: 1.5rem; }
+    nav { padding: 0.75rem 1.25rem; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">JCR Consultoria</div>
+  <div class="nav-links">
+    <a href="#perfil">Perfil</a>
+    <a href="#valor">Proposta de Valor</a>
+    <a href="#divisao">Divisão</a>
+    <a href="#modelo">Participação</a>
+    <a href="#proximos">Próximos Passos</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">Documento Confidencial</div>
+  <h1>Proposta de<br><span>Sociedade</span></h1>
+  <p class="hero-sub">Departamento Tributário e Recuperação Fiscal — JCR + Wesley</p>
+  <div class="hero-meta">
+    <div class="hero-meta-item">
+      <div class="hero-meta-value">17</div>
+      <div class="hero-meta-label">Anos de experiência</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-value">20+</div>
+      <div class="hero-meta-label">Anos do escritório</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-value">2026</div>
+      <div class="hero-meta-label">Início da sociedade</div>
+    </div>
+  </div>
+  <div class="scroll-hint">↓ role para ver</div>
+</div>
+
+<!-- PERFIL -->
+<div class="bg-alt" id="perfil">
+<section>
+  <div class="section-eyebrow">Quem sou eu</div>
+  <h2 class="section-title">Perfil da Sócia Proponente</h2>
+  <div class="section-divider"></div>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-num">01</div>
+      <div class="card-title">Experiência fiscal</div>
+      <div class="card-body">17 anos de atuação na área fiscal e tributária, com passagem por escritórios contábeis de grande porte e supervisão de equipes analistas.</div>
+    </div>
+    <div class="card">
+      <div class="card-num">02</div>
+      <div class="card-title">Empresa própria</div>
+      <div class="card-body">JCR Consultoria e Serviços Tributários, sediada em Campinas, SP — já estruturada com CNPJ, marca e presença digital ativa.</div>
+    </div>
+    <div class="card">
+      <div class="card-num">03</div>
+      <div class="card-title">Domínio técnico</div>
+      <div class="card-body">Especialista em SPED Fiscal, EFD Contribuições, ICMS estadual, Simples Nacional, Lucro Presumido e Real, e automação de obrigações acessórias.</div>
+    </div>
+    <div class="card">
+      <div class="card-num">04</div>
+      <div class="card-title">Diferencial regional</div>
+      <div class="card-body">Expertise consolidada em benefícios fiscais de Santa Catarina (Recupera Mais, Pro-Emprego), Rondônia e outros estados — área escassa no mercado.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:2rem;">
+    <div class="card-title" style="margin-bottom:1rem;font-size:16px;">Competências técnicas</div>
+    <ul class="styled-list">
+      <li>Recuperação de créditos tributários — ICMS, PIS/COFINS, IRPJ/CSLL — via PER/DCOMP e ressarcimento</li>
+      <li>Gestão de passivo fiscal e negociação de parcelamentos: PGFN, REFIS, PERT, Recupera Mais SC</li>
+      <li>Benefícios fiscais estaduais: Santa Catarina, Rondônia, Goiás e demais estados com programas ativos</li>
+      <li>Impugnações administrativas no CARF e tribunais estaduais</li>
+      <li>Reforma Tributária — IBS, CBS e IS — adaptação de clientes para o novo modelo (Lei 157/2025)</li>
+      <li>Automação de processos fiscais — redução drástica de tempo operacional</li>
+      <li>Due diligence fiscal para M&amp;A e compra/venda de empresas</li>
+      <li>eSocial, DCTFWeb, FGTS Digital e Departamento Pessoal</li>
+    </ul>
+  </div>
+</section>
+</div>
+
+<!-- PROPOSTA DE VALOR -->
+<div id="valor">
+<section>
+  <div class="section-eyebrow">O que esta parceria entrega</div>
+  <h2 class="section-title">Proposta de Valor para o Escritório</h2>
+  <div class="section-divider"></div>
+  <p style="font-size:15px;color:var(--muted);line-height:1.7;margin-bottom:2rem;">A entrada de Juliana como sócia cria um novo centro de receita sem necessidade de estruturar do zero uma área que exige expertise específica e anos de mercado.</p>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-title">Nova receita imediata</div>
+      <div class="card-body">Serviço de recuperação tributária para a carteira atual — receita adicional sem custo de aquisição de cliente.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Diferencial competitivo</div>
+      <div class="card-body">Consultoria em benefícios fiscais estaduais e Reforma Tributária — áreas que poucos escritórios de Campinas dominam.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Fidelização da carteira</div>
+      <div class="card-body">Gestão ativa do passivo fiscal de clientes com débitos — reduz risco de perda e aumenta satisfação.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Escala operacional</div>
+      <div class="card-body">Automação dos processos fiscais — o escritório atende mais clientes sem aumentar proporcionalmente a equipe.</div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- DIVISÃO -->
+<div class="bg-alt" id="divisao">
+<section>
+  <div class="section-eyebrow">Como vai funcionar</div>
+  <h2 class="section-title">Divisão de Responsabilidades</h2>
+  <div class="section-divider"></div>
+  <div class="two-col">
+    <div class="col-card">
+      <div class="col-title">Área de Juliana — JCR</div>
+      <ul class="styled-list">
+        <li>Coordenação do departamento tributário</li>
+        <li>Recuperação de créditos e PER/DCOMP</li>
+        <li>Gestão de passivo e parcelamentos</li>
+        <li>Benefícios fiscais estaduais</li>
+        <li>Consultoria — Reforma Tributária</li>
+        <li>Automação de processos fiscais</li>
+        <li>Atendimento a clientes de médio/grande porte</li>
+      </ul>
+    </div>
+    <div class="col-card">
+      <div class="col-title">Área de Wesley</div>
+      <ul class="styled-list">
+        <li>Contabilidade geral e escrituração</li>
+        <li>Departamento pessoal e trabalhista</li>
+        <li>Gestão administrativa do escritório</li>
+        <li>Carteira atual de clientes</li>
+        <li>Abertura e encerramento de empresas</li>
+        <li>Relacionamento com clientes existentes</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top:1.25rem;" class="col-card">
+    <div class="col-title">Áreas compartilhadas</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:0.5rem;">
+      <span style="background:var(--light);padding:5px 12px;border-radius:6px;font-size:13px;color:var(--slate);">Captação de novos clientes</span>
+      <span style="background:var(--light);padding:5px 12px;border-radius:6px;font-size:13px;color:var(--slate);">Atendimento integrado</span>
+      <span style="background:var(--light);padding:5px 12px;border-radius:6px;font-size:13px;color:var(--slate);">Política comercial e precificação</span>
+      <span style="background:var(--light);padding:5px 12px;border-radius:6px;font-size:13px;color:var(--slate);">Decisões estratégicas</span>
+      <span style="background:var(--light);padding:5px 12px;border-radius:6px;font-size:13px;color:var(--slate);">Financeiro do escritório</span>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- MODELO DE PARTICIPAÇÃO -->
+<div id="modelo">
+<section>
+  <div class="section-eyebrow">Números e condições</div>
+  <h2 class="section-title">Modelo de Participação Societária</h2>
+  <div class="section-divider"></div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;">Os valores abaixo são base para discussão. Os percentuais definitivos serão acordados com suporte de assessoria jurídica especializada.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Ponto</th><th>Proposta para discussão</th></tr></thead>
+      <tbody>
+        <tr><td>Percentual de participação</td><td>Entre 30% e 40% para Juliana — a definir em conjunto</td></tr>
+        <tr><td>Pró-labore de Juliana</td><td>Mínimo R$ 7.500/mês — base atual de remuneração</td></tr>
+        <tr><td>Receitas do novo departamento</td><td>Divisão proporcional à participação societária</td></tr>
+        <tr><td>Serviços extras fora do horário</td><td>Remuneração por entrega ou hora — a definir</td></tr>
+        <tr><td>Revisão da participação</td><td>Avaliação formal em 12 meses</td></tr>
+        <tr><td>Estrutura jurídica</td><td>Ingresso no CNPJ existente ou nova sociedade — a definir com advogado</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="alert">
+    <p><strong>Ponto importante:</strong> A estrutura jurídica ideal (ingresso no CNPJ existente vs. constituição de nova empresa) tem implicações tributárias e societárias relevantes. Recomendo que ambos consultem um advogado especializado antes de formalizar qualquer acordo.</p>
+  </div>
+</section>
+</div>
+
+<!-- DIFERENCIAIS -->
+<div class="bg-alt">
+<section>
+  <div class="section-eyebrow">O que vai nos separar da concorrência</div>
+  <h2 class="section-title">Diferenciais Competitivos</h2>
+  <div class="section-divider"></div>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-title">Reforma Tributária</div>
+      <div class="card-body">Poucos escritórios dominam IBS/CBS agora. Quem orientar o cliente primeiro ganha fidelidade por anos.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Laudo de Risco Tributário</div>
+      <div class="card-body">Relatório periódico de riscos, créditos e oportunidades. Alto valor percebido, baixo custo de entrega.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Honorário de Êxito</div>
+      <div class="card-body">Cliente não tem risco inicial na recuperação. Facilita muito a venda — pagamento só sobre o que foi recuperado.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Diagnóstico Gratuito</div>
+      <div class="card-body">Porta de entrada que converte muito. Mostramos o problema, o cliente quer resolver. Zero custo de aquisição.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Importação/Exportação</div>
+      <div class="card-body">Expertise em SC e RO é diferencial geográfico real. Clientes desse perfil pagam mais e ficam mais tempo.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Automação Fiscal</div>
+      <div class="card-body">Processos automatizados = mais clientes com a mesma equipe. Escalamos sem contratar proporcionalmente.</div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- PRÓXIMOS PASSOS -->
+<div id="proximos">
+<section>
+  <div class="section-eyebrow">Como chegamos lá</div>
+  <h2 class="section-title">Próximos Passos</h2>
+  <div class="section-divider"></div>
+  <div class="card" style="padding:0;">
+    <div class="steps" style="padding:0 1.75rem;">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Alinhamento desta proposta</div>
+          <div class="step-body">Reunião para discutir os pontos apresentados, ajustar percentuais e definir a estrutura desejada por ambas as partes.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Assessoria jurídica societária</div>
+          <div class="step-body">Consulta conjunta a advogado especializado em direito societário para definir a estrutura mais vantajosa.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Elaboração do contrato</div>
+          <div class="step-body">Contrato social ou aditivo contratual redigido pelo advogado, contemplando todos os pontos acordados.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Assinatura e registro</div>
+          <div class="step-body">Formalização da sociedade junto à Junta Comercial e demais órgãos competentes.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <div class="step-title">Início das atividades</div>
+          <div class="step-body">Estruturação do novo departamento tributário, onboarding da carteira e lançamento dos novos serviços.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- ASSINATURA -->
+<div class="signature">
+  <div style="font-size:12px;color:rgba(255,255,255,0.3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:3rem;">Campinas, São Paulo — Abril de 2026</div>
+  <div class="signature-line"></div>
+  <div class="signature-name">Juliana</div>
+  <div class="signature-role">JCR Consultoria e Serviços Tributários</div>
+  <div class="signature-date">Proposta confidencial — sujeita a negociação</div>
+</div>
+
+</body>
+</html>
