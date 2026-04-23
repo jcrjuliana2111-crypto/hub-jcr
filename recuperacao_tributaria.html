@@ -57,7 +57,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 .sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
 
 /* ── FERRAMENTAS GRID ── */
-.ferramentas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:40px}
+.ferramentas-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-bottom:40px}
 
 .ferr-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;transition:all .2s;position:relative}
 .ferr-card:hover{border-color:var(--fc-color,var(--orange));transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.4)}
@@ -216,7 +216,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
       </div>
       <div class="ferr-footer">
         <button class="ferr-btn" style="background:#f25c6e;color:#fff" onclick="window.open('analisador_pis_cofins_base.html','_blank')">
-          Abrir Analisador PIS/COFINS →
+          Abrir Exclusão PIS/COFINS da Própria Base →
         </button>
       </div>
     </div>
@@ -244,6 +244,35 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
       <div class="ferr-footer">
         <button class="ferr-btn" style="background:#4f8ef7;color:#fff" onclick="window.open('efd_pis_cofins.html','_blank')">
           Abrir EFD PIS/COFINS →
+        </button>
+      </div>
+    </div>
+
+
+    <!-- CARD 4 — XML NF-e/NFC-e -->
+    <div class="ferr-card" style="--fc-color:#2dd4a0">
+      <div class="ferr-accent-bar" style="background:#2dd4a0"></div>
+      <div class="ferr-card-top">
+        <div class="ferr-icon">🧾</div>
+        <div class="ferr-tipo-row">
+          <span class="ferr-num">04</span>
+          <div class="ferr-tipos">
+            <span class="ferr-tag" style="background:var(--accent-soft);color:var(--accent)">ADM</span>
+            <span class="ferr-tag" style="background:var(--green-soft);color:var(--green)">SN</span>
+          </div>
+        </div>
+        <div class="ferr-nome">Analisador XML NF-e / NFC-e</div>
+        <div class="ferr-desc">Importe o ZIP com os XMLs das notas e identifique créditos por regime — Simples Nacional, Lucro Presumido e Lucro Real.</div>
+      </div>
+      <div class="ferr-teses">
+        <div class="ferr-tese-item"><div class="ferr-tese-dot" style="background:#2dd4a0"></div>Aceita ZIP com múltiplos XMLs<span class="ferr-tese-tag" style="background:var(--green-soft);color:var(--green)">Novo</span></div>
+        <div class="ferr-tese-item"><div class="ferr-tese-dot" style="background:#2dd4a0"></div>NF-e (mod. 55) e NFC-e (mod. 65)</div>
+        <div class="ferr-tese-item"><div class="ferr-tese-dot" style="background:#2dd4a0"></div>ICMS, ICMS-ST, PIS, COFINS, IPI</div>
+        <div class="ferr-tese-item"><div class="ferr-tese-dot" style="background:#2dd4a0"></div>Dashboard por período e tipo</div>
+      </div>
+      <div class="ferr-footer">
+        <button class="ferr-btn" style="background:#2dd4a0;color:#0a1a12" onclick="window.open('analisador_xml_nfe.html','_blank')">
+          Abrir Analisador XML NF-e/NFC-e →
         </button>
       </div>
     </div>

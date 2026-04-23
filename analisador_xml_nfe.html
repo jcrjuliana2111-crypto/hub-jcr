@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JCR — Analisador XML NF-e/NFC-e</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#0d0f14;--surface:#13161e;--surface2:#1a1e2a;--surface3:#222739;
+  --border:#2a2f42;--border2:#363d55;
+  --accent:#4f8ef7;--accent2:#6fa3f8;--accent-soft:rgba(79,142,247,0.12);
+  --green:#2dd4a0;--green-soft:rgba(45,212,160,0.12);
+  --yellow:#f5c842;--yellow-soft:rgba(245,200,66,0.12);
+  --red:#f25c6e;--red-soft:rgba(242,92,110,0.12);
+  --orange:#f2924a;--orange-soft:rgba(242,146,74,0.12);
+  --purple:#a78bfa;--purple-soft:rgba(167,139,250,0.12);
+  --teal:#2dd4a0;
+  --text:#e8eaf0;--text2:#8b92a8;--text3:#5d6480;
+  --radius:14px;--radius-sm:8px;
+  --font-display:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;--font-mono:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;gap:12px;background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:60px;position:sticky;top:0;z-index:50}
+.topbar-logo{font-family:var(--font-display);font-weight:800;font-size:22px;color:var(--accent);cursor:pointer}
+.nav-sep{color:var(--border2);font-size:18px}
+.nav-back{background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;font-family:var(--font-body);display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:var(--radius-sm);transition:all .15s}
+.nav-back:hover{background:var(--surface2);color:var(--text2)}
+.nav-current{font-size:13px;color:var(--text2);font-weight:500}
+
+/* HERO */
+.hero{background:var(--surface);border-bottom:1px solid var(--border);padding:28px 32px}
+.hero-inner{max-width:1200px;margin:0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:2rem;flex-wrap:wrap}
+.hero-eye{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--green);margin-bottom:.5rem;display:flex;align-items:center;gap:8px}
+.hero-eye::before{content:'';width:16px;height:1px;background:var(--green)}
+.hero-title{font-family:var(--font-display);font-size:clamp(1.4rem,2.5vw,2rem);font-weight:800;color:var(--text);line-height:1.1;margin-bottom:.4rem}
+.hero-title em{color:var(--green);font-style:normal}
+.hero-sub{font-size:13px;color:var(--text3);line-height:1.7;max-width:500px}
+.regime-sel{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.regime-btn{padding:7px 16px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--border);background:none;color:var(--text3);cursor:pointer;font-family:var(--font-body);transition:all .2s}
+.regime-btn:hover{border-color:var(--border2);color:var(--text2)}
+.regime-btn.ativo{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* PAGE */
+.page{max-width:1200px;margin:0 auto;padding:28px 32px}
+
+/* UPLOAD */
+.upload-area{border:2px dashed var(--border2);border-radius:16px;padding:3rem 2rem;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:24px;position:relative;background:var(--surface)}
+.upload-area:hover,.upload-area.drag{border-color:var(--green);background:rgba(45,212,160,.04)}
+.upload-area.loaded{border-style:solid;border-color:var(--green);background:rgba(45,212,160,.04)}
+.upload-icon{font-size:42px;margin-bottom:.75rem}
+.upload-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px}
+.upload-sub{font-size:13px;color:var(--text3);margin-bottom:1.25rem;line-height:1.6}
+.upload-btn{padding:10px 24px;border-radius:8px;background:var(--green);color:#0a1a12;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:var(--font-body)}
+.files-info{margin-top:1rem;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.file-chip{font-size:11px;padding:4px 12px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);color:var(--text3);font-family:var(--font-mono)}
+
+/* REGIME INFO */
+.regime-info{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:24px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.regime-badge{font-size:12px;font-weight:700;padding:5px 14px;border-radius:999px}
+.regime-desc{font-size:12px;color:var(--text3);flex:1;line-height:1.6}
+
+/* BTN ANALISAR */
+.btn-analisar{width:100%;padding:14px;border-radius:12px;border:none;background:var(--green);color:#0a1a12;font-size:15px;font-weight:700;cursor:pointer;display:none;margin-bottom:28px;font-family:var(--font-display);transition:all .2s;letter-spacing:.3px}
+.btn-analisar:hover{opacity:.88}
+
+/* LOADING */
+.loading{display:none;text-align:center;padding:2rem}
+.loading-bar{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;margin:1rem 0;max-width:400px;margin:1rem auto}
+.loading-fill{height:100%;background:var(--green);border-radius:2px;animation:load 1.5s ease-in-out infinite}
+@keyframes load{0%{width:0%}50%{width:70%}100%{width:100%}}
+
+/* RESULTADO */
+.resultado{display:none}
+
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--sc-color,var(--green))}
+.stat-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+.stat-value{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text);line-height:1;margin-bottom:3px}
+.stat-sub{font-size:11px;color:var(--text3)}
+
+/* SEC LABEL */
+.sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* CHARTS GRID */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+.chart-title{font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.chart-sub{font-size:11px;color:var(--text3);margin-bottom:14px}
+
+/* OPORTUNIDADES */
+.opor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:24px}
+.opor-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;border-left:3px solid var(--oc-color,var(--green))}
+.opor-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.opor-nome{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text)}
+.opor-tipo{font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.04em}
+.opor-valor{font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:4px}
+.opor-detail{font-size:11px;color:var(--text3);line-height:1.6}
+.opor-base{font-size:10px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-family:var(--font-mono)}
+
+/* TABELA */
+.tabela-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px}
+.tabela-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.tabela-title{font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text)}
+.tabela-info{font-size:11px;color:var(--text3)}
+.table-scroll{overflow-x:auto;max-height:400px;overflow-y:auto}
+table{width:100%;border-collapse:collapse}
+thead{position:sticky;top:0;z-index:1}
+thead th{padding:10px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+tbody td{padding:9px 14px;font-size:12px;color:var(--text2);vertical-align:middle}
+tbody td:first-child{color:var(--text);font-weight:500}
+.td-num{text-align:right;font-family:var(--font-mono);font-size:11px}
+.td-pos{color:var(--green)!important;font-weight:600}
+tfoot td{padding:10px 14px;background:var(--surface);border-top:2px solid var(--border);font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--green)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;white-space:nowrap}
+.bg-green{background:var(--green-soft);color:var(--green)}
+.bg-blue{background:var(--accent-soft);color:var(--accent)}
+.bg-yellow{background:var(--yellow-soft);color:var(--yellow)}
+.bg-orange{background:var(--orange-soft);color:var(--orange)}
+.bg-red{background:var(--red-soft);color:var(--red)}
+.bg-purple{background:var(--purple-soft);color:var(--purple)}
+.bg-gray{background:rgba(93,100,128,.15);color:var(--text3)}
+
+/* EXPORT */
+.export-row{display:flex;gap:10px;margin-bottom:28px}
+.btn-exp{padding:10px 20px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body);transition:all .15s}
+.btn-exp:hover{background:var(--surface2);color:var(--text);border-color:var(--green)}
+
+
+/* PGDAS UPLOAD */
+.upload-pgdas{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+.pgdas-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pgdas-icon{font-size:28px;flex-shrink:0}
+.pgdas-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px}
+.pgdas-sub{font-size:12px;color:var(--text3)}
+.btn-pgdas-upload{margin-left:auto;padding:8px 18px;border-radius:8px;background:var(--purple);color:#fff;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);transition:opacity .15s;white-space:nowrap}
+.btn-pgdas-upload:hover{opacity:.85}
+.pgdas-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.pgdas-loading{display:none;text-align:center;padding:1.5rem;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:16px}
+.pgdas-spin{width:32px;height:32px;border:3px solid var(--border2);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cruz-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.cruz-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden}
+.cruz-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--cs-color,var(--green))}
+.cruz-stat-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.cruz-stat-val{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text)}
+.cruz-stat-sub{font-size:10px;color:var(--text3);margin-top:3px}
+.cruz-ok{color:var(--green)}
+.cruz-err{color:var(--red)}
+.cruz-warn{color:var(--yellow)}
+
+/* ALERTA */
+.alerta{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:24px;border-left:3px solid var(--yellow);font-size:12px;color:var(--text3);line-height:1.6}
+.alerta strong{color:var(--yellow)}
+
+@media(max-width:900px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .charts-grid{grid-template-columns:1fr}
+  .page{padding:20px 16px}
+  .hero{padding:20px 16px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo" onclick="window.location.href='index.html'">JCR</div>
+  <span class="nav-sep">›</span>
+  <button class="nav-back" onclick="window.location.href='recuperacao_tributaria.html'">← Recuperação</button>
+  <span class="nav-sep">›</span>
+  <span class="nav-current">🧾 Analisador XML NF-e/NFC-e</span>
+</div>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eye">Recuperação Tributária</div>
+      <div class="hero-title">Analisador XML <em>NF-e / NFC-e</em></div>
+      <div class="hero-sub">Importe o ZIP com os XMLs das notas fiscais e identifique automaticamente todas as oportunidades de crédito de imposto por regime tributário.</div>
+      <div class="regime-sel">
+        <span style="font-size:12px;color:var(--text3);align-self:center">Regime:</span>
+        <button class="regime-btn ativo" id="rb-sn" onclick="setRegime('sn')">Simples Nacional</button>
+        <button class="regime-btn" id="rb-lp" onclick="setRegime('lp')">Lucro Presumido</button>
+        <button class="regime-btn" id="rb-lr" onclick="setRegime('lr')">Lucro Real</button>
+      </div>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;min-width:220px">
+      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Créditos analisados</div>
+      <div id="creditos-lista" style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--text2)"></div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- UPLOAD -->
+  <div class="upload-area" id="uploadArea"
+    ondragover="event.preventDefault();this.classList.add('drag')"
+    ondragleave="this.classList.remove('drag')"
+    ondrop="onDrop(event)"
+    onclick="document.getElementById('fi').click()">
+    <div class="upload-icon">📦</div>
+    <div class="upload-title">Arraste o arquivo ZIP aqui</div>
+    <div class="upload-sub">ZIP com XMLs de NF-e e/ou NFC-e — todos os períodos de uma vez<br>Também aceita XMLs individuais</div>
+    <button class="upload-btn" onclick="event.stopPropagation();document.getElementById('fi').click()">Selecionar arquivo</button>
+    <div class="files-info" id="filesInfo"></div>
+  </div>
+  <input type="file" id="fi" accept=".zip,.xml" multiple style="display:none" onchange="onFileSelect(event)">
+
+  <div class="regime-info" id="regimeInfo"></div>
+
+  <button class="btn-analisar" id="btnAnalisar" onclick="analisar()">▶ Analisar oportunidades de crédito</button>
+
+  <div class="loading" id="loading">
+    <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:.5rem" id="loadMsg">Lendo XMLs...</div>
+    <div class="loading-bar"><div class="loading-fill"></div></div>
+  </div>
+
+  <div class="resultado" id="resultado">
+
+    <div class="alerta">
+      <strong>⚠ Atenção:</strong> Os créditos identificados são estimativas baseadas nos dados declarados nas NF-e/NFC-e. Valide com o cliente antes de protocolar qualquer pedido. Créditos do Simples Nacional têm regras específicas — verificar vedações do CGSN 140/2018.
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card" style="--sc-color:var(--green)">
+        <div class="stat-label">Total de créditos</div>
+        <div class="stat-value" id="st-total">—</div>
+        <div class="stat-sub" id="st-total-sub">identificados</div>
+      </div>
+      <div class="stat-card" style="--sc-color:var(--accent)">
+        <div class="stat-label">NF-e analisadas</div>
+        <div class="stat-value" id="st-nfe">—</div>
+        <div class="stat-sub">documentos</div>
+      </div>
+      <div class="stat-card" style="--sc-color:var(--purple)">
+        <div class="stat-label">NFC-e analisadas</div>
+        <div class="stat-value" id="st-nfce">—</div>
+        <div class="stat-sub">documentos</div>
+      </div>
+      <div class="stat-card" style="--sc-color:var(--orange)">
+        <div class="stat-label">Fornecedores</div>
+        <div class="stat-value" id="st-forn">—</div>
+        <div class="stat-sub">emitentes distintos</div>
+      </div>
+      <div class="stat-card" style="--sc-color:var(--yellow)">
+        <div class="stat-label">Período analisado</div>
+        <div class="stat-value" id="st-periodo">—</div>
+        <div class="stat-sub" id="st-periodo-sub">meses</div>
+      </div>
+    </div>
+
+    <!-- OPORTUNIDADES -->
+    <div class="sec-label">Oportunidades identificadas por tipo</div>
+    <div class="opor-grid" id="oporGrid"></div>
+
+    <!-- CHARTS -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Créditos por período (R$)</div>
+        <div class="chart-sub">Total mensal identificado</div>
+        <div style="position:relative;height:220px"><canvas id="chartPeriodo"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Distribuição por tipo de crédito</div>
+        <div class="chart-sub">Participação de cada imposto</div>
+        <div style="position:relative;height:220px"><canvas id="chartTipo"></canvas></div>
+      </div>
+    </div>
+
+    <!-- TABELA NOTAS -->
+    <div class="sec-label">Detalhamento por nota fiscal</div>
+    <div class="tabela-wrap">
+      <div class="tabela-head">
+        <span class="tabela-title">Notas com oportunidade identificada</span>
+        <span class="tabela-info" id="tabInfo">—</span>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>Emitente</th><th>CNPJ</th><th>Modelo</th><th>Número</th>
+            <th>Data</th><th style="text-align:right">Valor NF</th>
+            <th style="text-align:right">ICMS</th><th style="text-align:right">PIS</th>
+            <th style="text-align:right">COFINS</th><th style="text-align:right">IPI</th>
+            <th style="text-align:right">Crédito Total</th>
+          </tr></thead>
+          <tbody id="tabelaBody"></tbody>
+          <tfoot><tr id="tabelaFoot"></tr></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- EXPORT -->
+
+    <!-- CRUZAMENTO PGDAS -->
+    <div class="sec-label" id="sec-pgdas" style="display:none">Cruzamento com PGDAS-D</div>
+
+    <div id="pgdas-area" style="display:none">
+      <div class="upload-pgdas">
+        <div class="pgdas-head">
+          <div class="pgdas-icon">📋</div>
+          <div>
+            <div class="pgdas-title">Importar PGDAS-D (PDF)</div>
+            <div class="pgdas-sub">Importe o PDF do PGDAS-D do mesmo período para cruzar com os XMLs</div>
+          </div>
+          <button class="btn-pgdas-upload" onclick="document.getElementById('fi-pgdas').click()">Selecionar PDF</button>
+        </div>
+        <input type="file" id="fi-pgdas" accept=".pdf" multiple style="display:none" onchange="onPGDASSelect(event)">
+        <div class="pgdas-chips" id="pgdas-chips"></div>
+      </div>
+
+      <div class="pgdas-loading" id="pgdas-loading">
+        <div class="pgdas-spin"></div>
+        <div id="pgdas-load-msg" style="font-size:13px;color:var(--text3)">Extraindo dados do PGDAS-D com IA...</div>
+      </div>
+
+      <!-- RESULTADO CRUZAMENTO -->
+      <div id="cruzamento-resultado" style="display:none">
+
+        <div class="cruz-stats">
+          <div class="cruz-stat" style="--cs-color:var(--red)">
+            <div class="cruz-stat-label">PIS recolhido indevidamente</div>
+            <div class="cruz-stat-val" id="cs-pis">—</div>
+            <div class="cruz-stat-sub">monofásico declarado no DAS</div>
+          </div>
+          <div class="cruz-stat" style="--cs-color:var(--orange)">
+            <div class="cruz-stat-label">COFINS recolhida indevidamente</div>
+            <div class="cruz-stat-val" id="cs-cofins">—</div>
+            <div class="cruz-stat-sub">monofásico declarado no DAS</div>
+          </div>
+          <div class="cruz-stat" style="--cs-color:var(--yellow)">
+            <div class="cruz-stat-label">ICMS-ST pago x declarado</div>
+            <div class="cruz-stat-val" id="cs-icms">—</div>
+            <div class="cruz-stat-sub">diferença identificada</div>
+          </div>
+          <div class="cruz-stat" style="--cs-color:var(--green)">
+            <div class="cruz-stat-label">Total a recuperar</div>
+            <div class="cruz-stat-val" id="cs-total">—</div>
+            <div class="cruz-stat-sub">sem SELIC</div>
+          </div>
+        </div>
+
+        <!-- TABELA CRUZAMENTO POR PERÍODO -->
+        <div class="tabela-wrap" style="margin-top:16px">
+          <div class="tabela-head">
+            <span class="tabela-title">Cruzamento por período — PGDAS-D x NF-e</span>
+            <span class="tabela-info" id="cruz-periodos-info"></span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr>
+                <th>Período</th>
+                <th style="text-align:right">RB c/ Monofásico (PGDAS)</th>
+                <th style="text-align:right">PIS no DAS</th>
+                <th style="text-align:right">COFINS no DAS</th>
+                <th style="text-align:right">PIS nos XMLs</th>
+                <th style="text-align:right">COFINS nos XMLs</th>
+                <th style="text-align:right">ICMS-ST nos XMLs</th>
+                <th style="text-align:right">Recuperar</th>
+                <th>Situação</th>
+              </tr></thead>
+              <tbody id="cruz-tbody"></tbody>
+              <tfoot><tr id="cruz-tfoot"></tr></tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div class="export-row" style="margin-top:12px">
+          <button class="btn-exp" onclick="exportCruzamentoCSV()">⬇ Exportar cruzamento (.csv)</button>
+          <button class="btn-exp" onclick="exportCruzamentoRelatorio()">📄 Relatório de cruzamento (.html)</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="export-row">
+      <button class="btn-exp" onclick="exportCSV()">⬇ Exportar detalhamento (.csv)</button>
+      <button class="btn-exp" onclick="exportRelatorio()">📄 Relatório para cliente (.html)</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// REGIME
+// ═══════════════════════════════════════════════════════
+let regime = 'sn';
+let xmlDocs = [];
+let resultado = null;
+let charts = {};
+
+const REGIMES = {
+  sn: {
+    label: 'Simples Nacional', cor: '#2dd4a0', badge: 'bg-green',
+    creditos: [
+      { id:'icms_st', nome:'ICMS-ST', cor:'#4f8ef7', base:'STJ Tema 1.125', desc:'ICMS-ST pago pelo fornecedor pode ser creditado na saída' },
+      { id:'icms_difal', nome:'DIFAL ICMS', cor:'#a78bfa', base:'LC 190/2022', desc:'Diferencial de alíquota nas compras interestaduais' },
+      { id:'pis_mono', nome:'PIS Monofásico', cor:'#f2924a', base:'Lei 10.147/2000', desc:'PIS recolhido na cadeia — vedado recolhimento duplo no DAS' },
+      { id:'cofins_mono', nome:'COFINS Monofásico', cor:'#f5c842', base:'Lei 10.147/2000', desc:'COFINS recolhida na cadeia — vedado recolhimento duplo no DAS' },
+    ],
+    info: 'Simples Nacional: créditos limitados. Principal oportunidade é ICMS-ST (STJ Tema 1.125) e monofásicos (vedação de recolhimento duplo no DAS). PIS/COFINS não são creditáveis diretamente.'
+  },
+  lp: {
+    label: 'Lucro Presumido', cor: '#4f8ef7', badge: 'bg-blue',
+    creditos: [
+      { id:'icms_entr', nome:'ICMS Entradas', cor:'#4f8ef7', base:'RICMS estadual', desc:'ICMS destacado nas NF-e de entrada aproveitável como crédito' },
+      { id:'icms_st', nome:'ICMS-ST', cor:'#a78bfa', base:'STJ Tema 1.125', desc:'ICMS-ST destacado na NF-e de entrada' },
+      { id:'pis_entr', nome:'PIS Entradas', cor:'#f2924a', base:'Lei 10.637/2002', desc:'PIS não-cumulativo nas compras de insumos e mercadorias' },
+      { id:'cofins_entr', nome:'COFINS Entradas', cor:'#f5c842', base:'Lei 10.833/2003', desc:'COFINS não-cumulativa nas compras de insumos e mercadorias' },
+      { id:'ipi_entr', nome:'IPI Entradas', cor:'#f25c6e', base:'RIPI/2010', desc:'IPI destacado nas NF-e de entrada (regime não-cumulativo)' },
+    ],
+    info: 'Lucro Presumido: regime cumulativo para PIS/COFINS (alíquota 0,65% e 3%). Créditos de ICMS conforme RICMS estadual. Verificar se não há opção pelo Lucro Real que permite não-cumulatividade.'
+  },
+  lr: {
+    label: 'Lucro Real', cor: '#f2924a', badge: 'bg-orange',
+    creditos: [
+      { id:'icms_entr', nome:'ICMS Entradas', cor:'#4f8ef7', base:'RICMS estadual', desc:'ICMS destacado nas NF-e de entrada aproveitável' },
+      { id:'icms_st', nome:'ICMS-ST', cor:'#a78bfa', base:'STJ Tema 1.125', desc:'ICMS-ST destacado na NF-e — crédito integral' },
+      { id:'pis_entr', nome:'PIS Entradas', cor:'#f2924a', base:'Lei 10.637/2002', desc:'PIS não-cumulativo — alíquota 1,65%' },
+      { id:'cofins_entr', nome:'COFINS Entradas', cor:'#f5c842', base:'Lei 10.833/2003', desc:'COFINS não-cumulativa — alíquota 7,6%' },
+      { id:'ipi_entr', nome:'IPI Entradas', cor:'#f25c6e', base:'RIPI/2010', desc:'IPI na entrada — regime não-cumulativo' },
+      { id:'pis_base', nome:'PIS s/ Própria Base', cor:'#2dd4a0', base:'RE 574.706/PR', desc:'Gross Up Reverso — PIS não compõe sua própria base' },
+      { id:'cofins_base', nome:'COFINS s/ Própria Base', cor:'#2dd4a0', base:'RE 574.706/PR', desc:'Gross Up Reverso — COFINS não compõe sua própria base' },
+    ],
+    info: 'Lucro Real: regime não-cumulativo para PIS/COFINS (1,65% e 7,6%). Maior potencial de crédito — todas as entradas com direito a crédito. Verificar vedações do art. 3º das Leis 10.637 e 10.833.'
+  }
+};
+
+function setRegime(r) {
+  regime = r;
+  ['sn','lp','lr'].forEach(x => {
+    document.getElementById('rb-'+x).classList.toggle('ativo', x === r);
+  });
+  renderRegimeInfo();
+  if(xmlDocs.length > 0) document.getElementById('btnAnalisar').style.display = 'block';
+}
+
+function renderRegimeInfo() {
+  const reg = REGIMES[regime];
+  const info = document.getElementById('regimeInfo');
+  info.innerHTML = `
+    <span class="badge ${reg.badge}" style="font-size:12px;padding:5px 14px">${reg.label}</span>
+    <div class="regime-desc">${reg.info}</div>`;
+
+  const lista = document.getElementById('creditos-lista');
+  lista.innerHTML = reg.creditos.map(c =>
+    `<div style="display:flex;align-items:center;gap:7px">
+      <div style="width:6px;height:6px;border-radius:50%;background:${c.cor};flex-shrink:0"></div>
+      ${c.nome}
+    </div>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// UPLOAD & LEITURA
+// ═══════════════════════════════════════════════════════
+document.getElementById('fi').addEventListener('change', onFileSelect);
+
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadArea').classList.remove('drag');
+  processarArquivos(e.dataTransfer.files);
+}
+
+function onFileSelect(e) {
+  processarArquivos(e.target.files);
+  e.target.value = '';
+}
+
+async function processarArquivos(files) {
+  const arr = Array.from(files);
+  xmlDocs = [];
+
+  for (const file of arr) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext === 'xml') {
+      const txt = await lerTexto(file);
+      const doc = parseXML(txt, file.name);
+      if (doc) xmlDocs.push(doc);
+    } else if (ext === 'zip') {
+      await lerZip(file);
+    }
+  }
+
+  if (xmlDocs.length > 0) {
+    document.getElementById('uploadArea').classList.add('loaded');
+    document.getElementById('filesInfo').innerHTML =
+      `<span class="file-chip">✓ ${xmlDocs.length} XML(s) carregado(s)</span>
+       <span class="file-chip">${xmlDocs.filter(d=>d.modelo==='55').length} NF-e</span>
+       <span class="file-chip">${xmlDocs.filter(d=>d.modelo==='65').length} NFC-e</span>`;
+    document.getElementById('btnAnalisar').style.display = 'block';
+  }
+}
+
+function lerTexto(file) {
+  return new Promise(res => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.readAsText(file, 'utf-8');
+  });
+}
+
+async function lerZip(file) {
+  // Lê o ZIP usando FileReader e parse manual dos XMLs internos
+  return new Promise(res => {
+    const r = new FileReader();
+    r.onload = async e => {
+      try {
+        const bytes = new Uint8Array(e.target.result);
+        const xmls = extrairXMLsDoZip(bytes);
+        xmls.forEach(txt => {
+          const doc = parseXML(txt, 'zip');
+          if (doc) xmlDocs.push(doc);
+        });
+      } catch(err) { console.error('Erro ZIP:', err); }
+      res();
+    };
+    r.readAsArrayBuffer(file);
+  });
+}
+
+function extrairXMLsDoZip(bytes) {
+  // Parser ZIP simples — localiza assinaturas PK e extrai arquivos .xml
+  const xmls = [];
+  let i = 0;
+  while (i < bytes.length - 4) {
+    // Local file header: PK\x03\x04
+    if (bytes[i]===0x50 && bytes[i+1]===0x4B && bytes[i+2]===0x03 && bytes[i+3]===0x04) {
+      const compMethod = bytes[i+8] | (bytes[i+9] << 8);
+      const compSize   = bytes[i+18] | (bytes[i+19]<<8) | (bytes[i+20]<<16) | (bytes[i+21]<<24);
+      const nameLen    = bytes[i+26] | (bytes[i+27]<<8);
+      const extraLen   = bytes[i+28] | (bytes[i+29]<<8);
+      const nameBytes  = bytes.slice(i+30, i+30+nameLen);
+      const name       = new TextDecoder().decode(nameBytes);
+      const dataStart  = i + 30 + nameLen + extraLen;
+
+      if (name.toLowerCase().endsWith('.xml') && compMethod === 0) {
+        // Sem compressão — lê direto
+        const xmlBytes = bytes.slice(dataStart, dataStart + compSize);
+        const txt = new TextDecoder('utf-8').decode(xmlBytes);
+        xmls.push(txt);
+      }
+      i = dataStart + compSize;
+    } else { i++; }
+  }
+  return xmls;
+}
+
+// ═══════════════════════════════════════════════════════
+// PARSE XML NF-e / NFC-e
+// ═══════════════════════════════════════════════════════
+function parseXML(txt, nome) {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(txt, 'application/xml');
+    if (doc.querySelector('parsererror')) return null;
+
+    const get = (sel) => doc.querySelector(sel)?.textContent?.trim() || '';
+    const getNum = (sel) => parseFloat(get(sel).replace(',','.')) || 0;
+
+    const modelo = get('mod') || get('cMod');
+    if (modelo !== '55' && modelo !== '65') return null; // só NF-e e NFC-e
+
+    // Dados da nota
+    const nota = {
+      modelo,
+      tipo: modelo === '55' ? 'NF-e' : 'NFC-e',
+      num: get('nNF'),
+      serie: get('serie'),
+      chave: get('chNFe') || get('Id')?.replace('NFe',''),
+      data: get('dhEmi')?.slice(0,10) || get('dEmi'),
+      periodo: '',
+      emitente: get('emit xNome') || get('xNome'),
+      cnpj_emit: get('emit CNPJ') || '',
+      uf_emit: get('emit enderEmit xUF') || '',
+      dest_cpf: get('dest CPF') || '',
+      dest_cnpj: get('dest CNPJ') || '',
+      vl_nf: getNum('vNF'),
+      vl_prod: getNum('vProd'),
+      // Impostos
+      icms: 0, icms_st: 0, pis: 0, cofins: 0, ipi: 0,
+      aliq_pis: 0, aliq_cofins: 0, aliq_icms: 0,
+      itens: []
+    };
+
+    // Período
+    if (nota.data) {
+      const [ano, mes] = nota.data.split('-');
+      nota.periodo = `${mes}/${ano}`;
+    }
+
+    // Somar impostos dos itens
+    doc.querySelectorAll('det').forEach(det => {
+      const vProd = parseFloat(det.querySelector('vProd')?.textContent || 0);
+      const vICMS = parseFloat(det.querySelector('ICMS vICMS')?.textContent || det.querySelector('vICMS')?.textContent || 0);
+      const vICMSST = parseFloat(det.querySelector('vICMSST')?.textContent || 0);
+      const vPIS = parseFloat(det.querySelector('PIS vPIS')?.textContent || det.querySelector('vPIS')?.textContent || 0);
+      const vCOFINS = parseFloat(det.querySelector('COFINS vCOFINS')?.textContent || det.querySelector('vCOFINS')?.textContent || 0);
+      const vIPI = parseFloat(det.querySelector('IPI vIPI')?.textContent || det.querySelector('vIPI')?.textContent || 0);
+      const pPIS = parseFloat(det.querySelector('pPIS')?.textContent || 0);
+      const pCOFINS = parseFloat(det.querySelector('pCOFINS')?.textContent || 0);
+      const pICMS = parseFloat(det.querySelector('pICMS')?.textContent || 0);
+      const ncm = det.querySelector('NCM')?.textContent || det.querySelector('NCM')?.textContent || '';
+      const cst_pis = det.querySelector('CST')?.textContent || '';
+
+      nota.icms += vICMS;
+      nota.icms_st += vICMSST;
+      nota.pis += vPIS;
+      nota.cofins += vCOFINS;
+      nota.ipi += vIPI;
+      if (pPIS > nota.aliq_pis) nota.aliq_pis = pPIS;
+      if (pCOFINS > nota.aliq_cofins) nota.aliq_cofins = pCOFINS;
+      if (pICMS > nota.aliq_icms) nota.aliq_icms = pICMS;
+
+      nota.itens.push({ vProd, vICMS, vICMSST, vPIS, vCOFINS, vIPI, ncm, cst_pis });
+    });
+
+    return nota;
+  } catch(e) { return null; }
+}
+
+// ═══════════════════════════════════════════════════════
+// ANÁLISE DE CRÉDITOS POR REGIME
+// ═══════════════════════════════════════════════════════
+function calcularCreditos(notas) {
+  const reg = REGIMES[regime];
+  const credMap = {};
+  reg.creditos.forEach(c => { credMap[c.id] = 0; });
+
+  const notasComCredito = [];
+  const porPeriodo = {};
+  const fornecedores = new Set();
+
+  notas.forEach(n => {
+    fornecedores.add(n.cnpj_emit);
+    let credNota = {};
+
+    if (regime === 'sn') {
+      // SN: ICMS-ST e monofásicos
+      credNota.icms_st = n.icms_st;
+      // Monofásicos — estima PIS/COFINS se alíquota zero (já recolhido na cadeia)
+      credNota.pis_mono = n.aliq_pis === 0 && n.pis === 0 ? n.vl_prod * 0.0165 : 0;
+      credNota.cofins_mono = n.aliq_cofins === 0 && n.cofins === 0 ? n.vl_prod * 0.076 : 0;
+      credNota.icms_difal = 0; // requer dados do destinatário
+    } else if (regime === 'lp') {
+      // LP: ICMS + ICMS-ST + IPI (PIS/COFINS cumulativo — sem crédito direto)
+      credNota.icms_entr = n.icms;
+      credNota.icms_st = n.icms_st;
+      credNota.pis_entr = n.pis * 0.65 / (n.aliq_pis || 1); // alíquota LP
+      credNota.cofins_entr = n.cofins * 3 / (n.aliq_cofins || 1);
+      credNota.ipi_entr = n.ipi;
+    } else {
+      // LR: tudo — não-cumulativo
+      credNota.icms_entr = n.icms;
+      credNota.icms_st = n.icms_st;
+      credNota.pis_entr = n.pis;
+      credNota.cofins_entr = n.cofins;
+      credNota.ipi_entr = n.ipi;
+      // Gross Up Reverso
+      const diffPis = n.pis;
+      const diffCof = n.cofins;
+      const novaBase = Math.max(0, (n.aliq_pis > 0 ? n.pis / (n.aliq_pis/100) : 0) - diffPis - diffCof);
+      credNota.pis_base = n.aliq_pis > 0 ? Math.max(0, n.pis - novaBase * n.aliq_pis/100) : 0;
+      credNota.cofins_base = n.aliq_cofins > 0 ? Math.max(0, n.cofins - novaBase * n.aliq_cofins/100) : 0;
+    }
+
+    const totalCred = Object.values(credNota).reduce((a,b)=>a+(b||0),0);
+    if (totalCred > 0.01) {
+      notasComCredito.push({ ...n, creditos: credNota, totalCred });
+
+      // Acumular por tipo
+      Object.entries(credNota).forEach(([k,v]) => {
+        if (credMap[k] !== undefined) credMap[k] += v||0;
+      });
+
+      // Acumular por período
+      const per = n.periodo || '—';
+      if (!porPeriodo[per]) porPeriodo[per] = 0;
+      porPeriodo[per] += totalCred;
+    }
+  });
+
+  const totalGeral = Object.values(credMap).reduce((a,b)=>a+b,0);
+
+  return {
+    credMap, notasComCredito, porPeriodo, totalGeral,
+    totalNFe: notas.filter(n=>n.modelo==='55').length,
+    totalNFCe: notas.filter(n=>n.modelo==='65').length,
+    totalForn: fornecedores.size,
+    periodos: Object.keys(porPeriodo).sort(),
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+// ANALISAR
+// ═══════════════════════════════════════════════════════
+function analisar() {
+  document.getElementById('btnAnalisar').style.display = 'none';
+  document.getElementById('resultado').style.display = 'none';
+  const loading = document.getElementById('loading');
+  loading.style.display = 'block';
+
+  const msgs = ['Lendo XMLs...','Identificando tributos...','Calculando créditos por regime...','Montando dashboard...'];
+  let mi = 0;
+  const iv = setInterval(() => {
+    if(mi < msgs.length) document.getElementById('loadMsg').textContent = msgs[mi++];
+  }, 400);
+
+  setTimeout(() => {
+    clearInterval(iv);
+    resultado = calcularCreditos(xmlDocs);
+    loading.style.display = 'none';
+    renderResultado(resultado);
+  }, 1800);
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════
+function fmt(v) { return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtK(v) {
+  if(v>=1000000) return'R$ '+(v/1000000).toFixed(1)+'M';
+  if(v>=1000) return'R$ '+(v/1000).toFixed(0)+'k';
+  return fmt(v);
+}
+
+function renderResultado(res) {
+  const reg = REGIMES[regime];
+  document.getElementById('resultado').style.display = 'block';
+
+  // Stats
+  document.getElementById('st-total').textContent = fmtK(res.totalGeral);
+  document.getElementById('st-total-sub').textContent = 'créditos identificados';
+  document.getElementById('st-nfe').textContent = res.totalNFe.toLocaleString('pt-BR');
+  document.getElementById('st-nfce').textContent = res.totalNFCe.toLocaleString('pt-BR');
+  document.getElementById('st-forn').textContent = res.totalForn.toLocaleString('pt-BR');
+  document.getElementById('st-periodo').textContent = res.periodos.length;
+  document.getElementById('st-periodo-sub').textContent = res.periodos.length > 0 ? res.periodos[0]+' a '+res.periodos[res.periodos.length-1] : 'meses';
+
+  // Oportunidades
+  const grid = document.getElementById('oporGrid');
+  grid.innerHTML = '';
+  reg.creditos.forEach(c => {
+    const val = res.credMap[c.id] || 0;
+    if (val <= 0) return;
+    const div = document.createElement('div');
+    div.className = 'opor-card';
+    div.style.setProperty('--oc-color', c.cor);
+    div.innerHTML = `
+      <div class="opor-header">
+        <div class="opor-nome">${c.nome}</div>
+        <div class="opor-tipo badge" style="background:${c.cor}22;color:${c.cor}">${regime.toUpperCase()}</div>
+      </div>
+      <div class="opor-valor" style="color:${c.cor}">${fmtK(val)}</div>
+      <div class="opor-detail">${c.desc}</div>
+      <div class="opor-base">${c.base}</div>`;
+    grid.appendChild(div);
+  });
+
+  if (grid.children.length === 0) {
+    grid.innerHTML = '<div style="font-size:13px;color:var(--text3);padding:1rem">Nenhuma oportunidade identificada nos XMLs importados para este regime.</div>';
+  }
+
+  // Charts
+  renderCharts(res);
+
+  // Tabela
+  const tbody = document.getElementById('tabelaBody');
+  tbody.innerHTML = '';
+  let totVnf=0,totIcms=0,totPis=0,totCof=0,totIpi=0,totCred=0;
+  const notasOrd = [...res.notasComCredito].sort((a,b)=>b.totalCred-a.totalCred);
+
+  notasOrd.slice(0,200).forEach(n => {
+    totVnf+=n.vl_nf; totIcms+=n.icms; totPis+=n.pis; totCof+=n.cofins; totIpi+=n.ipi; totCred+=n.totalCred;
+    tbody.innerHTML += `<tr>
+      <td>${n.emitente?.slice(0,25)||'—'}</td>
+      <td style="font-family:var(--font-mono);font-size:11px">${n.cnpj_emit||'—'}</td>
+      <td><span class="badge ${n.modelo==='55'?'bg-blue':'bg-purple'}">${n.tipo}</span></td>
+      <td style="font-family:var(--font-mono);font-size:11px">${n.num||'—'}</td>
+      <td style="font-family:var(--font-mono);font-size:11px">${n.data||'—'}</td>
+      <td class="td-num">${fmt(n.vl_nf)}</td>
+      <td class="td-num">${n.icms>0?fmt(n.icms):'—'}</td>
+      <td class="td-num">${n.pis>0?fmt(n.pis):'—'}</td>
+      <td class="td-num">${n.cofins>0?fmt(n.cofins):'—'}</td>
+      <td class="td-num">${n.ipi>0?fmt(n.ipi):'—'}</td>
+      <td class="td-num td-pos">${fmt(n.totalCred)}</td>
+    </tr>`;
+  });
+
+  document.getElementById('tabInfo').textContent = `${res.notasComCredito.length} notas com crédito identificado`;
+  document.getElementById('tabelaFoot').innerHTML = `
+    <td colspan="5">TOTAL</td>
+    <td class="td-num">${fmt(totVnf)}</td>
+    <td class="td-num">${fmt(totIcms)}</td>
+    <td class="td-num">${fmt(totPis)}</td>
+    <td class="td-num">${fmt(totCof)}</td>
+    <td class="td-num">${fmt(totIpi)}</td>
+    <td class="td-num">${fmt(totCred)}</td>`;
+
+  document.getElementById('resultado').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function renderCharts(res) {
+  const reg = REGIMES[regime];
+  Object.values(charts).forEach(c=>c.destroy());
+  charts = {};
+
+  // Gráfico 1 — por período
+  const periodos = res.periodos;
+  const valPeriodo = periodos.map(p => res.porPeriodo[p]||0);
+  charts.periodo = new Chart(document.getElementById('chartPeriodo'), {
+    type: 'bar',
+    data: {
+      labels: periodos,
+      datasets: [{ label: 'Créditos (R$)', data: valPeriodo, backgroundColor: reg.cor+'99', borderColor: reg.cor, borderWidth: 1, borderRadius: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: { size: 9 }, color: '#5d6480', maxRotation: 60 }, grid: { color: '#1a1e2a' } },
+        y: { ticks: { callback: v=>'R$'+(v/1000).toFixed(0)+'k', font: { size: 9 }, color: '#5d6480' }, grid: { color: '#1a1e2a' } }
+      }
+    }
+  });
+
+  // Gráfico 2 — por tipo
+  const tiposComValor = reg.creditos.filter(c => (res.credMap[c.id]||0) > 0);
+  charts.tipo = new Chart(document.getElementById('chartTipo'), {
+    type: 'doughnut',
+    data: {
+      labels: tiposComValor.map(c=>c.nome),
+      datasets: [{ data: tiposComValor.map(c=>res.credMap[c.id]||0), backgroundColor: tiposComValor.map(c=>c.cor+'cc'), borderColor: '#13161e', borderWidth: 2 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { color: '#8b92a8', font: { size: 10 }, padding: 8 } },
+        tooltip: { callbacks: { label: ctx => ` ${fmt(ctx.raw)}` } }
+      },
+      cutout: '65%'
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// EXPORTAR
+// ═══════════════════════════════════════════════════════
+function exportCSV() {
+  if (!resultado) return;
+  let csv = 'Emitente;CNPJ;Modelo;Número;Data;Valor NF;ICMS;PIS;COFINS;IPI;Crédito Total\n';
+  resultado.notasComCredito.forEach(n => {
+    csv += `"${n.emitente}";${n.cnpj_emit};${n.tipo};${n.num};${n.data};${n.vl_nf.toFixed(2).replace('.',',')};${n.icms.toFixed(2).replace('.',',')};${n.pis.toFixed(2).replace('.',',')};${n.cofins.toFixed(2).replace('.',',')};${n.ipi.toFixed(2).replace('.',',')};${n.totalCred.toFixed(2).replace('.',',')}\n`;
+  });
+  baixar('\uFEFF'+csv, 'creditos_nfe_nfce.csv', 'text/csv;charset=utf-8;');
+}
+
+function exportRelatorio() {
+  if (!resultado) return;
+  const reg = REGIMES[regime];
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  const ops = reg.creditos.filter(c=>(resultado.credMap[c.id]||0)>0)
+    .map(c=>`<tr><td>${c.nome}</td><td>${c.base}</td><td style="text-align:right;font-weight:700;color:#1A7F74">${fmt(resultado.credMap[c.id]||0)}</td></tr>`).join('');
+
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+  <title>Diagnóstico de Créditos — JCR</title>
+  <style>body{font-family:Arial,sans-serif;max-width:820px;margin:0 auto;padding:2rem;color:#1B3A6B}
+  h1{color:#0F1E3C;border-bottom:3px solid #C9A84C;padding-bottom:.5rem;font-size:1.4rem}
+  .box{background:#F4F1EB;border-radius:8px;padding:1rem;margin:1rem 0}
+  table{width:100%;border-collapse:collapse;margin:1rem 0}
+  th{background:#0F1E3C;color:#F0D080;padding:8px 12px;text-align:left;font-size:12px}
+  td{padding:8px 12px;border-bottom:1px solid #eee;font-size:13px}
+  .alerta{background:#FFF8E7;border-left:4px solid #C9A84C;padding:1rem;font-size:13px;margin-top:1.5rem}
+  </style></head><body>
+  <h1>Diagnóstico de Créditos Tributários — NF-e/NFC-e</h1>
+  <p><strong>Regime:</strong> ${reg.label} | <strong>Data:</strong> ${hoje}</p>
+  <p><strong>NF-e analisadas:</strong> ${resultado.totalNFe} | <strong>NFC-e:</strong> ${resultado.totalNFCe} | <strong>Fornecedores:</strong> ${resultado.totalForn}</p>
+  <div class="box"><strong>Total de créditos identificados:</strong> <span style="color:#1A7F74;font-size:1.2rem">${fmt(resultado.totalGeral)}</span></div>
+  <table><thead><tr><th>Tipo de Crédito</th><th>Fundamento Legal</th><th style="text-align:right">Valor</th></tr></thead>
+  <tbody>${ops}</tbody></table>
+  <div class="alerta">⚠ <strong>Importante:</strong> Valores estimados com base nos XMLs declarados. Validar com o cliente antes de protocolar qualquer pedido de crédito ou compensação. Créditos do Simples Nacional sujeitos a vedações do CGSN 140/2018.</div>
+  <p style="margin-top:2rem;font-size:11px;color:#999">JCR Consultoria e Serviços Tributários — Campinas, SP</p>
+  </body></html>`;
+  baixar(html, 'relatorio_creditos_nfe.html', 'text/html;charset=utf-8;');
+}
+
+
+// ═══════════════════════════════════════════════════════
+// PGDAS-D — CRUZAMENTO
+// ═══════════════════════════════════════════════════════
+let pgdasDados = []; // array de períodos extraídos
+
+// Mostrar área PGDAS após analisar XMLs
+const origRender = renderResultado;
+renderResultado = function(res) {
+  origRender(res);
+  document.getElementById('sec-pgdas').style.display = 'flex';
+  document.getElementById('pgdas-area').style.display = 'block';
+};
+
+function onPGDASSelect(e) {
+  const files = Array.from(e.target.files);
+  e.target.value = '';
+  files.forEach(f => processarPGDAS(f));
+}
+
+async function processarPGDAS(file) {
+  // Mostrar chip
+  const chips = document.getElementById('pgdas-chips');
+  const chip = document.createElement('span');
+  chip.className = 'file-chip';
+  chip.textContent = '⏳ ' + file.name;
+  chips.appendChild(chip);
+
+  document.getElementById('pgdas-loading').style.display = 'block';
+  document.getElementById('pgdas-load-msg').textContent = `Analisando ${file.name} com IA...`;
+
+  try {
+    // Converter PDF para base64
+    const b64 = await fileToBase64(file);
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } },
+            { type: 'text', text: `Extraia os dados do PGDAS-D. Responda SOMENTE em JSON válido, sem markdown:
+{
+  "periodo": "MM/AAAA",
+  "cnpj": "00.000.000/0001-00",
+  "empresa": "nome",
+  "receita_bruta_total": 0.00,
+  "atividades": [
+    {
+      "descricao": "texto da atividade",
+      "com_mono_st": true,
+      "receita": 0.00,
+      "pis": 0.00,
+      "cofins": 0.00,
+      "icms": 0.00,
+      "iss": 0.00,
+      "total": 0.00,
+      "mono_de": ["PIS","COFINS","ICMS"]
+    }
+  ],
+  "total_pis": 0.00,
+  "total_cofins": 0.00,
+  "total_icms": 0.00,
+  "total_iss": 0.00,
+  "total_das": 0.00,
+  "receita_com_mono": 0.00,
+  "pis_mono_declarado": 0.00,
+  "cofins_mono_declarado": 0.00,
+  "icms_st_declarado": 0.00
+}
+O campo "com_mono_st" é true quando a atividade menciona "substituição tributária" ou "monofásica".
+"mono_de" lista os tributos que foram zerados por ser monofásico/ST.
+"receita_com_mono" é a soma das receitas das atividades com mono/ST.
+"pis_mono_declarado" é o PIS recolhido nas atividades SEM mono (que deveria ser zero se fosse mono).
+"cofins_mono_declarado" idem para COFINS.` }
+          ]
+        }]
+      })
+    });
+
+    const data = await resp.json();
+    const texto = data.content?.[0]?.text?.trim() || '';
+    const json = JSON.parse(texto.replace(/```json|```/g,'').trim());
+
+    pgdasDados.push(json);
+    chip.textContent = '✓ ' + file.name + ' (' + json.periodo + ')';
+    chip.style.color = 'var(--green)';
+
+    renderCruzamento();
+
+  } catch(err) {
+    chip.textContent = '✗ Erro: ' + file.name;
+    chip.style.color = 'var(--red)';
+    console.error(err);
+  }
+
+  document.getElementById('pgdas-loading').style.display = 'none';
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+function renderCruzamento() {
+  if (!pgdasDados.length || !resultado) return;
+  document.getElementById('cruzamento-resultado').style.display = 'block';
+
+  let totPis=0, totCofins=0, totIcmsSt=0, totRecuperar=0;
+  const linhas = [];
+
+  pgdasDados.forEach(pg => {
+    const per = pg.periodo; // MM/AAAA
+    // Buscar XMLs do mesmo período
+    const xmlPer = xmlDocs.filter(x => x.periodo === per);
+    const pisBruto = xmlPer.reduce((a,x)=>a+x.pis,0);
+    const cofinsBruto = xmlPer.reduce((a,x)=>a+x.cofins,0);
+    const icmsStBruto = xmlPer.reduce((a,x)=>a+x.icms_st,0);
+
+    // Crédito: PIS e COFINS pagos no DAS sobre receita mono (deveria ser 0)
+    const pisMono = pg.pis_mono_declarado || 0;   // PIS indevido (só se declarou mono mas ainda cobrou)
+    const cofinsMono = pg.cofins_mono_declarado || 0;
+    // ICMS-ST: diferença entre o que aparece nos XMLs e o que foi declarado no DAS
+    const icmsStDiff = Math.max(0, icmsStBruto - (pg.icms_st_declarado||0));
+    const recuperar = pisMono + cofinsMono + icmsStDiff;
+
+    totPis += pisMono;
+    totCofins += cofinsMono;
+    totIcmsSt += icmsStDiff;
+    totRecuperar += recuperar;
+
+    linhas.push({ per, pg, pisBruto, cofinsBruto, icmsStBruto, pisMono, cofinsMono, icmsStDiff, recuperar });
+  });
+
+  // Stats
+  document.getElementById('cs-pis').textContent = fmt(totPis);
+  document.getElementById('cs-cofins').textContent = fmt(totCofins);
+  document.getElementById('cs-icms').textContent = fmt(totIcmsSt);
+  document.getElementById('cs-total').textContent = fmt(totRecuperar);
+
+  // Tabela
+  const tbody = document.getElementById('cruz-tbody');
+  tbody.innerHTML = linhas.sort((a,b)=>a.per.localeCompare(b.per)).map(l => {
+    const sit = l.recuperar > 0
+      ? `<span class="badge bg-red">⚠ Recolhimento indevido</span>`
+      : `<span class="badge bg-green">✓ Correto</span>`;
+    return `<tr>
+      <td style="font-family:var(--font-mono);font-size:11px">${l.per}</td>
+      <td class="td-num">${fmt(l.pg.receita_com_mono||0)}</td>
+      <td class="td-num ${l.pisMono>0?'cruz-err':''}">${fmt(l.pisMono)}</td>
+      <td class="td-num ${l.cofinsMono>0?'cruz-err':''}">${fmt(l.cofinsMono)}</td>
+      <td class="td-num">${fmt(l.pisBruto)}</td>
+      <td class="td-num">${fmt(l.cofinsBruto)}</td>
+      <td class="td-num">${fmt(l.icmsStBruto)}</td>
+      <td class="td-num td-pos">${l.recuperar>0?fmt(l.recuperar):'—'}</td>
+      <td>${sit}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('cruz-tfoot').innerHTML = `
+    <td colspan="2">TOTAL</td>
+    <td class="td-num">${fmt(totPis)}</td>
+    <td class="td-num">${fmt(totCofins)}</td>
+    <td class="td-num"></td>
+    <td class="td-num"></td>
+    <td class="td-num">${fmt(totIcmsSt)}</td>
+    <td class="td-num">${fmt(totRecuperar)}</td>
+    <td></td>`;
+
+  document.getElementById('cruz-periodos-info').textContent = pgdasDados.length + ' período(s) cruzado(s)';
+}
+
+function exportCruzamentoCSV() {
+  if (!pgdasDados.length) return;
+  let csv = 'Período;RB c/Mono (PGDAS);PIS Indevido;COFINS Indevida;PIS XMLs;COFINS XMLs;ICMS-ST XMLs;Total Recuperar\n';
+  pgdasDados.forEach(pg => {
+    const per = pg.periodo;
+    const xmlPer = xmlDocs.filter(x=>x.periodo===per);
+    const pisBruto = xmlPer.reduce((a,x)=>a+x.pis,0);
+    const cofinsBruto = xmlPer.reduce((a,x)=>a+x.cofins,0);
+    const icmsStBruto = xmlPer.reduce((a,x)=>a+x.icms_st,0);
+    const pisMono = pg.pis_mono_declarado||0;
+    const cofinsMono = pg.cofins_mono_declarado||0;
+    const icmsStDiff = Math.max(0, icmsStBruto - (pg.icms_st_declarado||0));
+    const rec = pisMono+cofinsMono+icmsStDiff;
+    csv += `${per};${br(pg.receita_com_mono)};${br(pisMono)};${br(cofinsMono)};${br(pisBruto)};${br(cofinsBruto)};${br(icmsStBruto)};${br(rec)}\n`;
+  });
+  baixar('\uFEFF'+csv,'cruzamento_pgdas_nfe.csv','text/csv;charset=utf-8;');
+}
+
+function br(v){return(v||0).toFixed(2).replace('.',',')}
+
+function exportCruzamentoRelatorio(){
+  alert('Relatório de cruzamento: em desenvolvimento. Use o CSV por enquanto.');
+}
+
+function baixar(c, n, t) {
+  const b = new Blob([c],{type:t}), u = URL.createObjectURL(b), a = document.createElement('a');
+  a.href=u; a.download=n; a.click(); setTimeout(()=>URL.revokeObjectURL(u),1000);
+}
+
+// ── INIT ──
+renderRegimeInfo();
+</script>
+</body>
+</html>
