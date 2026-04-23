@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>JCR — Pomodoro (preview)</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+body{background:#0d0f14;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;color:#e8eaf0}
+.preview-note{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#13161e;border:1px solid #2a2f42;border-radius:8px;padding:8px 16px;font-size:12px;color:#5d6480}
+</style>
+</head>
+<body>
+<div class="preview-note">Preview — o widget flutua no canto inferior direito de qualquer página</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+//  JCR POMODORO — widget flutuante
+//  Para incluir em qualquer página: <script src="jcr_pomodoro.js"></script>
+// ══════════════════════════════════════════════════════════════════
+
+(function(){
+
+// ── CSS ─────────────────────────────────────────────────────────
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
+
+#jcr-pom-btn {
+  position:fixed; bottom:24px; right:24px; z-index:9000;
+  width:52px; height:52px; border-radius:50%;
+  background:#13161e; border:1px solid #2a2f42;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:22px; transition:all .2s; box-shadow:0 4px 20px rgba(0,0,0,.5);
+  user-select:none;
+}
+#jcr-pom-btn:hover { transform:scale(1.08); border-color:#4f8ef7; }
+#jcr-pom-btn.running { border-color:#2dd4a0; box-shadow:0 0 0 3px rgba(45,212,160,.2); animation:pom-pulse 2s ease-in-out infinite; }
+#jcr-pom-btn.pausa { border-color:#a78bfa; box-shadow:0 0 0 3px rgba(167,139,250,.15); }
+#jcr-pom-btn .pom-ring {
+  position:absolute; inset:-3px; border-radius:50%;
+  background:conic-gradient(var(--pom-color,#4f8ef7) var(--pom-pct,0%), transparent 0%);
+  opacity:0; transition:opacity .3s;
+}
+#jcr-pom-btn.running .pom-ring, #jcr-pom-btn.pausa .pom-ring { opacity:1; }
+
+@keyframes pom-pulse {
+  0%,100% { box-shadow:0 0 0 3px rgba(45,212,160,.2); }
+  50% { box-shadow:0 0 0 6px rgba(45,212,160,.1); }
+}
+
+#jcr-pom {
+  position:fixed; bottom:88px; right:24px; z-index:8999;
+  width:300px; background:#13161e; border:1px solid #2a2f42;
+  border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,.7);
+  font-family:'DM Sans',sans-serif;
+  transform:translateY(12px) scale(.96); opacity:0; pointer-events:none;
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+}
+#jcr-pom.open { transform:translateY(0) scale(1); opacity:1; pointer-events:all; }
+
+.pom-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px 12px; border-bottom:1px solid #1a1e2a;
+}
+.pom-logo { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:#4f8ef7; }
+.pom-close { background:none; border:none; color:#5d6480; cursor:pointer; font-size:16px; padding:2px 4px; border-radius:5px; transition:all .15s; }
+.pom-close:hover { background:#1a1e2a; color:#e8eaf0; }
+
+.pom-mode-tabs {
+  display:flex; gap:3px; padding:10px 12px 0;
+}
+.pom-tab {
+  flex:1; padding:6px 4px; border-radius:7px; font-size:11px; font-weight:600;
+  border:none; cursor:pointer; font-family:'DM Sans',sans-serif;
+  background:none; color:#5d6480; transition:all .15s; text-align:center;
+}
+.pom-tab:hover { background:#1a1e2a; color:#8b92a8; }
+.pom-tab.active { background:#1a1e2a; }
+.pom-tab.active.mode-foco { color:#2dd4a0; }
+.pom-tab.active.mode-pausa { color:#a78bfa; }
+.pom-tab.active.mode-longa { color:#4f8ef7; }
+
+.pom-timer-area {
+  padding:20px 16px 16px; text-align:center;
+}
+.pom-session-label {
+  font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.8px;
+  margin-bottom:8px; transition:color .3s;
+}
+.pom-display {
+  font-family:'JetBrains Mono',monospace; font-size:52px; font-weight:700;
+  color:#e8eaf0; line-height:1; margin-bottom:4px; letter-spacing:-1px;
+  transition:color .3s;
+}
+.pom-sessoes {
+  font-size:11px; color:#5d6480; margin-bottom:16px;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.pom-dot { width:7px; height:7px; border-radius:50%; background:#222739; transition:all .3s; }
+.pom-dot.feito { background:#2dd4a0; }
+.pom-dot.atual { background:#f2924a; box-shadow:0 0 0 2px rgba(242,146,74,.25); }
+
+.pom-progress {
+  height:3px; background:#1a1e2a; border-radius:2px; margin:0 16px 16px; overflow:hidden;
+}
+.pom-progress-fill {
+  height:100%; border-radius:2px; width:0%; transition:width .5s linear, background .3s;
+}
+
+.pom-controls {
+  display:flex; gap:8px; padding:0 16px 14px;
+}
+.pom-btn-main {
+  flex:1; padding:11px; border-radius:10px; border:none;
+  font-family:'Syne',sans-serif; font-size:14px; font-weight:700;
+  cursor:pointer; transition:all .2s; letter-spacing:.3px;
+}
+.pom-btn-main.iniciar { background:#2dd4a0; color:#0d1a14; }
+.pom-btn-main.iniciar:hover { background:#35e8b0; }
+.pom-btn-main.pausar { background:#f5c842; color:#1a1500; }
+.pom-btn-main.pausar:hover { background:#ffd050; }
+.pom-btn-main.retomar { background:#4f8ef7; color:#fff; }
+.pom-btn-main.retomar:hover { background:#6fa3f8; }
+.pom-btn-reset {
+  width:42px; border-radius:10px; border:1px solid #2a2f42;
+  background:#1a1e2a; color:#5d6480; font-size:16px; cursor:pointer; transition:all .2s;
+}
+.pom-btn-reset:hover { background:#222739; color:#e8eaf0; }
+.pom-btn-skip {
+  width:42px; border-radius:10px; border:1px solid #2a2f42;
+  background:#1a1e2a; color:#5d6480; font-size:14px; cursor:pointer; transition:all .2s;
+}
+.pom-btn-skip:hover { background:#222739; color:#e8eaf0; border-color:#4f8ef7; }
+
+.pom-tarefa-area { padding:0 16px 14px; }
+.pom-tarefa-label { font-size:10px; font-weight:600; color:#5d6480; text-transform:uppercase; letter-spacing:.6px; margin-bottom:6px; }
+.pom-tarefa-input {
+  width:100%; background:#1a1e2a; border:1px solid #2a2f42; border-radius:8px;
+  color:#e8eaf0; font-family:'DM Sans',sans-serif; font-size:12px;
+  padding:8px 11px; outline:none; transition:border-color .2s;
+}
+.pom-tarefa-input:focus { border-color:#4f8ef7; }
+.pom-tarefa-input::placeholder { color:#3a3f55; }
+
+.pom-config-toggle {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 16px 10px; cursor:pointer;
+}
+.pom-config-label { font-size:11px; color:#5d6480; }
+.pom-config-ico { font-size:12px; color:#5d6480; transition:transform .2s; }
+.pom-config-ico.open { transform:rotate(180deg); }
+
+.pom-config-body { padding:0 16px 14px; display:none; }
+.pom-config-body.open { display:block; }
+.pom-config-row { display:flex; gap:8px; margin-bottom:8px; }
+.pom-config-field { flex:1; }
+.pom-config-field label { display:block; font-size:10px; color:#5d6480; font-weight:600; text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+.pom-config-input {
+  width:100%; background:#1a1e2a; border:1px solid #2a2f42; border-radius:7px;
+  color:#e8eaf0; font-family:'JetBrains Mono',monospace; font-size:13px;
+  padding:7px 10px; outline:none; text-align:center; transition:border-color .2s;
+}
+.pom-config-input:focus { border-color:#4f8ef7; }
+.pom-config-save {
+  width:100%; padding:8px; border-radius:8px; border:none;
+  background:#4f8ef7; color:#fff; font-family:'DM Sans',sans-serif;
+  font-size:12px; font-weight:600; cursor:pointer; margin-top:4px; transition:background .15s;
+}
+.pom-config-save:hover { background:#6fa3f8; }
+
+.pom-hist { padding:0 16px 14px; border-top:1px solid #1a1e2a; }
+.pom-hist-title { font-size:10px; font-weight:600; color:#5d6480; text-transform:uppercase; letter-spacing:.6px; margin:12px 0 8px; }
+.pom-hist-list { display:flex; flex-direction:column; gap:4px; max-height:100px; overflow-y:auto; }
+.pom-hist-item { display:flex; align-items:center; gap:6px; font-size:11px; color:#8b92a8; }
+.pom-hist-dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+.pom-hist-time { margin-left:auto; color:#5d6480; font-family:'JetBrains Mono',monospace; font-size:10px; }
+`;
+
+// ── HTML ────────────────────────────────────────────────────────
+const HTML = `
+<div id="jcr-pom-btn" onclick="pomToggle()" title="Pomodoro JCR">
+  <div class="pom-ring" id="pom-ring"></div>
+  <span id="pom-btn-icon">🍅</span>
+</div>
+
+<div id="jcr-pom">
+  <div class="pom-head">
+    <div class="pom-logo">🍅 Pomodoro JCR</div>
+    <button class="pom-close" onclick="pomToggle()">✕</button>
+  </div>
+
+  <div class="pom-mode-tabs">
+    <button class="pom-tab active mode-foco" id="tab-foco" onclick="pomSetMode('foco')">🎯 Foco</button>
+    <button class="pom-tab mode-pausa" id="tab-pausa" onclick="pomSetMode('pausa')">☕ Pausa</button>
+    <button class="pom-tab mode-longa" id="tab-longa" onclick="pomSetMode('longa')">🌿 Longa</button>
+  </div>
+
+  <div class="pom-timer-area">
+    <div class="pom-session-label" id="pom-label" style="color:#2dd4a0">Sessão de Foco</div>
+    <div class="pom-display" id="pom-display">25:00</div>
+    <div class="pom-sessoes" id="pom-sessoes">
+      <div class="pom-dot atual" id="pd0"></div>
+      <div class="pom-dot" id="pd1"></div>
+      <div class="pom-dot" id="pd2"></div>
+      <div class="pom-dot" id="pd3"></div>
+    </div>
+  </div>
+
+  <div class="pom-progress"><div class="pom-progress-fill" id="pom-prog"></div></div>
+
+  <div class="pom-controls">
+    <button class="pom-btn-reset" onclick="pomReset()" title="Reiniciar">↺</button>
+    <button class="pom-btn-main iniciar" id="pom-main-btn" onclick="pomToggleTimer()">Iniciar</button>
+    <button class="pom-btn-skip" onclick="pomSkip()" title="Pular sessão">⏭</button>
+  </div>
+
+  <div class="pom-tarefa-area">
+    <div class="pom-tarefa-label">Em que está trabalhando?</div>
+    <input class="pom-tarefa-input" id="pom-tarefa" type="text" placeholder="Ex: Analisar SPED do cliente X...">
+  </div>
+
+  <div class="pom-config-toggle" onclick="pomToggleConfig()">
+    <div class="pom-config-label">⚙️ Personalizar tempos</div>
+    <div class="pom-config-ico" id="pom-cfg-ico">▾</div>
+  </div>
+  <div class="pom-config-body" id="pom-cfg-body">
+    <div class="pom-config-row">
+      <div class="pom-config-field">
+        <label>Foco (min)</label>
+        <input class="pom-config-input" id="cfg-foco" type="number" min="1" max="60" value="25">
+      </div>
+      <div class="pom-config-field">
+        <label>Pausa (min)</label>
+        <input class="pom-config-input" id="cfg-pausa" type="number" min="1" max="30" value="5">
+      </div>
+      <div class="pom-config-field">
+        <label>Longa (min)</label>
+        <input class="pom-config-input" id="cfg-longa" type="number" min="1" max="60" value="15">
+      </div>
+    </div>
+    <button class="pom-config-save" onclick="pomSalvarConfig()">✓ Aplicar</button>
+  </div>
+
+  <div class="pom-hist">
+    <div class="pom-hist-title">Sessões de hoje</div>
+    <div class="pom-hist-list" id="pom-hist-list">
+      <div style="font-size:11px;color:#3a3f55">Nenhuma sessão ainda.</div>
+    </div>
+  </div>
+</div>
+`;
+
+// ── INJETAR ─────────────────────────────────────────────────────
+const style = document.createElement('style');
+style.textContent = CSS;
+document.head.appendChild(style);
+const wrap = document.createElement('div');
+wrap.innerHTML = HTML;
+document.body.appendChild(wrap);
+
+// ── ESTADO ──────────────────────────────────────────────────────
+const cfg = JSON.parse(localStorage.getItem('jcr_pom_cfg') || '{"foco":25,"pausa":5,"longa":15}');
+let modo = 'foco';        // foco | pausa | longa
+let estado = 'parado';    // parado | rodando | pausado
+let totalSeg = cfg.foco * 60;
+let restante = totalSeg;
+let intervalo = null;
+let sessaoAtual = 0;      // 0-3
+let sessoesCompletas = 0;
+let historico = JSON.parse(localStorage.getItem('jcr_pom_hist_' + new Date().toDateString()) || '[]');
+let pomAberto = false;
+
+// Cores por modo
+const CORES = { foco:'#2dd4a0', pausa:'#a78bfa', longa:'#4f8ef7' };
+const LABELS = { foco:'Sessão de Foco', pausa:'Pausa Curta', longa:'Pausa Longa' };
+const EMOJIS = { foco:'🎯', pausa:'☕', longa:'🌿' };
+
+// ── UI ───────────────────────────────────────────────────────────
+function pomToggle(){
+  pomAberto = !pomAberto;
+  document.getElementById('jcr-pom').classList.toggle('open', pomAberto);
+}
+
+function pomSetMode(m){
+  if(estado === 'rodando') pomPausar();
+  modo = m;
+  totalSeg = cfg[m] * 60;
+  restante = totalSeg;
+  estado = 'parado';
+  atualizarUI();
+  // Tabs
+  ['foco','pausa','longa'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t === m);
+  });
+}
+
+function pomToggleTimer(){
+  if(estado === 'parado' || estado === 'pausado') pomIniciar();
+  else pomPausar();
+}
+
+function pomIniciar(){
+  estado = 'rodando';
+  document.getElementById('jcr-pom-btn').className = 'running';
+  intervalo = setInterval(tick, 1000);
+  atualizarUI();
+}
+
+function pomPausar(){
+  estado = 'pausado';
+  document.getElementById('jcr-pom-btn').className = 'pausa';
+  clearInterval(intervalo);
+  atualizarUI();
+}
+
+function pomReset(){
+  clearInterval(intervalo);
+  estado = 'parado';
+  restante = totalSeg;
+  document.getElementById('jcr-pom-btn').className = '';
+  atualizarUI();
+}
+
+function pomSkip(){
+  clearInterval(intervalo);
+  concluirSessao(false);
+}
+
+function tick(){
+  restante--;
+  if(restante <= 0){
+    clearInterval(intervalo);
+    concluirSessao(true);
+    return;
+  }
+  atualizarUI();
+}
+
+function concluirSessao(concluida){
+  estado = 'parado';
+  document.getElementById('jcr-pom-btn').className = '';
+
+  if(concluida && modo === 'foco'){
+    sessoesCompletas++;
+    sessaoAtual = Math.min(sessaoAtual + 1, 4);
+    // Registrar histórico
+    const tarefa = document.getElementById('pom-tarefa').value || '—';
+    const agora = new Date();
+    historico.push({
+      tarefa,
+      modo,
+      dur: cfg[modo],
+      hora: agora.getHours().toString().padStart(2,'0') + ':' + agora.getMinutes().toString().padStart(2,'0')
+    });
+    localStorage.setItem('jcr_pom_hist_' + agora.toDateString(), JSON.stringify(historico));
+    renderHistorico();
+    // Notificação
+    notificar('🎯 Foco concluído!', 'Hora de descansar.');
+    // Auto-switch para pausa
+    const ehLonga = sessoesCompletas % 4 === 0;
+    setTimeout(() => pomSetMode(ehLonga ? 'longa' : 'pausa'), 800);
+  } else if(concluida && (modo === 'pausa' || modo === 'longa')){
+    notificar('☕ Pausa encerrada!', 'Hora de focar.');
+    setTimeout(() => pomSetMode('foco'), 800);
+  } else {
+    restante = totalSeg;
+    atualizarUI();
+  }
+}
+
+function atualizarUI(){
+  const min = Math.floor(restante / 60).toString().padStart(2,'0');
+  const seg = (restante % 60).toString().padStart(2,'0');
+  const display = `${min}:${seg}`;
+
+  document.getElementById('pom-display').textContent = display;
+  document.getElementById('pom-display').style.color = CORES[modo];
+  document.getElementById('pom-label').textContent = LABELS[modo];
+  document.getElementById('pom-label').style.color = CORES[modo];
+
+  // Botão principal
+  const btn = document.getElementById('pom-main-btn');
+  if(estado === 'rodando'){
+    btn.textContent = 'Pausar';
+    btn.className = 'pom-btn-main pausar';
+  } else if(estado === 'pausado'){
+    btn.textContent = 'Retomar';
+    btn.className = 'pom-btn-main retomar';
+  } else {
+    btn.textContent = 'Iniciar';
+    btn.className = 'pom-btn-main iniciar';
+  }
+
+  // Progresso circular no botão
+  const pct = ((totalSeg - restante) / totalSeg) * 100;
+  const ring = document.getElementById('pom-ring');
+  ring.style.setProperty('--pom-pct', pct + '%');
+  ring.style.setProperty('--pom-color', CORES[modo]);
+
+  // Barra de progresso
+  const prog = document.getElementById('pom-prog');
+  prog.style.width = pct + '%';
+  prog.style.background = CORES[modo];
+
+  // Ícone do botão flutuante
+  const icon = document.getElementById('pom-btn-icon');
+  if(estado === 'rodando') icon.textContent = EMOJIS[modo];
+  else if(estado === 'pausado') icon.textContent = '⏸';
+  else icon.textContent = '🍅';
+
+  // Título da aba
+  document.title = estado === 'rodando' ? `${display} — ${LABELS[modo]}` : document.title;
+
+  // Dots de sessão
+  for(let i=0; i<4; i++){
+    const dot = document.getElementById('pd'+i);
+    if(!dot) continue;
+    if(i < sessoesCompletas % 4 || (sessoesCompletas > 0 && sessoesCompletas % 4 === 0)){
+      dot.className = 'pom-dot feito';
+    } else if(i === sessaoAtual % 4 && modo === 'foco'){
+      dot.className = 'pom-dot atual';
+    } else {
+      dot.className = 'pom-dot';
+    }
+  }
+}
+
+// ── CONFIGURAÇÃO ────────────────────────────────────────────────
+function pomToggleConfig(){
+  const body = document.getElementById('pom-cfg-body');
+  const ico = document.getElementById('pom-cfg-ico');
+  const aberto = body.classList.toggle('open');
+  ico.classList.toggle('open', aberto);
+}
+
+function pomSalvarConfig(){
+  cfg.foco = parseInt(document.getElementById('cfg-foco').value) || 25;
+  cfg.pausa = parseInt(document.getElementById('cfg-pausa').value) || 5;
+  cfg.longa = parseInt(document.getElementById('cfg-longa').value) || 15;
+  localStorage.setItem('jcr_pom_cfg', JSON.stringify(cfg));
+  pomSetMode(modo);
+  pomToggleConfig();
+}
+
+// ── HISTÓRICO ───────────────────────────────────────────────────
+function renderHistorico(){
+  const el = document.getElementById('pom-hist-list');
+  if(!historico.length){
+    el.innerHTML = '<div style="font-size:11px;color:#3a3f55">Nenhuma sessão ainda.</div>';
+    return;
+  }
+  el.innerHTML = [...historico].reverse().slice(0,5).map(h => `
+    <div class="pom-hist-item">
+      <div class="pom-hist-dot" style="background:${CORES[h.modo]||'#4f8ef7'}"></div>
+      <span>${h.tarefa.slice(0,28)}${h.tarefa.length>28?'…':''}</span>
+      <span class="pom-hist-time">${h.hora} · ${h.dur}min</span>
+    </div>`).join('');
+}
+
+// ── NOTIFICAÇÃO ─────────────────────────────────────────────────
+function notificar(titulo, corpo){
+  // Sons via AudioContext
+  try{
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.connect(gain); gain.connect(ac.destination);
+    osc.frequency.setValueAtTime(440, ac.currentTime);
+    osc.frequency.setValueAtTime(550, ac.currentTime + 0.1);
+    osc.frequency.setValueAtTime(660, ac.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.3, ac.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.5);
+    osc.start(ac.currentTime); osc.stop(ac.currentTime + 0.5);
+  } catch(e){}
+  // Push notification se permitido
+  if(Notification.permission === 'granted'){
+    new Notification(titulo, { body: corpo, icon: '🍅' });
+  } else if(Notification.permission !== 'denied'){
+    Notification.requestPermission().then(p => {
+      if(p === 'granted') new Notification(titulo, { body: corpo });
+    });
+  }
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+document.getElementById('cfg-foco').value = cfg.foco;
+document.getElementById('cfg-pausa').value = cfg.pausa;
+document.getElementById('cfg-longa').value = cfg.longa;
+renderHistorico();
+atualizarUI();
+
+// Pedir permissão de notificação
+if(Notification.permission === 'default') Notification.requestPermission();
+
+})();
+</script>
+</body>
+</html>

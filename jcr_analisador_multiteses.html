@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JCR — Analisador Multi-Teses</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0F1E3C;--navy2:#1B3A6B;--gold:#C9A84C;--gold2:#F0D080;
+  --teal:#1A7F74;--rose:#8B2E4A;--light:#F4F1EB;--white:#FDFCF9;
+  --muted:#7A8499;--slate:#2D3B55;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--light);color:var(--navy);min-height:100vh}
+
+/* NAV */
+nav{background:var(--navy);padding:.875rem 2rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(201,168,76,.2);position:sticky;top:0;z-index:100}
+.nav-brand{font-family:'Playfair Display',serif;font-size:14px;color:var(--gold);font-weight:700}
+.nav-tags{display:flex;gap:6px}
+.ntag{font-size:9px;padding:2px 8px;border-radius:4px;font-weight:700;letter-spacing:.06em}
+.ntag-adm{background:#E6F1FB;color:#0C447C}
+.ntag-jud{background:#FBEAF0;color:#5C1A30}
+
+/* HERO */
+.hero{background:var(--navy);padding:2.5rem 2rem 2rem}
+.hero-inner{max-width:1100px;margin:0 auto}
+.hero-eye{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:.6rem;display:flex;align-items:center;gap:8px}
+.hero-eye::before{content:'';width:16px;height:1px;background:var(--gold)}
+h1{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,3vw,2.4rem);font-weight:900;color:white;line-height:1.1;margin-bottom:.4rem}
+h1 em{color:var(--gold);font-style:normal}
+.hero-sub{font-size:13px;color:rgba(255,255,255,.45);max-width:520px;line-height:1.6}
+
+/* UPLOAD BAR */
+.upload-bar{background:var(--white);border-bottom:1px solid rgba(0,0,0,.07);padding:.875rem 2rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.upload-bar-inner{max-width:1100px;margin:0 auto;width:100%;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.upload-zone{border:1.5px dashed rgba(201,168,76,.5);border-radius:10px;padding:.6rem 1.25rem;display:flex;align-items:center;gap:.75rem;cursor:pointer;transition:all .15s;flex:1;min-width:220px}
+.upload-zone:hover{border-color:var(--gold);background:rgba(201,168,76,.04)}
+.upload-zone.loaded{border-style:solid;border-color:var(--teal);background:rgba(26,127,116,.05)}
+.uz-icon{font-size:20px}
+.uz-text{font-size:12px;color:var(--muted);flex:1}
+.uz-text strong{color:var(--navy);display:block;font-size:13px}
+.btn-sel{padding:7px 16px;border-radius:7px;background:var(--navy);color:var(--gold2);font-size:12px;font-weight:500;border:none;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif}
+.btn-run{padding:9px 22px;border-radius:8px;background:var(--gold);color:var(--navy);font-size:13px;font-weight:700;border:none;cursor:pointer;display:none;white-space:nowrap;font-family:'DM Sans',sans-serif;transition:opacity .15s}
+.btn-run:hover{opacity:.88}
+.files-chips{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-size:10px;padding:3px 9px;border-radius:12px;background:var(--light);color:var(--slate);border:1px solid rgba(0,0,0,.08);display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace}
+.chip-rm{background:none;border:none;color:var(--rose);cursor:pointer;font-size:12px;padding:0;line-height:1}
+
+/* LOADING */
+.loading-bar-wrap{background:var(--white);padding:2rem;text-align:center;display:none}
+.loading-msg{font-size:14px;font-weight:500;color:var(--navy);margin-bottom:1rem}
+.progress-track{height:5px;background:rgba(0,0,0,.08);border-radius:3px;overflow:hidden;max-width:400px;margin:0 auto}
+.progress-fill{height:100%;background:var(--gold);border-radius:3px;width:0%;transition:width .3s ease}
+.loading-steps-list{display:flex;flex-direction:column;gap:4px;max-width:380px;margin:1rem auto 0;text-align:left}
+.ls{font-size:12px;color:var(--muted);padding:4px 10px;border-radius:6px;display:flex;align-items:center;gap:8px}
+.ls.act{color:var(--navy);font-weight:500;background:rgba(201,168,76,.1)}
+.ls.done{color:var(--teal)}
+
+/* RESUMO TOPO */
+.resumo-topo{background:var(--navy);padding:1.25rem 2rem;display:none}
+.resumo-inner{max-width:1100px;margin:0 auto;display:flex;gap:2rem;align-items:center;flex-wrap:wrap}
+.resumo-stat{text-align:center;flex:1;min-width:100px}
+.rs-val{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--gold)}
+.rs-label{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.07em;margin-top:2px}
+.rs-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:1px}
+
+/* LAYOUT PRINCIPAL */
+.main-wrap{max-width:1100px;margin:0 auto;padding:1.5rem 2rem;display:none}
+.layout{display:grid;grid-template-columns:280px 1fr;gap:1.5rem;align-items:start}
+
+/* SIDEBAR DE TESES */
+.sidebar{position:sticky;top:58px}
+.sidebar-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.75rem;padding:0 4px}
+.tese-nav{display:flex;flex-direction:column;gap:3px}
+.tese-nav-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:9px;cursor:pointer;transition:all .15s;border:1px solid transparent;text-align:left;background:none;width:100%;font-family:'DM Sans',sans-serif}
+.tese-nav-item:hover{background:var(--white);border-color:rgba(0,0,0,.07)}
+.tese-nav-item.active{background:var(--white);border-color:rgba(0,0,0,.1);box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.tni-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.tni-info{flex:1;min-width:0}
+.tni-nome{font-size:12px;font-weight:500;color:var(--navy);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tni-val{font-size:10px;color:var(--muted);margin-top:1px}
+.tni-val.pos{color:var(--teal);font-weight:600}
+.tni-tipo{font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;flex-shrink:0}
+.tni-sep{height:1px;background:rgba(0,0,0,.06);margin:4px 0}
+
+/* PAINEL DA TESE */
+.tese-panel{display:none}
+.tese-panel.active{display:block}
+
+.tp-head{margin-bottom:1.25rem}
+.tp-eyebrow{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+.tp-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--navy);line-height:1.2;margin-bottom:.5rem}
+.tp-badges{display:flex;gap:6px;margin-bottom:.75rem;flex-wrap:wrap}
+.tp-badge{font-size:10px;font-weight:600;padding:3px 10px;border-radius:5px;letter-spacing:.04em}
+.tp-desc{font-size:13px;color:var(--muted);line-height:1.7;max-width:600px}
+
+/* STATS DA TESE */
+.tp-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.875rem;margin:1.25rem 0}
+.tp-stat{background:var(--white);border-radius:12px;padding:1rem;border:1px solid rgba(0,0,0,.07);text-align:center}
+.tp-stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.tp-stat-val{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700}
+.tp-stat-sub{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* ALERTAS */
+.tp-alerta{border-radius:10px;padding:.875rem 1.1rem;font-size:13px;line-height:1.6;margin-bottom:1.25rem}
+.alerta-aviso{background:var(--navy);border-left:3px solid var(--gold);color:rgba(255,255,255,.65)}
+.alerta-aviso strong{color:var(--gold)}
+.alerta-info{background:#E6F1FB;border-left:3px solid #185FA5;color:#0C447C}
+.alerta-nao{background:#F4F1EB;border-left:3px solid #888;color:var(--slate);font-style:italic}
+
+/* TABELA */
+.tp-table-wrap{background:var(--white);border-radius:12px;overflow:hidden;border:1px solid rgba(0,0,0,.07);margin-bottom:1rem}
+.tp-table-head{padding:.875rem 1.1rem;background:var(--navy);display:flex;justify-content:space-between;align-items:center}
+.tp-table-title{font-size:12px;font-weight:600;color:var(--gold2)}
+.tp-table-info{font-size:11px;color:rgba(255,255,255,.35)}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--light)}
+th{padding:9px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase}
+td{padding:8px 12px;font-size:12px;color:var(--slate);border-top:1px solid rgba(0,0,0,.05)}
+td.num{text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px}
+td.dest{font-weight:600;color:var(--teal)}
+tr:hover td{background:rgba(0,0,0,.018)}
+.tf td{background:var(--navy);color:var(--gold2);font-weight:600;font-family:'JetBrains Mono',monospace;font-size:11px;padding:9px 12px}
+
+/* CHART */
+.tp-chart{background:var(--white);border-radius:12px;padding:1.25rem;border:1px solid rgba(0,0,0,.07);margin-bottom:1rem}
+.tp-chart-title{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:.875rem}
+
+/* BOTÕES EXPORTAR */
+.export-btns{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1rem}
+.btn-exp{padding:10px 18px;border-radius:9px;border:1px solid var(--navy);background:transparent;color:var(--navy);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;flex:1;min-width:160px}
+.btn-exp:hover{background:var(--navy);color:var(--gold2)}
+
+/* FUNDAMENTOS */
+.tp-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:.875rem;margin-bottom:1.25rem}
+.tp-info-card{background:var(--white);border-radius:10px;padding:.875rem 1.1rem;border:1px solid rgba(0,0,0,.07)}
+.tp-info-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px}
+.tp-info-val{font-size:13px;color:var(--slate);line-height:1.5}
+
+@media(max-width:800px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{position:relative;top:0}
+  .tese-nav{flex-direction:row;flex-wrap:wrap;gap:4px}
+  .tese-nav-item{flex:0 0 auto;width:auto}
+  .tni-nome{max-width:120px}
+  .tp-stats{grid-template-columns:1fr 1fr}
+  .tp-info-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">JCR — Analisador Multi-Teses</div>
+  <div class="nav-tags">
+    <span class="ntag ntag-adm">ADM</span>
+    <span class="ntag ntag-jud">JUD</span>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eye">Recuperação Tributária</div>
+    <h1>Analisador <em>Multi-Teses</em></h1>
+    <p class="hero-sub">Importe o SPED e veja todas as 12 teses analisadas individualmente — cada uma com seu relatório separado.</p>
+  </div>
+</div>
+
+<!-- UPLOAD BAR -->
+<div class="upload-bar">
+  <div class="upload-bar-inner">
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fi').click()">
+      <div class="uz-icon">📂</div>
+      <div class="uz-text">
+        <strong id="uzTitle">Arraste os arquivos SPED aqui</strong>
+        <span id="uzSub">.txt EFD Contribuições + SPED Fiscal — aceita múltiplos</span>
+      </div>
+      <button class="btn-sel" onclick="event.stopPropagation();document.getElementById('fi').click()">Selecionar</button>
+    </div>
+    <div class="files-chips" id="filesChips" style="display:none"></div>
+    <button class="btn-run" id="btnRun" onclick="rodar()">▶ Analisar</button>
+  </div>
+</div>
+<input type="file" id="fi" accept=".txt,.xlsx,.xls" multiple style="display:none" onchange="onSel(event)">
+
+<!-- LOADING -->
+<div class="loading-bar-wrap" id="loadingWrap">
+  <div class="loading-msg" id="loadMsg">Processando...</div>
+  <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+  <div class="loading-steps-list" id="lsList"></div>
+</div>
+
+<!-- RESUMO TOPO -->
+<div class="resumo-topo" id="resumoTopo">
+  <div class="resumo-inner">
+    <div class="resumo-stat"><div class="rs-val" id="rsTotal">—</div><div class="rs-label">Total geral</div><div class="rs-sub">sem SELIC</div></div>
+    <div class="resumo-stat"><div class="rs-val" id="rsAdm">—</div><div class="rs-label">Via ADM</div><div class="rs-sub">você executa</div></div>
+    <div class="resumo-stat"><div class="rs-val" id="rsJud">—</div><div class="rs-label">Via JUD</div><div class="rs-sub">parceiro advogado</div></div>
+    <div class="resumo-stat"><div class="rs-val" id="rsTeses">—</div><div class="rs-label">Teses c/ potencial</div><div class="rs-sub">de 12 analisadas</div></div>
+    <div class="resumo-stat"><div class="rs-val" id="rsItens">—</div><div class="rs-label">Itens analisados</div><div class="rs-sub">registros C170</div></div>
+  </div>
+</div>
+
+<!-- LAYOUT PRINCIPAL -->
+<div class="main-wrap" id="mainWrap">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-title">Teses analisadas</div>
+      <div class="tese-nav" id="teseNav"></div>
+    </div>
+
+    <!-- PAINÉIS -->
+    <div id="paineis"></div>
+
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DEFINIÇÃO DAS 12 TESES
+// ═══════════════════════════════════════════════════════════
+const TESES = [
+  {
+    id:'gross_up', nome:'Exclusão PIS/COFINS da Própria Base', tipo:'JUD',
+    cor:'#8B2E4A', corBg:'#FBEAF0', corTxt:'#5C1A30',
+    fundamento:'RE 574.706/PR — Gross Up Reverso',
+    prazo:'Últimos 5 anos — somente via ação judicial',
+    arquivos:'SPED Contribuições — registros C100/C170',
+    csts_ok:[1,2,49,50],
+    desc:'PIS e COFINS não devem compor sua própria base de cálculo. O sistema calcula a base correta sem os tributos embutidos e apura o valor pago a maior.',
+    alerta:'Tese em consolidação jurisprudencial. Validar itens com regime especial ou receitas com deduções — o sistema não identifica automaticamente.',
+    requer_bloco:'C170', nao_aplica:null
+  },
+  {
+    id:'excl_icms_pis', nome:'Exclusão ICMS da BC PIS/COFINS', tipo:'ADM',
+    cor:'#185FA5', corBg:'#E6F1FB', corTxt:'#0C447C',
+    fundamento:'RE 574.706/PR — Tese do Século (STF)',
+    prazo:'Pós 15/03/2017: ADM via PER/DCOMP | Pré 15/03/2017: somente JUD',
+    arquivos:'SPED Contribuições — registros C100/C170 com ICMS destacado',
+    csts_ok:[1,2,49,50],
+    desc:'ICMS destacado na NF não deve compor a base de cálculo do PIS/COFINS. Atenção à modulação do STF: períodos anteriores a março/2017 somente via ação judicial.',
+    alerta:'Verificar se o ICMS utilizado é o destacado na NF — não o recolhido. Confirmar se a empresa já aproveitou esta tese anteriormente.',
+    requer_bloco:'C170', nao_aplica:null
+  },
+  {
+    id:'excl_icms_st', nome:'Exclusão ICMS-ST da BC PIS/COFINS', tipo:'ADM',
+    cor:'#185FA5', corBg:'#E6F1FB', corTxt:'#0C447C',
+    fundamento:'STJ Tema 1.125 — REsp 1.896.678 e 1.958.265',
+    prazo:'Últimos 5 anos — via PER/DCOMP administrativo',
+    arquivos:'SPED Contribuições C100/C170 com ICMS-ST destacado + SPED Fiscal',
+    csts_ok:[1,2,49,50],
+    desc:'ICMS-ST destacado na nota fiscal de saída também não deve compor a base do PIS/COFINS. Tese mais recente — jurisprudência em consolidação.',
+    alerta:'Verificar CFOP, NCM e CST manualmente. Confirmar que o ICMS-ST está destacado na NF — não apenas recolhido via GNRE.',
+    requer_bloco:'C170', nao_aplica:null
+  },
+  {
+    id:'glp_diesel', nome:'GLP/Diesel — LC 192/2022', tipo:'ADM',
+    cor:'#185FA5', corBg:'#E6F1FB', corTxt:'#0C447C',
+    fundamento:'Lei Complementar 192/2022 — alíquota zero combustíveis',
+    prazo:'A partir de março/2022 — via PER/DCOMP',
+    arquivos:'SPED Contribuições + SPED Fiscal — NF-e entrada C100/C170, NCM específico',
+    csts_ok:[1,2,49,50],
+    desc:'Distribuidores e varejistas de GLP (gás de cozinha) e Diesel que recolheram PIS/COFINS após a LC 192/2022 têm direito à restituição. A LC instituiu alíquota zero para esses produtos na cadeia.',
+    alerta:'Aplicável apenas a distribuidores e varejistas — não ao produtor/importador. Verificar CNAE e NCM dos produtos. Confirmar vigência: somente a partir de março/2022.',
+    requer_bloco:'C170', nao_aplica:null
+  },
+  {
+    id:'efd_sped', nome:'EFD x SPED — Créditos PIS/COFINS', tipo:'ADM',
+    cor:'#185FA5', corBg:'#E6F1FB', corTxt:'#0C447C',
+    fundamento:'Lei 10.637/2002 e Lei 10.833/2003 — regime não cumulativo',
+    prazo:'Últimos 5 anos — via PER/DCOMP',
+    arquivos:'SPED Fiscal (EFD ICMS/IPI) + SPED Contribuições — mesmo período',
+    csts_ok:[50,51,55,56,60,61,65,66],
+    desc:'Identifica itens com CST de crédito no SPED Fiscal que não tomaram crédito no SPED Contribuições. Oportunidade de aproveitamento de créditos perdidos em períodos anteriores.',
+    alerta:'Verificar CST, CFOP e natureza de cada item identificado. Confirmar se o item é insumo da atividade conforme REsp 1.221.170/PR. Análise manual obrigatória antes do PER/DCOMP.',
+    requer_bloco:'C170', nao_aplica:null
+  },
+  {
+    id:'icms_inclusao', nome:'Inclusão ICMS na BC PIS/COFINS (entradas)', tipo:'JUD',
+    cor:'#8B2E4A', corBg:'#FBEAF0', corTxt:'#5C1A30',
+    fundamento:'Tese judicial — vigência a partir de maio/2023',
+    prazo:'A partir de maio/2023 — somente via ação judicial',
+    arquivos:'SPED Contribuições + SPED Fiscal — registros C100/C170 de entradas',
+    csts_ok:[50,51,55,56,60,61,65,66],
+    desc:'Visa aumentar o crédito de PIS/COFINS nas entradas incluindo o ICMS na base das compras. Equilibra cenários em que a empresa comprava com alíquota menor de ICMS e vendia com alíquota maior.',
+    alerta:'Não aplicável ao Lucro Presumido. Tese recente — avaliar viabilidade econômica (ganho justifica custo da ação?). Validar CFOP, CST e NCM manualmente.',
+    requer_bloco:'C170', nao_aplica:null
+  },
+  {
+    id:'iss_pis_cofins', nome:'Exclusão ISS da BC PIS/COFINS', tipo:'JUD',
+    cor:'#8B2E4A', corBg:'#FBEAF0', corTxt:'#5C1A30',
+    fundamento:'Extensão RE 574.706/PR ao ISS',
+    prazo:'Últimos 5 anos — somente via ação judicial',
+    arquivos:'SPED Contribuições — registros A100/A170 (Bloco A — prestação de serviços)',
+    csts_ok:[1,2,49,50],
+    desc:'ISS não deve compor a base de cálculo do PIS/COFINS por não constituir receita da empresa, mas sim receita do município. Válida para prestadores de serviços com ISS destacado nas NFS-e.',
+    alerta:'Não se aplica ao Lucro Presumido com escrituração consolidada (Bloco F). Requer registros A100/A170 — confirmar que o SPED de serviços foi importado.',
+    requer_bloco:'A170', nao_aplica:'Requer registros A100/A170 no SPED Contribuições (Bloco A — NFS-e de saída). Não identificado nos arquivos importados. Verifique se o cliente é prestador de serviços e importe o SPED correto.'
+  },
+  {
+    id:'iss_irpj', nome:'Exclusão ISS da BC IRPJ/CSLL', tipo:'JUD',
+    cor:'#8B2E4A', corBg:'#FBEAF0', corTxt:'#5C1A30',
+    fundamento:'Tese em construção — Lucro Presumido',
+    prazo:'Últimos 5 anos — somente via ação judicial',
+    arquivos:'EFD Contribuições A100/A170 + ECF Bloco P (IRPJ/CSLL Lucro Presumido)',
+    csts_ok:[],
+    desc:'ISS não deve compor a receita bruta base para o percentual de presunção do IRPJ/CSLL no Lucro Presumido. Tese análoga ao ISS/PIS/COFINS, aplicada ao IRPJ/CSLL.',
+    alerta:'Aplica-se SOMENTE ao Lucro Presumido. Tese em construção — risco jurídico maior. Requer ECF (Bloco P) que não é extraído do SPED Contribuições.',
+    requer_bloco:null, nao_aplica:'Requer ECF Lucro Presumido (Bloco P) e registros A100/A170. Importe o arquivo ECF separadamente para calcular o potencial desta tese.'
+  },
+  {
+    id:'pis_cofins_irpj', nome:'Exclusão PIS/COFINS da BC IRPJ/CSLL', tipo:'JUD',
+    cor:'#8B2E4A', corBg:'#FBEAF0', corTxt:'#5C1A30',
+    fundamento:'Tese em construção — Lucro Presumido',
+    prazo:'Últimos 5 anos — somente via ação judicial',
+    arquivos:'SPED Contribuições + ECF Bloco P (IRPJ/CSLL) + DARF de IRPJ e CSLL',
+    csts_ok:[],
+    desc:'PIS e COFINS não constituem receita da empresa e não deveriam compor a base de presunção do IRPJ/CSLL no Lucro Presumido. Tese análoga à exclusão do ICMS/ISS.',
+    alerta:'Aplica-se SOMENTE ao Lucro Presumido — Lucro Real não se aplica. Tese em desenvolvimento — maior risco jurídico. Não ajuizar sem análise prévia do advogado.',
+    requer_bloco:null, nao_aplica:'Requer ECF Lucro Presumido (Bloco P) + DARF de IRPJ/CSLL. Análise manual necessária — o SPED Contribuições não contém os dados de apuração do IRPJ/CSLL.'
+  },
+  {
+    id:'monofasicos_sn', nome:'Monofásicos — Simples Nacional', tipo:'ADM',
+    cor:'#27500A', corBg:'#EAF3DE', corTxt:'#27500A',
+    fundamento:'Art. 18 LC 123/2006 | Resolução CGSN 140/2018',
+    prazo:'Últimos 5 anos — restituição via e-CAC (PERDCOMP-Web)',
+    arquivos:'PGDAS-D (e-CAC) + NF-e de vendas de produtos monofásicos por NCM',
+    csts_ok:[],
+    desc:'Empresas do Simples Nacional que comercializam produtos sujeitos à tributação monofásica (farmacêutico, bebidas, combustíveis, autopeças, perfumaria) não devem recolher PIS/COFINS no DAS sobre esses itens.',
+    alerta:'Verificar NCM dos produtos para confirmar se são monofásicos. Análise via PGDAS-D no e-CAC do cliente — não extraível do SPED Contribuições padrão.',
+    requer_bloco:null, nao_aplica:'Requer análise do PGDAS-D no e-CAC do cliente. Verifique se o cliente é do Simples Nacional e quais produtos comercializa. Esta tese não é calculável pelo SPED Contribuições padrão.'
+  },
+  {
+    id:'pgdas', nome:'PGDAS SN — Revisão de Apuração', tipo:'ADM',
+    cor:'#27500A', corBg:'#EAF3DE', corTxt:'#27500A',
+    fundamento:'LC 123/2006 | CGSN 140/2018',
+    prazo:'Últimos 5 anos — retificação do PGDAS-D',
+    arquivos:'PGDAS-D de todos os períodos (e-CAC) + NF-e do período',
+    csts_ok:[],
+    desc:'Erros de enquadramento de Anexo, segregação de receitas (exportação, ST, monofásicos) ou aplicação de alíquotas incorretas no PGDAS-D geram recolhimentos a maior restituíveis.',
+    alerta:'Requer acesso ao e-CAC do cliente e histórico de PGDAS-D. Retificação do PGDAS pode ser necessária antes do pedido de restituição. Verificar sublimites estaduais.',
+    requer_bloco:null, nao_aplica:'Requer acesso ao PGDAS-D no e-CAC do cliente. Esta tese é análise manual das declarações do Simples Nacional — não calculável via SPED Contribuições.'
+  },
+  {
+    id:'ecd_i200', nome:'ECD — i200/i250 (Auditoria Contábil)', tipo:'ADM',
+    cor:'#185FA5', corBg:'#E6F1FB', corTxt:'#0C447C',
+    fundamento:'IN RFB 2.003/2021 — Escrituração Contábil Digital',
+    prazo:'Análise retroativa — prazo de guarda 5 anos',
+    arquivos:'Arquivo ECD do(s) período(s) a analisar (arquivo separado da EFD)',
+    csts_ok:[],
+    desc:'Extrai e organiza os blocos i200/i250 da ECD para conferência de lançamentos contábeis, cruzamento com o SPED Fiscal e identificação de inconsistências que geram créditos tributários.',
+    alerta:'O sistema apenas organiza os dados declarados — a interpretação é responsabilidade do consultor. Verificar plano de contas da empresa para interpretar os lançamentos.',
+    requer_bloco:null, nao_aplica:'Requer arquivo ECD (Escrituração Contábil Digital) — arquivo separado do SPED Contribuições. Importe o arquivo ECD para ativar esta análise.'
+  }
+];
+
+// ═══════════════════════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════════════════════
+let arquivos=[], sped={}, resultados={}, charts={};
+
+// ═══════════════════════════════════════════════════════════
+// UPLOAD
+// ═══════════════════════════════════════════════════════════
+const uz=document.getElementById('uploadZone');
+uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag')});
+uz.addEventListener('dragleave',()=>uz.classList.remove('drag'));
+uz.addEventListener('drop',e=>{e.preventDefault();uz.classList.remove('drag');adicionarArquivos(e.dataTransfer.files)});
+function onSel(e){adicionarArquivos(e.target.files);e.target.value=''}
+
+function adicionarArquivos(files){
+  Array.from(files).forEach(file=>{
+    if(arquivos.find(a=>a.nome===file.name)) return;
+    const r=new FileReader();
+    r.onload=e=>{
+      const linhas=e.target.result.split('\n').map(l=>l.replace(/\r$/,'')).filter(l=>l.trim());
+      arquivos.push({nome:file.name,linhas,size:file.size});
+      renderChips();
+    };
+    r.readAsText(file,'latin1');
+  });
+}
+
+function removerArq(i){arquivos.splice(i,1);renderChips()}
+
+function renderChips(){
+  const chips=document.getElementById('filesChips');
+  const btn=document.getElementById('btnRun');
+  if(!arquivos.length){chips.style.display='none';btn.style.display='none';return}
+  chips.style.display='flex';
+  btn.style.display='block';
+  chips.innerHTML=arquivos.map((a,i)=>
+    `<div class="chip">📄 ${a.nome.length>30?a.nome.slice(0,28)+'…':a.nome}
+     <button class="chip-rm" onclick="removerArq(${i})">✕</button></div>`
+  ).join('');
+  uz.classList.add('loaded');
+  document.getElementById('uzTitle').textContent=`${arquivos.length} arquivo(s) carregado(s)`;
+  document.getElementById('uzSub').textContent='Clique para adicionar mais';
+}
+
+// ═══════════════════════════════════════════════════════════
+// PARSER SPED
+// ═══════════════════════════════════════════════════════════
+function parsear(){
+  sped={meta:{periodo:'',empresa:'',cnpj:''},c170:[],a170:[],temA170:false,temP001:false};
+  arquivos.forEach(arq=>{
+    let c100=null;
+    arq.linhas.forEach(linha=>{
+      const c=linha.split('\t');
+      const reg=(c[1]||'').trim();
+      if(reg==='0000'){
+        const dt=(c[7]||'').trim();
+        sped.meta.periodo=dt.length===8?`01/${dt.slice(2,4)}/${dt.slice(4,8)}`:'';
+        sped.meta.empresa=(c[8]||'').trim();
+        sped.meta.cnpj=(c[9]||'').trim();
+      }
+      if(reg==='C100') c100={num:(c[8]||'').trim(),chave:(c[9]||'').trim(),data:(c[10]||'').trim()};
+      if(reg==='C170'){
+        sped.c170.push({
+          periodo:sped.meta.periodo,
+          cfop:(c[11]||'').trim(),
+          cod_item:(c[3]||'').trim(),
+          ncm:(c[14]||'').trim(),
+          vl_item:br(c[7]),
+          cst_pis:parseInt((c[25]||c[10]||'0').trim())||0,
+          vl_bc_pis:br(c[26]),
+          aliq_pis:br(c[27]),
+          vl_pis:br(c[30]),
+          cst_cofins:parseInt((c[31]||'0').trim())||0,
+          vl_bc_cofins:br(c[32]),
+          aliq_cofins:br(c[33]),
+          vl_cofins:br(c[36]),
+          vl_icms:br(c[15]),
+          vl_icms_st:br(c[16]),
+          num_doc:c100?c100.num:'',
+          chave:c100?c100.chave:''
+        });
+      }
+      if(reg==='A170'){
+        sped.temA170=true;
+        sped.a170.push({
+          periodo:sped.meta.periodo,
+          cst_pis:parseInt((c[11]||'0').trim())||0,
+          vl_bc_pis:br(c[12]),aliq_pis:br(c[13]),vl_pis:br(c[15]),
+          cst_cofins:parseInt((c[16]||'0').trim())||0,
+          vl_bc_cofins:br(c[17]),aliq_cofins:br(c[18]),vl_cofins:br(c[20]),
+          vl_iss:br(c[21])
+        });
+      }
+      if(reg==='P001') sped.temP001=true;
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// MOTOR DE CÁLCULO
+// ═══════════════════════════════════════════════════════════
+const NCM_COMB=new Set(['27111900','27111100','27101921','27101922','27101931','27101932','27111210','27111910']);
+
+function calcularTeses(){
+  // 1. Gross Up Reverso
+  resultados.gross_up=calcC170(row=>{
+    if(![1,2,49,50].includes(row.cst_pis)) return null;
+    const diff=row.vl_pis+row.vl_cofins;
+    if(diff<=0) return null;
+    const nb=Math.max(0,row.vl_bc_pis-diff);
+    const p=Math.max(0,row.vl_pis-nb*row.aliq_pis/100);
+    const c=Math.max(0,row.vl_cofins-nb*row.aliq_cofins/100);
+    return {pis:p,cofins:c,total:p+c,periodo:row.periodo};
+  });
+
+  // 2. Exclusão ICMS PIS/COFINS
+  resultados.excl_icms_pis=calcC170(row=>{
+    if(![1,2,49,50].includes(row.cst_pis)) return null;
+    if(row.vl_icms<=0) return null;
+    const p=row.vl_icms*row.aliq_pis/100;
+    const c=row.vl_icms*row.aliq_cofins/100;
+    return {pis:p,cofins:c,total:p+c,periodo:row.periodo};
+  });
+
+  // 3. Exclusão ICMS-ST
+  resultados.excl_icms_st=calcC170(row=>{
+    if(![1,2,49,50].includes(row.cst_pis)) return null;
+    if(row.vl_icms_st<=0) return null;
+    const p=row.vl_icms_st*row.aliq_pis/100;
+    const c=row.vl_icms_st*row.aliq_cofins/100;
+    return {pis:p,cofins:c,total:p+c,periodo:row.periodo};
+  });
+
+  // 4. GLP/Diesel
+  resultados.glp_diesel=calcC170(row=>{
+    if(!NCM_COMB.has(row.ncm)) return null;
+    if(row.vl_pis<=0&&row.vl_cofins<=0) return null;
+    return {pis:row.vl_pis,cofins:row.vl_cofins,total:row.vl_pis+row.vl_cofins,periodo:row.periodo};
+  });
+
+  // 5. EFD x SPED — créditos não tomados
+  resultados.efd_sped=calcC170(row=>{
+    if(![50,51,55,56,60,61,65,66].includes(row.cst_pis)) return null;
+    if(row.vl_bc_pis<=0) return null;
+    if(row.vl_pis>0) return null; // já tomou crédito
+    const p=row.vl_bc_pis*row.aliq_pis/100;
+    const c=row.vl_bc_cofins*row.aliq_cofins/100;
+    if(p<=0&&c<=0) return null;
+    return {pis:p,cofins:c,total:p+c,periodo:row.periodo};
+  });
+
+  // 6. Inclusão ICMS entradas
+  resultados.icms_inclusao=calcC170(row=>{
+    const cfop=String(row.cfop);
+    if(!cfop.startsWith('1')&&!cfop.startsWith('2')) return null;
+    if(![50,51,55,56,60,61,65,66].includes(row.cst_pis)) return null;
+    if(row.vl_icms<=0) return null;
+    const p=Math.max(0,((row.vl_bc_pis+row.vl_icms)*row.aliq_pis/100)-row.vl_pis);
+    const c=Math.max(0,((row.vl_bc_cofins+row.vl_icms)*row.aliq_cofins/100)-row.vl_cofins);
+    return {pis:p,cofins:c,total:p+c,periodo:row.periodo};
+  });
+
+  // 7. ISS PIS/COFINS — Bloco A
+  resultados.iss_pis_cofins=sped.temA170?calcA170(row=>{
+    if(row.vl_iss<=0) return null;
+    const p=row.vl_iss*row.aliq_pis/100;
+    const c=row.vl_iss*row.aliq_cofins/100;
+    return {pis:p,cofins:c,total:p+c,periodo:row.periodo};
+  }):{total:0,pis:0,cofins:0,itens:0,porPeriodo:{},semDados:true};
+
+  // 8-12. Requerem outros arquivos
+  ['iss_irpj','pis_cofins_irpj','monofasicos_sn','pgdas','ecd_i200'].forEach(id=>{
+    resultados[id]={total:0,pis:0,cofins:0,itens:0,porPeriodo:{},semDados:true};
+  });
+}
+
+function calcC170(fn){
+  const por={};let tP=0,tC=0,tG=0,ti=0;
+  sped.c170.forEach(row=>{
+    const r=fn(row);
+    if(!r||r.total<=0) return;
+    const p=r.periodo||'—';
+    if(!por[p]) por[p]={itens:0,pis:0,cofins:0,total:0};
+    por[p].itens++;por[p].pis+=r.pis;por[p].cofins+=r.cofins;por[p].total+=r.total;
+    tP+=r.pis;tC+=r.cofins;tG+=r.total;ti++;
+  });
+  return{total:tG,pis:tP,cofins:tC,itens:ti,porPeriodo:por};
+}
+
+function calcA170(fn){
+  const por={};let tP=0,tC=0,tG=0,ti=0;
+  sped.a170.forEach(row=>{
+    const r=fn(row);
+    if(!r||r.total<=0) return;
+    const p=r.periodo||'—';
+    if(!por[p]) por[p]={itens:0,pis:0,cofins:0,total:0};
+    por[p].itens++;por[p].pis+=r.pis;por[p].cofins+=r.cofins;por[p].total+=r.total;
+    tP+=r.pis;tC+=r.cofins;tG+=r.total;ti++;
+  });
+  return{total:tG,pis:tP,cofins:tC,itens:ti,porPeriodo:por};
+}
+
+// ═══════════════════════════════════════════════════════════
+// RODAR ANÁLISE
+// ═══════════════════════════════════════════════════════════
+function rodar(){
+  document.getElementById('btnRun').style.display='none';
+  document.getElementById('mainWrap').style.display='none';
+  document.getElementById('resumoTopo').style.display='none';
+  const lw=document.getElementById('loadingWrap');
+  lw.style.display='block';
+
+  const steps=['Lendo arquivos SPED...','Extraindo registros C170...','Calculando Gross Up Reverso...','Calculando Exclusão ICMS...','Calculando ICMS-ST...','Calculando GLP/Diesel...','Calculando EFD x SPED...','Calculando teses JUD...','Consolidando resultados...'];
+  const ls=document.getElementById('lsList');
+  ls.innerHTML=steps.map((_,i)=>`<div class="ls" id="ls${i}">◌ ${steps[i]}</div>`).join('');
+  let si=0,pct=0;
+
+  function next(){
+    if(si>0){const p=document.getElementById(`ls${si-1}`);if(p){p.className='ls done';p.textContent='✓ '+steps[si-1];}}
+    if(si<steps.length){
+      const c=document.getElementById(`ls${si}`);if(c){c.className='ls act';c.textContent='▶ '+steps[si];}
+      pct=Math.round((si/steps.length)*100);
+      document.getElementById('progFill').style.width=pct+'%';
+      document.getElementById('loadMsg').textContent=steps[si];
+      si++;setTimeout(next,280);
+    } else {
+      document.getElementById('progFill').style.width='100%';
+      setTimeout(()=>{lw.style.display='none';renderTudo();},300);
+    }
+  }
+
+  setTimeout(()=>{parsear();calcularTeses();next();},80);
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════
+function fmt(v){return'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtK(v){
+  if(v>=1000000) return'R$ '+(v/1000000).toFixed(1)+'M';
+  if(v>=1000) return'R$ '+(v/1000).toFixed(0)+'k';
+  return fmt(v);
+}
+function br(v){if(!v||v==='') return 0;return parseFloat(String(v).replace(/\./g,'').replace(',','.').trim())||0}
+
+function renderTudo(){
+  // Resumo topo
+  let tG=0,tA=0,tJ=0,com=0;
+  TESES.forEach(t=>{
+    const r=resultados[t.id]||{total:0};
+    tG+=r.total;
+    if(t.tipo==='ADM') tA+=r.total; else tJ+=r.total;
+    if(r.total>0) com++;
+  });
+  document.getElementById('rsTotal').textContent=fmtK(tG);
+  document.getElementById('rsAdm').textContent=fmtK(tA);
+  document.getElementById('rsJud').textContent=fmtK(tJ);
+  document.getElementById('rsTeses').textContent=com+'/12';
+  document.getElementById('rsItens').textContent=sped.c170.length.toLocaleString('pt-BR');
+  document.getElementById('resumoTopo').style.display='block';
+
+  // Sidebar + painéis
+  const nav=document.getElementById('teseNav');
+  const paineis=document.getElementById('paineis');
+  nav.innerHTML=''; paineis.innerHTML='';
+
+  let primeiroAtivo=true;
+  TESES.forEach((t,idx)=>{
+    const r=resultados[t.id]||{total:0,pis:0,cofins:0,itens:0,porPeriodo:{},semDados:false};
+    const comVal=r.total>0;
+    const grupo=idx===0?'ADM':idx===6?'JUD':null;
+
+    // Separadores de grupo na sidebar
+    if(t.id==='gross_up'){
+      const sep=document.createElement('div');sep.className='sidebar-title';sep.style.cssText='font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin:0 4px 4px;margin-top:0';sep.textContent='Administrativo — você executa';nav.appendChild(sep);
+    }
+    if(t.id==='iss_pis_cofins'){
+      const sep=document.createElement('div');sep.className='tni-sep';nav.appendChild(sep);
+      const sep2=document.createElement('div');sep2.className='sidebar-title';sep2.style.cssText='font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin:4px 4px;';sep2.textContent='Judicial — parceiro advogado';nav.appendChild(sep2);
+    }
+    if(t.id==='monofasicos_sn'){
+      const sep=document.createElement('div');sep.className='tni-sep';nav.appendChild(sep);
+      const sep2=document.createElement('div');sep2.className='sidebar-title';sep2.style.cssText='font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin:4px 4px;';sep2.textContent='Requerem outros arquivos';nav.appendChild(sep2);
+    }
+
+    // Nav item
+    const btn=document.createElement('button');
+    btn.className='tese-nav-item'+(primeiroAtivo?' active':'');
+    btn.id='nav_'+t.id;
+    btn.onclick=()=>ativarTese(t.id);
+    btn.innerHTML=`
+      <div class="tni-dot" style="background:${t.cor}"></div>
+      <div class="tni-info">
+        <div class="tni-nome">${t.nome}</div>
+        <div class="tni-val${comVal?' pos':''}">${comVal?fmtK(r.total):r.semDados?'Requer outro arquivo':'Sem potencial'}</div>
+      </div>
+      <div class="tni-tipo" style="background:${t.corBg};color:${t.corTxt}">${t.tipo}</div>`;
+    nav.appendChild(btn);
+
+    // Painel
+    const panel=document.createElement('div');
+    panel.className='tese-panel'+(primeiroAtivo?' active':'');
+    panel.id='panel_'+t.id;
+    panel.innerHTML=buildPanel(t,r);
+    paineis.appendChild(panel);
+
+    if(primeiroAtivo) primeiroAtivo=false;
+  });
+
+  document.getElementById('mainWrap').style.display='block';
+
+  // Renderizar gráficos após inserção no DOM
+  setTimeout(()=>{
+    TESES.forEach(t=>{
+      const r=resultados[t.id];
+      if(r&&r.total>0) renderChart(t,r);
+    });
+  },100);
+}
+
+function ativarTese(id){
+  document.querySelectorAll('.tese-nav-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tese-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('nav_'+id).classList.add('active');
+  document.getElementById('panel_'+id).classList.add('active');
+  // Scroll suave no mobile
+  document.getElementById('panel_'+id).scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function buildPanel(t,r){
+  const temDados=!r.semDados;
+  const periodos=Object.keys(r.porPeriodo||{}).sort();
+  const corTipo=t.tipo==='ADM'?'#0C447C':'#5C1A30';
+  const bgTipo=t.tipo==='ADM'?'#E6F1FB':'#FBEAF0';
+
+  let html=`
+  <div class="tp-head">
+    <div class="tp-eyebrow" style="color:${t.cor}">${t.tipo} — ${t.fundamento}</div>
+    <div class="tp-title">${t.nome}</div>
+    <div class="tp-badges">
+      <div class="tp-badge" style="background:${bgTipo};color:${corTipo}">${t.tipo} — ${t.tipo==='ADM'?'você executa':'requer advogado parceiro'}</div>
+    </div>
+    <p class="tp-desc">${t.desc}</p>
+  </div>`;
+
+  // Stats
+  html+=`<div class="tp-stats">
+    <div class="tp-stat">
+      <div class="tp-stat-label">Total (sem SELIC)</div>
+      <div class="tp-stat-val" style="color:${r.total>0?'var(--teal)':'var(--muted)'}">${r.total>0?fmtK(r.total):'—'}</div>
+      <div class="tp-stat-sub">${r.total>0?fmt(r.total):temDados?'Sem potencial identificado':'Requer outro arquivo'}</div>
+    </div>
+    <div class="tp-stat">
+      <div class="tp-stat-label">PIS a recuperar</div>
+      <div class="tp-stat-val" style="color:#185FA5">${r.pis>0?fmt(r.pis):'—'}</div>
+      <div class="tp-stat-sub">alíq. 1,65%</div>
+    </div>
+    <div class="tp-stat">
+      <div class="tp-stat-label">COFINS a recuperar</div>
+      <div class="tp-stat-val" style="color:#854F0B">${r.cofins>0?fmt(r.cofins):'—'}</div>
+      <div class="tp-stat-sub">alíq. 7,6%</div>
+    </div>
+  </div>`;
+
+  // Info grid
+  html+=`<div class="tp-info-grid">
+    <div class="tp-info-card"><div class="tp-info-label">Prazo</div><div class="tp-info-val">${t.prazo}</div></div>
+    <div class="tp-info-card"><div class="tp-info-label">Arquivos necessários</div><div class="tp-info-val">${t.arquivos}</div></div>
+  </div>`;
+
+  // Não aplica / sem dados
+  if(r.semDados||t.nao_aplica){
+    html+=`<div class="tp-alerta alerta-nao">ℹ ${t.nao_aplica||'Requer outro arquivo ou análise manual — veja "Arquivos necessários" acima.'}</div>`;
+  }
+
+  // Alerta
+  html+=`<div class="tp-alerta alerta-aviso"><strong>⚠ Atenção:</strong> ${t.alerta}${t.tipo==='JUD'?' Valores sem correção SELIC. Esta tese requer ação judicial — acionar advogado parceiro.':' Valores sem correção SELIC. Validar antes de transmitir PER/DCOMP.'}</div>`;
+
+  // Tabela + gráfico só se tem dados
+  if(r.total>0&&periodos.length>0){
+    html+=`<div class="tp-chart"><div class="tp-chart-title">Potencial por período (R$)</div>
+      <div style="position:relative;height:200px"><canvas id="chart_${t.id}" role="img" aria-label="Gráfico ${t.nome}"></canvas></div>
+    </div>`;
+
+    html+=`<div class="tp-table-wrap">
+      <div class="tp-table-head">
+        <span class="tp-table-title">Detalhamento por período</span>
+        <span class="tp-table-info">${r.itens.toLocaleString('pt-BR')} itens elegíveis</span>
+      </div>
+      <table><thead><tr>
+        <th>Período</th><th style="text-align:right">Itens</th>
+        <th style="text-align:right">PIS</th><th style="text-align:right">COFINS</th><th style="text-align:right">Total</th>
+      </tr></thead><tbody>`;
+
+    periodos.forEach(p=>{
+      const pr=r.porPeriodo[p];
+      html+=`<tr><td>${p}</td><td class="num">${pr.itens.toLocaleString('pt-BR')}</td>
+        <td class="num">${fmt(pr.pis)}</td><td class="num">${fmt(pr.cofins)}</td>
+        <td class="num dest">${fmt(pr.total)}</td></tr>`;
+    });
+
+    html+=`</tbody><tfoot><tr class="tf">
+      <td>TOTAL</td><td class="num">${r.itens.toLocaleString('pt-BR')}</td>
+      <td class="num">${fmt(r.pis)}</td><td class="num">${fmt(r.cofins)}</td>
+      <td class="num">${fmt(r.total)}</td>
+    </tr></tfoot></table></div>`;
+
+    html+=`<div class="export-btns">
+      <button class="btn-exp" onclick="exportCSV('${t.id}')">⬇ Exportar por período (.csv)</button>
+      <button class="btn-exp" onclick="exportRelatorio('${t.id}')">📄 Relatório para o cliente (.html)</button>
+    </div>`;
+  }
+
+  return html;
+}
+
+function renderChart(t,r){
+  const canvas=document.getElementById('chart_'+t.id);
+  if(!canvas||charts[t.id]) return;
+  const periodos=Object.keys(r.porPeriodo).sort();
+  charts[t.id]=new Chart(canvas,{
+    type:'bar',
+    data:{
+      labels:periodos,
+      datasets:[
+        {label:'PIS',data:periodos.map(p=>r.porPeriodo[p].pis),backgroundColor:'#185FA5',borderWidth:0},
+        {label:'COFINS',data:periodos.map(p=>r.porPeriodo[p].cofins),backgroundColor:'#C9A84C',borderWidth:0}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{stacked:true,ticks:{font:{size:9},maxRotation:60}},
+        y:{stacked:true,ticks:{callback:v=>'R$'+(v/1000).toFixed(0)+'k',font:{size:9}}}
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// EXPORTAR
+// ═══════════════════════════════════════════════════════════
+function exportCSV(id){
+  const t=TESES.find(x=>x.id===id);
+  const r=resultados[id];
+  if(!r) return;
+  const periodos=Object.keys(r.porPeriodo).sort();
+  let csv=`Tese;${t.nome}\nTipo;${t.tipo}\nFundamento;${t.fundamento}\nEmpresa;${sped.meta.empresa}\nCNPJ;${sped.meta.cnpj}\n\n`;
+  csv+='Período;Itens Elegíveis;PIS a Recuperar;COFINS a Recuperar;Total a Recuperar\n';
+  periodos.forEach(p=>{
+    const pr=r.porPeriodo[p];
+    csv+=`${p};${pr.itens};${pr.pis.toFixed(2).replace('.',',')};${pr.cofins.toFixed(2).replace('.',',')};${pr.total.toFixed(2).replace('.',',')}\n`;
+  });
+  csv+=`TOTAL;${r.itens};${r.pis.toFixed(2).replace('.',',')};${r.cofins.toFixed(2).replace('.',',')};${r.total.toFixed(2).replace('.',',')}\n`;
+  csv+=`\nObs: Valores sem correção SELIC. Validar antes de protocolar.\n`;
+  baixar('\uFEFF'+csv,`JCR_${id}_${sped.meta.cnpj}.csv`,'text/csv;charset=utf-8;');
+}
+
+function exportRelatorio(id){
+  const t=TESES.find(x=>x.id===id);
+  const r=resultados[id];
+  if(!r) return;
+  const periodos=Object.keys(r.porPeriodo).sort();
+  const hoje=new Date().toLocaleDateString('pt-BR');
+  const linhas=periodos.map(p=>{
+    const pr=r.porPeriodo[p];
+    return`<tr><td>${p}</td><td style="text-align:right">${pr.itens.toLocaleString('pt-BR')}</td><td style="text-align:right">${fmt(pr.pis)}</td><td style="text-align:right">${fmt(pr.cofins)}</td><td style="text-align:right;font-weight:600;color:#1A7F74">${fmt(pr.total)}</td></tr>`;
+  }).join('');
+
+  const corTipo=t.tipo==='ADM'?'#185FA5':'#8B2E4A';
+
+  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+  <title>Diagnóstico JCR — ${t.nome}</title>
+  <style>
+    body{font-family:Arial,sans-serif;max-width:820px;margin:0 auto;padding:2rem;color:#1B3A6B}
+    .header{border-bottom:3px solid #C9A84C;padding-bottom:1rem;margin-bottom:1.5rem}
+    h1{color:#0F1E3C;font-size:1.4rem;margin-bottom:.25rem}
+    .badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;background:${t.corBg};color:${t.corTxt};margin-bottom:.75rem}
+    .meta{font-size:13px;color:#666;margin-bottom:.5rem}
+    .boxes{display:flex;gap:1rem;margin:1.25rem 0;flex-wrap:wrap}
+    .box{flex:1;min-width:160px;background:#F4F1EB;border-radius:8px;padding:1rem;text-align:center}
+    .box-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#999;margin-bottom:5px}
+    .box-val{font-size:1.3rem;font-weight:700;color:#1A7F74}
+    table{width:100%;border-collapse:collapse;margin:1rem 0}
+    th{background:#0F1E3C;color:#F0D080;padding:8px 12px;text-align:left;font-size:11px}
+    td{padding:8px 12px;border-bottom:1px solid #eee;font-size:13px}
+    td.num{text-align:right}
+    .total-row{background:#0F1E3C;color:#F0D080;font-weight:700}
+    .alerta{background:#FFF8E7;border-left:4px solid #C9A84C;padding:.875rem 1rem;border-radius:0 8px 8px 0;font-size:13px;margin-top:1.5rem}
+    .footer{margin-top:2rem;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:1rem}
+  </style></head><body>
+  <div class="header">
+    <div class="badge">${t.tipo} — ${t.fundamento}</div>
+    <h1>${t.nome}</h1>
+    <div class="meta"><strong>Empresa:</strong> ${sped.meta.empresa} | <strong>CNPJ:</strong> ${sped.meta.cnpj}</div>
+    <div class="meta"><strong>Data do diagnóstico:</strong> ${hoje} | <strong>Prazo:</strong> ${t.prazo}</div>
+  </div>
+  <div class="boxes">
+    <div class="box"><div class="box-label">PIS a recuperar</div><div class="box-val" style="color:#185FA5">${fmt(r.pis)}</div></div>
+    <div class="box"><div class="box-label">COFINS a recuperar</div><div class="box-val" style="color:#854F0B">${fmt(r.cofins)}</div></div>
+    <div class="box"><div class="box-label">Total (sem SELIC)</div><div class="box-val">${fmt(r.total)}</div></div>
+    <div class="box"><div class="box-label">Itens elegíveis</div><div class="box-val" style="color:var(--navy)">${r.itens.toLocaleString('pt-BR')}</div></div>
+  </div>
+  <table>
+    <thead><tr><th>Período</th><th>Itens</th><th style="text-align:right">PIS</th><th style="text-align:right">COFINS</th><th style="text-align:right">Total</th></tr></thead>
+    <tbody>${linhas}</tbody>
+    <tfoot><tr class="total-row"><td>TOTAL</td><td>${r.itens.toLocaleString('pt-BR')}</td><td class="num">${fmt(r.pis)}</td><td class="num">${fmt(r.cofins)}</td><td class="num">${fmt(r.total)}</td></tr></tfoot>
+  </table>
+  <div class="alerta">
+    <strong>⚠ Importante:</strong> Valores <strong>sem correção SELIC</strong>. O valor atualizado será calculado pelo advogado (JUD) ou pela Receita Federal no processamento do PER/DCOMP (ADM).
+    ${t.alerta}
+  </div>
+  <div class="footer">
+    <strong>JCR Consultoria e Serviços Tributários</strong> — Campinas, SP<br>
+    Documento de diagnóstico fiscal — uso interno e apresentação ao cliente
+  </div>
+  </body></html>`;
+
+  baixar(html,`JCR_Relatorio_${id}_${sped.meta.cnpj}.html`,'text/html;charset=utf-8;');
+}
+
+function baixar(c,n,t){
+  const b=new Blob([c],{type:t}),u=URL.createObjectURL(b),a=document.createElement('a');
+  a.href=u;a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JCR — Detalhe do Curso</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14;--surface:#13161e;--surface2:#1a1e2a;--surface3:#222739;
+  --border:#2a2f42;--border2:#363d55;
+  --accent:#4f8ef7;--accent2:#6fa3f8;--accent-soft:rgba(79,142,247,0.12);
+  --green:#2dd4a0;--green-soft:rgba(45,212,160,0.12);
+  --yellow:#f5c842;--yellow-soft:rgba(245,200,66,0.12);
+  --red:#f25c6e;--red-soft:rgba(242,92,110,0.12);
+  --orange:#f2924a;--orange-soft:rgba(242,146,74,0.12);
+  --purple:#a78bfa;--purple-soft:rgba(167,139,250,0.12);
+  --text:#e8eaf0;--text2:#8b92a8;--text3:#5d6480;
+  --radius:14px;--radius-sm:8px;
+  --font-display:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;--font-mono:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;gap:12px;background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:60px;position:sticky;top:0;z-index:100}
+.topbar-logo{font-family:var(--font-display);font-weight:800;font-size:20px;color:var(--accent);margin-right:4px}
+.nav-btn{background:none;border:none;color:var(--text2);font-family:var(--font-body);font-size:13px;font-weight:500;padding:8px 14px;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.nav-btn:hover{background:var(--surface2);color:var(--text)}
+.nav-btn.active{background:var(--accent-soft);color:var(--accent)}
+.nav-back{color:var(--text3);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius-sm);border:none;background:none;font-family:var(--font-body)}
+.nav-back:hover{background:var(--surface2);color:var(--text2)}
+.topbar-sep{color:var(--border2);font-size:18px}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:300px 1fr;min-height:calc(100vh - 60px);gap:0}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:24px 20px;overflow-y:auto;position:sticky;top:60px;height:calc(100vh - 60px)}
+.main{padding:28px 32px;overflow-y:auto}
+
+/* ── CURSO HEADER ── */
+.curso-hero{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px;position:relative;overflow:hidden}
+.curso-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.ch-plat{font-family:var(--font-mono);font-size:11px;font-weight:700;margin-bottom:8px}
+.ch-nome{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.2}
+.ch-area{font-size:13px;color:var(--text3);margin-bottom:16px}
+.ch-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-green{background:var(--green-soft);color:var(--green)}
+.badge-yellow{background:var(--yellow-soft);color:var(--yellow)}
+.badge-blue{background:var(--accent-soft);color:var(--accent)}
+.badge-orange{background:var(--orange-soft);color:var(--orange)}
+.badge-purple{background:var(--purple-soft);color:var(--purple)}
+.badge-gray{background:rgba(93,100,128,.15);color:var(--text3)}
+.badge-red{background:var(--red-soft);color:var(--red)}
+
+/* PROGRESSO DO CURSO */
+.prog-wrap{margin-top:4px}
+.prog-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:6px}
+.prog-bar{height:5px;background:var(--surface3);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .5s ease}
+
+/* STATUS SELETOR */
+.status-sel{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}
+.status-btn{padding:6px 14px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--border);background:none;color:var(--text3);cursor:pointer;font-family:var(--font-body);transition:all .15s}
+.status-btn:hover{border-color:var(--border2);color:var(--text2)}
+.status-btn.sel-nao{background:var(--yellow-soft);color:var(--yellow);border-color:rgba(245,200,66,.3)}
+.status-btn.sel-and{background:var(--orange-soft);color:var(--orange);border-color:rgba(242,146,74,.3)}
+.status-btn.sel-uso{background:var(--green-soft);color:var(--green);border-color:rgba(45,212,160,.3)}
+.status-btn.sel-ref{background:var(--accent-soft);color:var(--accent);border-color:rgba(79,142,247,.3)}
+
+/* ── SIDEBAR MÓDULOS ── */
+.sb-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sb-add{background:none;border:1px dashed var(--border2);border-radius:6px;color:var(--text3);font-size:12px;padding:5px 10px;cursor:pointer;font-family:var(--font-body);width:100%;margin-top:8px;transition:all .15s}
+.sb-add:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.modulo-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;margin-bottom:3px;border:1px solid transparent;position:relative;group:true}
+.modulo-item:hover{background:var(--surface2);border-color:var(--border)}
+.modulo-item.active{background:var(--accent-soft);border-color:rgba(79,142,247,.3)}
+.modulo-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .15s}
+.modulo-check.done{background:var(--green);border-color:var(--green)}
+.modulo-check.done::after{content:'✓';font-size:10px;color:#fff;font-weight:700}
+.modulo-nome{font-size:13px;color:var(--text2);flex:1;line-height:1.3}
+.modulo-item.active .modulo-nome{color:var(--text);font-weight:500}
+.modulo-rm{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 2px;opacity:0;transition:opacity .15s}
+.modulo-item:hover .modulo-rm{opacity:1}
+
+/* ── ABAS DO MÓDULO ── */
+.mod-tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px;width:fit-content;margin-bottom:20px}
+.mtab{padding:7px 16px;border-radius:6px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;background:none;border:none;font-family:var(--font-body);transition:all .15s;display:flex;align-items:center;gap:6px}
+.mtab:hover{color:var(--text);background:var(--surface2)}
+.mtab.active{background:var(--accent);color:#fff}
+
+/* ── CARDS DE CONTEÚDO ── */
+.content-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+.cc-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.cc-title{font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text)}
+.cc-body{padding:16px 18px}
+
+/* TEXTAREA */
+textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:12px 14px;outline:none;resize:vertical;min-height:100px;line-height:1.6;transition:border-color .2s}
+textarea:focus{border-color:var(--accent)}
+textarea::placeholder{color:var(--text3)}
+
+/* PONTOS-CHAVE */
+.ponto-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.ponto-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border)}
+.ponto-txt{flex:1;font-size:13px;color:var(--text2)}
+.ponto-rm{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 2px;flex-shrink:0}
+.ponto-rm:hover{color:var(--red)}
+.ponto-input-row{display:flex;gap:8px}
+.ponto-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;transition:border-color .2s}
+.ponto-input:focus{border-color:var(--accent)}
+.ponto-input::placeholder{color:var(--text3)}
+
+/* ARQUIVOS */
+.upload-zone{border:1.5px dashed var(--border2);border-radius:var(--radius-sm);padding:20px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px}
+.upload-zone:hover{border-color:var(--accent);background:var(--accent-soft)}
+.upload-zone.drag{border-color:var(--accent);background:var(--accent-soft)}
+.uz-txt{font-size:12px;color:var(--text3);margin-top:6px}
+.file-list{display:flex;flex-direction:column;gap:6px}
+.file-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border)}
+.fi-icon{font-size:18px;flex-shrink:0}
+.fi-info{flex:1;min-width:0}
+.fi-nome{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fi-size{font-size:11px;color:var(--text3)}
+.fi-rm{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 2px}
+.fi-rm:hover{color:var(--red)}
+
+/* BOTÕES */
+.btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:13px;font-weight:500;padding:9px 18px;cursor:pointer;transition:all .2s}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{background:var(--accent2)}
+.btn-ghost{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface3);color:var(--text)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-green{background:var(--green-soft);color:var(--green);border:1px solid rgba(45,212,160,.2)}
+.btn-green:hover{background:var(--green);color:#fff}
+
+/* EMPTY */
+.empty{text-align:center;padding:3rem 2rem;color:var(--text3)}
+.empty-icon{font-size:36px;opacity:.3;margin-bottom:.75rem}
+.empty-text{font-size:13px}
+
+/* SAVE INDICATOR */
+.save-ind{position:fixed;bottom:24px;right:24px;background:var(--green);color:#fff;font-size:12px;font-weight:600;padding:8px 16px;border-radius:999px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
+.save-ind.show{opacity:1}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .main{padding:20px 16px}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo">JCR</div>
+  <button class="nav-back" onclick="history.back()">← Voltar ao Conhecimento</button>
+  <span class="topbar-sep">|</span>
+  <span style="font-size:13px;color:var(--text2)" id="topbar-nome">Carregando...</span>
+  <div style="margin-left:auto;display:flex;gap:8px">
+    <button class="btn btn-ghost btn-sm" onclick="exportarNotas()">⬇ Exportar notas</button>
+    <button class="btn btn-accent btn-sm" onclick="salvarTudo()">💾 Salvar</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR — MÓDULOS -->
+  <div class="sidebar">
+    <div class="sb-title">
+      Módulos
+      <span style="font-size:12px;color:var(--text3);font-weight:400" id="prog-modulos">0/0</span>
+    </div>
+    <div id="modulos-list"></div>
+    <button class="sb-add" onclick="addModulo()">+ Adicionar módulo</button>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- HERO DO CURSO -->
+    <div class="curso-hero" id="curso-hero">
+      <div class="ch-plat" id="ch-plat"></div>
+      <div class="ch-nome" id="ch-nome">Carregando...</div>
+      <div class="ch-area" id="ch-area"></div>
+      <div class="ch-meta" id="ch-meta"></div>
+      <div class="prog-wrap">
+        <div class="prog-label">
+          <span>Progresso do curso</span>
+          <span id="prog-pct-label" style="color:var(--accent)">0%</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      </div>
+      <div class="status-sel">
+        <span style="font-size:12px;color:var(--text3);align-self:center">Status:</span>
+        <button class="status-btn" onclick="setStatus('Não iniciado')" id="sbtn-nao">Não iniciado</button>
+        <button class="status-btn" onclick="setStatus('Em andamento')" id="sbtn-and">Em andamento</button>
+        <button class="status-btn" onclick="setStatus('Em uso')" id="sbtn-uso">Em uso</button>
+        <button class="status-btn" onclick="setStatus('Referência')" id="sbtn-ref">Referência</button>
+      </div>
+    </div>
+
+    <!-- MÓDULO ATIVO -->
+    <div id="modulo-content">
+      <div class="empty">
+        <div class="empty-icon">📚</div>
+        <div class="empty-text">Selecione ou crie um módulo na barra lateral para começar.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SAVE INDICATOR -->
+<div class="save-ind" id="saveInd">✓ Salvo</div>
+
+<script>
+// ═══════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════
+let cursoId = null;
+let curso = null;
+let dados = {}; // { modulos: [], status: '', anotacoes: {id: {resumo, pontos, aplicacao, anotacoes, arquivos}} }
+let moduloAtivoId = null;
+let abaAtiva = 'resumo';
+let autoSaveTimer = null;
+
+// ═══════════════════════════════════════════
+// CURSOS (catálogo base — mesmo do inventário)
+// ═══════════════════════════════════════════
+const CATALOGO = [
+  {id:'hotmart_vivendo',plat:'HOTMART',area:'Tributário',sub:'Planejamento',nome:'Vivendo do Tributário',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_estrategista',plat:'HOTMART',area:'Tributário',sub:'Planejamento',nome:'Estrategista Tributário',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_recuperatax',plat:'HOTMART',area:'Tributário',sub:'Recuperação',nome:'RECUPERATAX',tipo:'Comunidade',uso:'Profissional',vital:'Não',status:'Referência'},
+  {id:'hotmart_analista',plat:'HOTMART',area:'Tributário',sub:'Fiscal',nome:'Curso de Analista Fiscal',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_irpf',plat:'HOTMART',area:'Tributário',sub:'IRPF',nome:'Curso de Imposto de Renda',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_importacao',plat:'HOTMART',area:'Tributário',sub:'Importação',nome:'Capacitação Regime Especial Importação',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_ncm',plat:'HOTMART',area:'Tributário',sub:'Classificação Fiscal',nome:'CCLASSTRIB NCM/NBS',tipo:'E-book',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'hotmart_ia1',plat:'HOTMART',area:'Tecnologia',sub:'IA',nome:'IA para Contabilidade 2025/2026',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_ia2',plat:'HOTMART',area:'Tecnologia',sub:'IA',nome:'Ferramenta de Inteligência Artificial',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_pbi',plat:'HOTMART',area:'Dados',sub:'Power BI',nome:'Power BI Expert',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_excel',plat:'HOTMART',area:'Dados',sub:'Excel',nome:'Curso de Excel Completo',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_rotina',plat:'HOTMART',area:'Produtividade',sub:'Rotina',nome:'Rotina Sob Medida',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_ingles',plat:'HOTMART',area:'Idiomas',sub:'Inglês',nome:'Curso de Inglês Completo',tipo:'Curso',uso:'Pessoal',vital:'Sim',status:'Não iniciado'},
+  {id:'eduzz_passivo',plat:'EDUZZ',area:'Tributário',sub:'Passivo',nome:'Negociação Dívida Tributária Premium',tipo:'Curso',uso:'Profissional',vital:'Não',status:'Não iniciado'},
+  {id:'eduzz_bytec',plat:'EDUZZ',area:'Contábil',sub:'Rotina',nome:'Assistente Contábil BYTEC',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'kiwify_tributacao',plat:'KIWIFY',area:'Tributário',sub:'Planejamento',nome:'Tributação Plus',tipo:'Curso',uso:'Profissional',vital:'Não',status:'Não iniciado'},
+  {id:'kiwify_irpf',plat:'KIWIFY',area:'Tributário',sub:'IRPF',nome:'Curso IRPF GJ',tipo:'Curso',uso:'Profissional',vital:'Não',status:'Não iniciado'},
+  {id:'udemy_pbi1',plat:'UDEMY',area:'Dados',sub:'Power BI',nome:'Power BI do Zero',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Em andamento'},
+  {id:'udemy_pbi2',plat:'UDEMY',area:'Dados',sub:'Power BI',nome:'Power BI Completo',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Em andamento'},
+  {id:'udemy_pbi3',plat:'UDEMY',area:'Dados',sub:'Power BI',nome:'Formação Power BI',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Em andamento'},
+  {id:'udemy_n8n',plat:'UDEMY',area:'Tecnologia',sub:'Automação',nome:'N8N Iniciantes',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Em andamento'},
+  {id:'udemy_chatbot',plat:'UDEMY',area:'Tecnologia',sub:'Automação',nome:'Chatbot WhatsApp',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'cefis_difal',plat:'CEFIS',area:'Tributário',sub:'ICMS',nome:'DIFAL ICMS',tipo:'Curso',uso:'Profissional',vital:'Não',status:'Não iniciado'},
+  {id:'greenn_reforma',plat:'GREENN',area:'Tributário',sub:'Reforma',nome:'Reforma Tributária Sem Surto',tipo:'Curso',uso:'Profissional',vital:'Não',status:'Referência'},
+  {id:'guia_excel',plat:'GUIA DO EXCEL',area:'Dados',sub:'Excel',nome:'Curso Vitalício Excel',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Em uso'},
+];
+
+function platCor(p){
+  const m={HOTMART:'#f2924a',EDUZZ:'#4f8ef7',KIWIFY:'#2dd4a0',UDEMY:'#a78bfa',
+    CEFIS:'#f5c842',GREENN:'#2dd4a0','GUIA DO EXCEL':'#2dd4a0',
+    CAKTO:'#f25c6e',KIRVANO:'#f2924a','INNER IA':'#a78bfa'};
+  return m[p]||'#5d6480';
+}
+
+// ═══════════════════════════════════════════
+// INIT — detectar curso pela URL ou padrão
+// ═══════════════════════════════════════════
+function init(){
+  const params = new URLSearchParams(window.location.search);
+  cursoId = params.get('id') || 'hotmart_estrategista';
+  curso = CATALOGO.find(c=>c.id===cursoId) || CATALOGO[0];
+  cursoId = curso.id;
+
+  // Carregar dados salvos
+  const raw = localStorage.getItem('jcr_curso_'+cursoId);
+  dados = raw ? JSON.parse(raw) : { modulos:[], status:curso.status, anotacaoGeral:'' };
+  if(!dados.modulos) dados.modulos=[];
+  if(!dados.anotacoes) dados.anotacoes={};
+
+  renderHero();
+  renderModulos();
+
+  if(dados.modulos.length>0) ativarModulo(dados.modulos[0].id);
+}
+
+// ═══════════════════════════════════════════
+// HERO
+// ═══════════════════════════════════════════
+function renderHero(){
+  document.getElementById('topbar-nome').textContent = curso.nome;
+  document.getElementById('ch-plat').innerHTML = `<span style="color:${platCor(curso.plat)}">${curso.plat}</span>`;
+  document.getElementById('ch-nome').textContent = curso.nome;
+  document.getElementById('ch-area').textContent = curso.area+' › '+curso.sub;
+  document.getElementById('curso-hero').style.setProperty('--before-bg', platCor(curso.plat));
+  document.querySelector('.curso-hero::before') // via CSS var
+  document.getElementById('curso-hero').style.cssText += `;--card-color:${platCor(curso.plat)}`;
+
+  const meta = document.getElementById('ch-meta');
+  const statusBadges = {'Não iniciado':'badge-yellow','Em andamento':'badge-orange','Em uso':'badge-green','Referência':'badge-blue'};
+  meta.innerHTML = `
+    <span class="badge ${statusBadges[dados.status]||'badge-gray'}" id="badge-status">${dados.status||curso.status}</span>
+    <span class="badge badge-gray">${curso.tipo}</span>
+    <span class="badge ${curso.uso==='Profissional'?'badge-blue':'badge-purple'}">${curso.uso}</span>
+    <span class="badge badge-gray">Vitalício: ${curso.vital}</span>`;
+
+  // Destacar botão de status ativo
+  renderStatusBtns();
+  atualizarProgresso();
+}
+
+function renderStatusBtns(){
+  const s = dados.status || curso.status;
+  document.getElementById('sbtn-nao').className = 'status-btn'+(s==='Não iniciado'?' sel-nao':'');
+  document.getElementById('sbtn-and').className = 'status-btn'+(s==='Em andamento'?' sel-and':'');
+  document.getElementById('sbtn-uso').className = 'status-btn'+(s==='Em uso'?' sel-uso':'');
+  document.getElementById('sbtn-ref').className = 'status-btn'+(s==='Referência'?' sel-ref':'');
+}
+
+function setStatus(s){
+  dados.status = s;
+  renderStatusBtns();
+  const statusBadges={'Não iniciado':'badge-yellow','Em andamento':'badge-orange','Em uso':'badge-green','Referência':'badge-blue'};
+  const b = document.getElementById('badge-status');
+  if(b){ b.className='badge '+statusBadges[s]; b.textContent=s; }
+  autoSave();
+}
+
+function atualizarProgresso(){
+  const total = dados.modulos.length;
+  const done = dados.modulos.filter(m=>m.done).length;
+  const pct = total>0 ? Math.round(done/total*100) : 0;
+  document.getElementById('prog-fill').style.width = pct+'%';
+  document.getElementById('prog-pct-label').textContent = pct+'%';
+  document.getElementById('prog-modulos').textContent = done+'/'+total;
+}
+
+// ═══════════════════════════════════════════
+// MÓDULOS
+// ═══════════════════════════════════════════
+function renderModulos(){
+  const el = document.getElementById('modulos-list');
+  el.innerHTML = '';
+  dados.modulos.forEach(m=>{
+    const div = document.createElement('div');
+    div.className = 'modulo-item'+(moduloAtivoId===m.id?' active':'');
+    div.id = 'mitem-'+m.id;
+    div.onclick = ()=>ativarModulo(m.id);
+    div.innerHTML = `
+      <div class="modulo-check${m.done?' done':''}" onclick="event.stopPropagation();toggleDone('${m.id}')"></div>
+      <div class="modulo-nome">${m.nome}</div>
+      <button class="modulo-rm" onclick="event.stopPropagation();removeModulo('${m.id}')" title="Remover">✕</button>`;
+    el.appendChild(div);
+  });
+  atualizarProgresso();
+}
+
+function addModulo(){
+  const nome = prompt('Nome do módulo ou aula:');
+  if(!nome||!nome.trim()) return;
+  const id = 'mod_'+Date.now();
+  dados.modulos.push({id, nome:nome.trim(), done:false});
+  if(!dados.anotacoes[id]) dados.anotacoes[id]={resumo:'',pontos:[],aplicacao:'',anotacoes:'',arquivos:[]};
+  renderModulos();
+  ativarModulo(id);
+  autoSave();
+}
+
+function removeModulo(id){
+  if(!confirm('Remover este módulo e suas anotações?')) return;
+  dados.modulos = dados.modulos.filter(m=>m.id!==id);
+  delete dados.anotacoes[id];
+  if(moduloAtivoId===id){
+    moduloAtivoId = dados.modulos.length>0 ? dados.modulos[0].id : null;
+    if(moduloAtivoId) ativarModulo(moduloAtivoId);
+    else document.getElementById('modulo-content').innerHTML='<div class="empty"><div class="empty-icon">📚</div><div class="empty-text">Nenhum módulo. Clique em "+ Adicionar módulo".</div></div>';
+  }
+  renderModulos();
+  autoSave();
+}
+
+function toggleDone(id){
+  const m = dados.modulos.find(x=>x.id===id);
+  if(m){ m.done=!m.done; renderModulos(); autoSave(); }
+}
+
+function ativarModulo(id){
+  moduloAtivoId = id;
+  // Salvar conteúdo atual antes de trocar
+  coletarConteudoAtual();
+  renderModulos();
+  renderConteudo(id);
+}
+
+// ═══════════════════════════════════════════
+// CONTEÚDO DO MÓDULO
+// ═══════════════════════════════════════════
+function renderConteudo(id){
+  const m = dados.modulos.find(x=>x.id===id);
+  if(!m) return;
+  if(!dados.anotacoes[id]) dados.anotacoes[id]={resumo:'',pontos:[],aplicacao:'',anotacoes:'',arquivos:[]};
+  const a = dados.anotacoes[id];
+
+  const mc = document.getElementById('modulo-content');
+  mc.innerHTML = `
+    <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text)">${m.nome}</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:3px">${curso.nome}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text2)">
+          <input type="checkbox" id="chk-done" ${m.done?'checked':''} onchange="toggleDone('${id}')" style="width:16px;height:16px;accent-color:var(--green)">
+          Módulo concluído
+        </label>
+      </div>
+    </div>
+
+    <div class="mod-tabs">
+      <button class="mtab${abaAtiva==='resumo'?' active':''}" onclick="switchAba('resumo')">📝 Resumo</button>
+      <button class="mtab${abaAtiva==='pontos'?' active':''}" onclick="switchAba('pontos')">⭐ Pontos-chave</button>
+      <button class="mtab${abaAtiva==='aplicacao'?' active':''}" onclick="switchAba('aplicacao')">🚀 Aplicação prática</button>
+      <button class="mtab${abaAtiva==='anotacoes'?' active':''}" onclick="switchAba('anotacoes')">🗒 Anotações livres</button>
+      <button class="mtab${abaAtiva==='arquivos'?' active':''}" onclick="switchAba('arquivos')">📎 Arquivos</button>
+    </div>
+
+    <div id="aba-resumo" style="display:${abaAtiva==='resumo'?'block':'none'}">
+      <div class="content-card">
+        <div class="cc-head"><div class="cc-title">📝 Resumo do módulo</div></div>
+        <div class="cc-body">
+          <textarea id="ta-resumo" placeholder="Escreva um resumo do que aprendeu neste módulo..." oninput="autoSave()" style="min-height:160px">${a.resumo||''}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div id="aba-pontos" style="display:${abaAtiva==='pontos'?'block':'none'}">
+      <div class="content-card">
+        <div class="cc-head"><div class="cc-title">⭐ Pontos-chave</div><div style="font-size:12px;color:var(--text3)" id="pontos-count">${(a.pontos||[]).length} pontos</div></div>
+        <div class="cc-body">
+          <div class="ponto-list" id="ponto-list"></div>
+          <div class="ponto-input-row">
+            <input class="ponto-input" type="text" id="novo-ponto" placeholder="Adicionar ponto-chave..." onkeydown="if(event.key==='Enter')addPonto()">
+            <button class="btn btn-accent btn-sm" onclick="addPonto()">+ Adicionar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="aba-aplicacao" style="display:${abaAtiva==='aplicacao'?'block':'none'}">
+      <div class="content-card">
+        <div class="cc-head"><div class="cc-title">🚀 Aplicação prática</div></div>
+        <div class="cc-body">
+          <div style="font-size:12px;color:var(--text3);margin-bottom:10px">Como você vai usar isso no escritório? Quais clientes se beneficiam? Qual ação tomar?</div>
+          <textarea id="ta-aplicacao" placeholder="Ex: Aplicar no cliente X para recuperação de crédito Y. Usar a metodologia Z na próxima reunião..." oninput="autoSave()" style="min-height:140px">${a.aplicacao||''}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div id="aba-anotacoes" style="display:${abaAtiva==='anotacoes'?'block':'none'}">
+      <div class="content-card">
+        <div class="cc-head"><div class="cc-title">🗒 Anotações livres</div></div>
+        <div class="cc-body">
+          <textarea id="ta-anotacoes" placeholder="Cole aqui textos, trechos de PDFs, links, transcrições de vídeos ou qualquer anotação livre..." oninput="autoSave()" style="min-height:200px">${a.anotacoes||''}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div id="aba-arquivos" style="display:${abaAtiva==='arquivos'?'block':'none'}">
+      <div class="content-card">
+        <div class="cc-head"><div class="cc-title">📎 Arquivos do módulo</div><div style="font-size:12px;color:var(--text3)" id="arq-count">${(a.arquivos||[]).length} arquivo(s)</div></div>
+        <div class="cc-body">
+          <div class="upload-zone" id="uz-arq" onclick="document.getElementById('fi-arq').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="dropArquivo(event)">
+            <div style="font-size:28px">📎</div>
+            <div class="uz-txt">Arraste arquivos aqui ou clique para selecionar<br>PDF, imagem, planilha, qualquer tipo</div>
+          </div>
+          <input type="file" id="fi-arq" multiple style="display:none" onchange="uploadArquivos(event)">
+          <div class="file-list" id="file-list"></div>
+        </div>
+      </div>
+    </div>`;
+
+  renderPontos(id);
+  renderArquivos(id);
+}
+
+function switchAba(aba){
+  coletarConteudoAtual();
+  abaAtiva = aba;
+  ['resumo','pontos','aplicacao','anotacoes','arquivos'].forEach(a=>{
+    const el=document.getElementById('aba-'+a);
+    if(el) el.style.display = a===aba?'block':'none';
+    const tab=document.querySelector(`.mtab[onclick="switchAba('${a}')"]`);
+    if(tab) tab.className='mtab'+(a===aba?' active':'');
+  });
+}
+
+// ═══════════════════════════════════════════
+// PONTOS-CHAVE
+// ═══════════════════════════════════════════
+function renderPontos(id){
+  if(!id) id=moduloAtivoId;
+  const a = dados.anotacoes[id]||{};
+  const list = document.getElementById('ponto-list');
+  if(!list) return;
+  const pontos = a.pontos||[];
+  list.innerHTML = pontos.map((p,i)=>`
+    <div class="ponto-item">
+      <span style="color:var(--accent);font-size:16px;flex-shrink:0">●</span>
+      <span class="ponto-txt">${p}</span>
+      <button class="ponto-rm" onclick="removePonto(${i})">✕</button>
+    </div>`).join('');
+  const cnt=document.getElementById('pontos-count');
+  if(cnt) cnt.textContent=pontos.length+' pontos';
+}
+
+function addPonto(){
+  const inp=document.getElementById('novo-ponto');
+  const val=inp.value.trim();
+  if(!val) return;
+  if(!dados.anotacoes[moduloAtivoId]) dados.anotacoes[moduloAtivoId]={resumo:'',pontos:[],aplicacao:'',anotacoes:'',arquivos:[]};
+  dados.anotacoes[moduloAtivoId].pontos.push(val);
+  inp.value='';
+  renderPontos(moduloAtivoId);
+  autoSave();
+}
+
+function removePonto(i){
+  dados.anotacoes[moduloAtivoId].pontos.splice(i,1);
+  renderPontos(moduloAtivoId);
+  autoSave();
+}
+
+// ═══════════════════════════════════════════
+// ARQUIVOS
+// ═══════════════════════════════════════════
+function dropArquivo(e){
+  e.preventDefault();
+  document.getElementById('uz-arq').classList.remove('drag');
+  processarArquivos(e.dataTransfer.files);
+}
+
+function uploadArquivos(e){
+  processarArquivos(e.target.files);
+  e.target.value='';
+}
+
+function processarArquivos(files){
+  if(!dados.anotacoes[moduloAtivoId]) dados.anotacoes[moduloAtivoId]={resumo:'',pontos:[],aplicacao:'',anotacoes:'',arquivos:[]};
+  const a=dados.anotacoes[moduloAtivoId];
+  Array.from(files).forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      a.arquivos.push({nome:file.name,size:file.size,tipo:file.type,data:e.target.result});
+      renderArquivos(moduloAtivoId);
+      autoSave();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderArquivos(id){
+  const a=dados.anotacoes[id]||{};
+  const list=document.getElementById('file-list');
+  if(!list) return;
+  const arqs=a.arquivos||[];
+  const cnt=document.getElementById('arq-count');
+  if(cnt) cnt.textContent=arqs.length+' arquivo(s)';
+  list.innerHTML=arqs.map((f,i)=>{
+    const icon=f.tipo.includes('pdf')?'📄':f.tipo.includes('image')?'🖼️':f.tipo.includes('sheet')||f.nome.includes('.xls')?'📊':'📎';
+    const size=f.size>1024*1024?(f.size/1024/1024).toFixed(1)+' MB':(f.size/1024).toFixed(0)+' KB';
+    return`<div class="file-item">
+      <span class="fi-icon">${icon}</span>
+      <div class="fi-info">
+        <div class="fi-nome">${f.nome}</div>
+        <div class="fi-size">${size}</div>
+      </div>
+      <a href="${f.data}" download="${f.nome}" class="btn btn-ghost btn-sm" style="padding:5px 10px;font-size:11px">⬇</a>
+      <button class="fi-rm" onclick="removeArquivo(${i})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function removeArquivo(i){
+  dados.anotacoes[moduloAtivoId].arquivos.splice(i,1);
+  renderArquivos(moduloAtivoId);
+  autoSave();
+}
+
+// ═══════════════════════════════════════════
+// COLETA E SAVE
+// ═══════════════════════════════════════════
+function coletarConteudoAtual(){
+  if(!moduloAtivoId) return;
+  if(!dados.anotacoes[moduloAtivoId]) dados.anotacoes[moduloAtivoId]={resumo:'',pontos:[],aplicacao:'',anotacoes:'',arquivos:[]};
+  const a=dados.anotacoes[moduloAtivoId];
+  const tr=document.getElementById('ta-resumo');
+  const ta=document.getElementById('ta-aplicacao');
+  const tan=document.getElementById('ta-anotacoes');
+  if(tr) a.resumo=tr.value;
+  if(ta) a.aplicacao=ta.value;
+  if(tan) a.anotacoes=tan.value;
+}
+
+function autoSave(){
+  coletarConteudoAtual();
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer=setTimeout(()=>{
+    salvarTudo(true);
+  },800);
+}
+
+function salvarTudo(silencioso=false){
+  coletarConteudoAtual();
+  localStorage.setItem('jcr_curso_'+cursoId, JSON.stringify(dados));
+  if(!silencioso){
+    const ind=document.getElementById('saveInd');
+    ind.classList.add('show');
+    setTimeout(()=>ind.classList.remove('show'),2000);
+  }
+}
+
+// ═══════════════════════════════════════════
+// EXPORTAR NOTAS
+// ═══════════════════════════════════════════
+function exportarNotas(){
+  salvarTudo(true);
+  let txt=`NOTAS DO CURSO — ${curso.nome}\n`;
+  txt+=`Plataforma: ${curso.plat} | Área: ${curso.area} | Status: ${dados.status}\n`;
+  txt+=`${'═'.repeat(60)}\n\n`;
+
+  dados.modulos.forEach(m=>{
+    const a=dados.anotacoes[m.id]||{};
+    txt+=`📌 ${m.nome}${m.done?' [CONCLUÍDO]':''}\n`;
+    txt+=`${'─'.repeat(40)}\n`;
+    if(a.resumo) txt+=`\nRESUMO:\n${a.resumo}\n`;
+    if(a.pontos&&a.pontos.length>0) txt+=`\nPONTOS-CHAVE:\n${a.pontos.map(p=>'• '+p).join('\n')}\n`;
+    if(a.aplicacao) txt+=`\nAPLICAÇÃO PRÁTICA:\n${a.aplicacao}\n`;
+    if(a.anotacoes) txt+=`\nANOTAÇÕES:\n${a.anotacoes}\n`;
+    txt+='\n';
+  });
+
+  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`notas_${cursoId}.txt`;a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+init();
+</script>
+</body>
+</html>

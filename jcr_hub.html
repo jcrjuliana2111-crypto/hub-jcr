@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JCR — Hub Central</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14;--surface:#13161e;--surface2:#1a1e2a;--surface3:#222739;
+  --border:#2a2f42;--border2:#363d55;
+  --accent:#4f8ef7;--accent2:#6fa3f8;--accent-soft:rgba(79,142,247,0.12);
+  --green:#2dd4a0;--green-soft:rgba(45,212,160,0.12);
+  --yellow:#f5c842;--yellow-soft:rgba(245,200,66,0.12);
+  --red:#f25c6e;--red-soft:rgba(242,92,110,0.12);
+  --orange:#f2924a;--orange-soft:rgba(242,146,74,0.12);
+  --purple:#a78bfa;--purple-soft:rgba(167,139,250,0.12);
+  --text:#e8eaf0;--text2:#8b92a8;--text3:#5d6480;
+  --radius:14px;--radius-sm:8px;
+  --font-display:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;--font-mono:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;gap:12px;background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:60px;position:sticky;top:0;z-index:50}
+.topbar-logo{font-family:var(--font-display);font-weight:800;font-size:22px;color:var(--accent);margin-right:8px;letter-spacing:-0.5px}
+.topbar-nav{display:flex;gap:4px;flex:1}
+.nav-btn{background:none;border:none;color:var(--text2);font-family:var(--font-body);font-size:13px;font-weight:500;padding:8px 14px;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.nav-btn:hover{background:var(--surface2);color:var(--text)}
+.nav-btn.active{background:var(--accent-soft);color:var(--accent)}
+.topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.user-pill{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;background:var(--surface2);border-radius:999px;border:1px solid var(--border)}
+.user-av{width:28px;height:28px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent)}
+.user-name{font-size:13px;color:var(--text2)}
+.btn-icon{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:6px;border-radius:6px;transition:all .2s}
+.btn-icon:hover{background:var(--surface2);color:var(--text)}
+
+/* ── PAGE ── */
+.page{padding:36px 32px;max-width:1200px;margin:0 auto}
+
+/* ── HERO ── */
+.hub-hero{margin-bottom:36px}
+.hub-greeting{font-size:13px;color:var(--text3);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.hub-greeting::before{content:'';width:20px;height:1px;background:var(--accent)}
+.hub-title{font-family:var(--font-display);font-size:clamp(1.8rem,3vw,2.6rem);font-weight:800;color:var(--text);line-height:1.1;margin-bottom:6px}
+.hub-title em{color:var(--accent);font-style:normal}
+.hub-sub{font-size:14px;color:var(--text3);max-width:520px;line-height:1.6}
+
+/* ── STATS TOPO ── */
+.hub-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:36px}
+.hstat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;position:relative;overflow:hidden;display:flex;align-items:center;gap:14px}
+.hstat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--hs-color,var(--accent))}
+.hstat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:var(--surface2)}
+.hstat-info{}
+.hstat-val{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text);line-height:1}
+.hstat-label{font-size:11px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.6px}
+
+/* ── SECTION LABEL ── */
+.sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── GRID DAS BASES ── */
+.bases-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:40px}
+
+.base-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .2s;position:relative}
+.base-card:hover{border-color:var(--bc-color,var(--accent));transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.base-card:hover .bc-arrow{opacity:1;transform:translateX(0)}
+
+.bc-top{padding:20px 20px 0}
+.bc-icon-wrap{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:14px;position:relative}
+.bc-icon-wrap::after{content:'';position:absolute;inset:0;border-radius:12px;background:var(--bc-color,var(--accent));opacity:.12}
+
+.bc-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.bc-num{font-family:var(--font-mono);font-size:11px;color:var(--text3);font-weight:500}
+.bc-arrow{font-size:16px;color:var(--bc-color,var(--accent));opacity:0;transform:translateX(-4px);transition:all .2s}
+.bc-nome{font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.2}
+.bc-desc{font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:16px}
+
+.bc-itens{display:flex;flex-direction:column;gap:5px;padding:0 20px;margin-bottom:14px}
+.bc-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)}
+.bc-item-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.bc-item-tag{margin-left:auto;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px}
+
+.bc-footer{padding:12px 20px;border-top:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:space-between}
+.bc-status{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px}
+.bc-status-dot{width:6px;height:6px;border-radius:50%}
+.bc-action{font-size:12px;font-weight:600;color:var(--bc-color,var(--accent))}
+
+/* ── BARRA LATERAL DE ATIVIDADE ── */
+.bc-activity{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bc-color,var(--accent))}
+
+/* ── ACESSO RÁPIDO ── */
+.rapido-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:36px}
+.rapido-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px}
+.rapido-item:hover{border-color:var(--border2);background:var(--surface2)}
+.ri-icon{font-size:18px;flex-shrink:0}
+.ri-info{}
+.ri-nome{font-size:12px;font-weight:500;color:var(--text);line-height:1.3}
+.ri-desc{font-size:10px;color:var(--text3);margin-top:2px}
+
+/* ── TIMELINE ── */
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border)}
+.tl-item:last-child{border-bottom:none}
+.tl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.tl-content{flex:1}
+.tl-title{font-size:13px;font-weight:500;color:var(--text)}
+.tl-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.tl-time{font-size:10px;color:var(--text3);white-space:nowrap;font-family:var(--font-mono)}
+
+/* ── PRÓXIMOS PASSOS ── */
+.passos-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.passo-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.passo-head{padding:14px 18px;border-bottom:1px solid var(--border);font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.passo-body{padding:14px 18px;display:flex;flex-direction:column;gap:8px}
+.passo-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border-radius:7px;border:1px solid var(--border);font-size:12px;color:var(--text2);cursor:pointer;transition:border-color .15s}
+.passo-item:hover{border-color:var(--accent)}
+.passo-item input[type=checkbox]{accent-color:var(--green);width:14px;height:14px;flex-shrink:0}
+.passo-item.done{opacity:.5;text-decoration:line-through}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;white-space:nowrap}
+.bg-green{background:var(--green-soft);color:var(--green)}
+.bg-yellow{background:var(--yellow-soft);color:var(--yellow)}
+.bg-blue{background:var(--accent-soft);color:var(--accent)}
+.bg-orange{background:var(--orange-soft);color:var(--orange)}
+.bg-purple{background:var(--purple-soft);color:var(--purple)}
+.bg-gray{background:rgba(93,100,128,.15);color:var(--text3)}
+.bg-red{background:var(--red-soft);color:var(--red)}
+
+@media(max-width:1000px){.bases-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){
+  .bases-grid{grid-template-columns:1fr}
+  .hub-stats{grid-template-columns:1fr 1fr}
+  .rapido-grid{grid-template-columns:1fr 1fr}
+  .passos-grid{grid-template-columns:1fr}
+  .page{padding:20px 16px}
+  .topbar-nav{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">JCR</div>
+  <div class="topbar-nav">
+    <button class="nav-btn active">🏠 Hub</button>
+    <button class="nav-btn" onclick="abrirBase('projeto')">🏗️ Projeto</button>
+    <button class="nav-btn" onclick="abrirBase('conhecimento')">🎓 Conhecimento</button>
+    <button class="nav-btn" onclick="abrirBase('recuperacao')">⚖️ Recuperação</button>
+    <button class="nav-btn" onclick="abrirBase('legislacao')">📚 Legislação</button>
+    <button class="nav-btn" onclick="abrirBase('comercial')">🎯 Comercial</button>
+    <button class="nav-btn" onclick="abrirBase('clientes')">👥 Clientes</button>
+  </div>
+  <div class="topbar-right">
+    <div class="user-pill">
+      <div class="user-av">JC</div>
+      <span class="user-name">Juliana</span>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hub-hero">
+    <div class="hub-greeting" id="greeting">Bom dia, Juliana</div>
+    <div class="hub-title">Hub <em>JCR</em></div>
+    <div class="hub-sub">Central de ferramentas, conhecimento e operação do escritório — tudo em um lugar.</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="hub-stats">
+    <div class="hstat" style="--hs-color:#4f8ef7">
+      <div class="hstat-icon">🏗️</div>
+      <div class="hstat-info">
+        <div class="hstat-val">6</div>
+        <div class="hstat-label">Bases ativas</div>
+      </div>
+    </div>
+    <div class="hstat" style="--hs-color:#2dd4a0">
+      <div class="hstat-icon">📚</div>
+      <div class="hstat-info">
+        <div class="hstat-val">63</div>
+        <div class="hstat-label">Cursos no inventário</div>
+      </div>
+    </div>
+    <div class="hstat" style="--hs-color:#f2924a">
+      <div class="hstat-icon">⚖️</div>
+      <div class="hstat-info">
+        <div class="hstat-val">12</div>
+        <div class="hstat-label">Teses mapeadas</div>
+      </div>
+    </div>
+    <div class="hstat" style="--hs-color:#a78bfa">
+      <div class="hstat-icon">📅</div>
+      <div class="hstat-info">
+        <div class="hstat-val" id="stat-data">—</div>
+        <div class="hstat-label">Hoje</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BASES -->
+  <div class="sec-label">Bases de ferramentas</div>
+  <div class="bases-grid">
+
+    <!-- 1. PROJETO -->
+    <div class="base-card" style="--bc-color:#4f8ef7" onclick="abrirBase('projeto')">
+      <div class="bc-activity"></div>
+      <div class="bc-top">
+        <div class="bc-icon-wrap" style="--bc-color:#4f8ef7">🏗️</div>
+        <div class="bc-header">
+          <span class="bc-num">01</span>
+          <span class="bc-arrow">→</span>
+        </div>
+        <div class="bc-nome">Projeto</div>
+        <div class="bc-desc">Estrutura e formalização do escritório — da sociedade ao organograma.</div>
+      </div>
+      <div class="bc-itens">
+        <div class="bc-item"><div class="bc-item-dot" style="background:#4f8ef7"></div>Proposta de sociedade<span class="bc-item-tag bg-blue">Novo</span></div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#4f8ef7"></div>Organograma completo com 20 depts</div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#4f8ef7"></div>Arquitetura do sistema JCR</div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#4f8ef7"></div>Mapa estratégico do escritório</div>
+      </div>
+      <div class="bc-footer">
+        <div class="bc-status"><div class="bc-status-dot" style="background:#4f8ef7"></div>Reunião com sócio — semana que vem</div>
+        <div class="bc-action">Abrir →</div>
+      </div>
+    </div>
+
+    <!-- 2. CONHECIMENTO -->
+    <div class="base-card" style="--bc-color:#2dd4a0" onclick="abrirBase('conhecimento')">
+      <div class="bc-activity" style="background:#2dd4a0"></div>
+      <div class="bc-top">
+        <div class="bc-icon-wrap" style="--bc-color:#2dd4a0">🎓</div>
+        <div class="bc-header">
+          <span class="bc-num">02</span>
+          <span class="bc-arrow" style="color:#2dd4a0">→</span>
+        </div>
+        <div class="bc-nome">Conhecimento</div>
+        <div class="bc-desc">Inventário de 63 cursos, materiais JCR e prioridades de estudo.</div>
+      </div>
+      <div class="bc-itens">
+        <div class="bc-item"><div class="bc-item-dot" style="background:#2dd4a0"></div>63 cursos catalogados<span class="bc-item-tag bg-green">5 em andamento</span></div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#2dd4a0"></div>Importar curso por print (IA)<span class="bc-item-tag bg-blue">Novo</span></div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#2dd4a0"></div>Anotações por módulo com upload</div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#2dd4a0"></div>Prioridades e metas de estudo</div>
+      </div>
+      <div class="bc-footer">
+        <div class="bc-status"><div class="bc-status-dot" style="background:#2dd4a0"></div>5 cursos em andamento</div>
+        <div class="bc-action" style="color:#2dd4a0">Abrir →</div>
+      </div>
+    </div>
+
+    <!-- 3. RECUPERAÇÃO TRIBUTÁRIA -->
+    <div class="base-card" style="--bc-color:#f2924a" onclick="abrirBase('recuperacao')">
+      <div class="bc-activity" style="background:#f2924a"></div>
+      <div class="bc-top">
+        <div class="bc-icon-wrap" style="--bc-color:#f2924a">⚖️</div>
+        <div class="bc-header">
+          <span class="bc-num">03</span>
+          <span class="bc-arrow" style="color:#f2924a">→</span>
+        </div>
+        <div class="bc-nome">Recuperação Tributária</div>
+        <div class="bc-desc">12 teses ADM e JUD com manual de procedimentos, upload de SPED e relatórios.</div>
+      </div>
+      <div class="bc-itens">
+        <div class="bc-item"><div class="bc-item-dot" style="background:#4f8ef7"></div>6 teses ADM — você executa<span class="bc-item-tag bg-blue">ADM</span></div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#f25c6e"></div>6 teses JUD — parceiro advogado<span class="bc-item-tag bg-red">JUD</span></div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#f2924a"></div>Upload SPED — analisa todas as teses<span class="bc-item-tag bg-orange">Novo</span></div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#f2924a"></div>Relatório individual por tese</div>
+      </div>
+      <div class="bc-footer">
+        <div class="bc-status"><div class="bc-status-dot" style="background:#f2924a"></div>12 teses mapeadas e documentadas</div>
+        <div class="bc-action" style="color:#f2924a">Abrir →</div>
+      </div>
+    </div>
+
+    <!-- 4. LEGISLAÇÃO & REFORMA -->
+    <div class="base-card" style="--bc-color:#a78bfa" onclick="abrirBase('legislacao')">
+      <div class="bc-activity" style="background:#a78bfa"></div>
+      <div class="bc-top">
+        <div class="bc-icon-wrap" style="--bc-color:#a78bfa">📚</div>
+        <div class="bc-header">
+          <span class="bc-num">04</span>
+          <span class="bc-arrow" style="color:#a78bfa">→</span>
+        </div>
+        <div class="bc-nome">Legislação & Reforma</div>
+        <div class="bc-desc">Reforma Tributária IBS/CBS, teses STF/STJ, benefícios estaduais e legislação por tema.</div>
+      </div>
+      <div class="bc-itens">
+        <div class="bc-item"><div class="bc-item-dot" style="background:#a78bfa"></div>Reforma Tributária — IBS, CBS, IS<span class="bc-item-tag bg-orange">Urgente</span></div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#a78bfa"></div>Benefícios fiscais SC, RO, GO</div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#a78bfa"></div>Teses STF/STJ consolidadas</div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#a78bfa"></div>Atualizações e novas normas</div>
+      </div>
+      <div class="bc-footer">
+        <div class="bc-status"><div class="bc-status-dot" style="background:#a78bfa"></div>Em construção — prioridade alta</div>
+        <div class="bc-action" style="color:#a78bfa">Abrir →</div>
+      </div>
+    </div>
+
+    <!-- 5. COMERCIAL -->
+    <div class="base-card" style="--bc-color:#f5c842" onclick="abrirBase('comercial')">
+      <div class="bc-activity" style="background:#f5c842"></div>
+      <div class="bc-top">
+        <div class="bc-icon-wrap" style="--bc-color:#f5c842">🎯</div>
+        <div class="bc-header">
+          <span class="bc-num">05</span>
+          <span class="bc-arrow" style="color:#f5c842">→</span>
+        </div>
+        <div class="bc-nome">Comercial</div>
+        <div class="bc-desc">Funil de captação, scripts de WhatsApp, proposta comercial e precificação.</div>
+      </div>
+      <div class="bc-itens">
+        <div class="bc-item"><div class="bc-item-dot" style="background:#f5c842"></div>Funil em 6 etapas com scripts</div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#f5c842"></div>Scripts WhatsApp por cenário<span class="bc-item-tag bg-yellow">3 cenários</span></div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#f5c842"></div>Análise da carteira do sócio</div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#f5c842"></div>Tabela de precificação e honorários</div>
+      </div>
+      <div class="bc-footer">
+        <div class="bc-status"><div class="bc-status-dot" style="background:#f5c842"></div>Reunião com Wesley — próxima semana</div>
+        <div class="bc-action" style="color:#f5c842">Abrir →</div>
+      </div>
+    </div>
+
+    <!-- 6. CLIENTES -->
+    <div class="base-card" style="--bc-color:#f25c6e" onclick="abrirBase('clientes')">
+      <div class="bc-activity" style="background:#f25c6e"></div>
+      <div class="bc-top">
+        <div class="bc-icon-wrap" style="--bc-color:#f25c6e">👥</div>
+        <div class="bc-header">
+          <span class="bc-num">06</span>
+          <span class="bc-arrow" style="color:#f25c6e">→</span>
+        </div>
+        <div class="bc-nome">Clientes</div>
+        <div class="bc-desc">Ficha por cliente com oportunidades, passivo fiscal, histórico e status de ações.</div>
+      </div>
+      <div class="bc-itens">
+        <div class="bc-item"><div class="bc-item-dot" style="background:#f25c6e"></div>Ficha completa por cliente</div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#f25c6e"></div>Oportunidades de recuperação</div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#f25c6e"></div>Passivo fiscal e parcelamentos</div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#f25c6e"></div>Status de ações ADM e JUD</div>
+      </div>
+      <div class="bc-footer">
+        <div class="bc-status"><div class="bc-status-dot" style="background:#f25c6e"></div>Analisar carteira do sócio</div>
+        <div class="bc-action" style="color:#f25c6e">Abrir →</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ACESSO RÁPIDO -->
+  <div class="sec-label">Acesso rápido</div>
+  <div class="rapido-grid" style="margin-bottom:36px">
+    <div class="rapido-item" onclick="abrirArquivo('organograma_detalhado_jcr.html')">
+      <div class="ri-icon">🏢</div>
+      <div class="ri-info"><div class="ri-nome">Organograma + Manual</div><div class="ri-desc">20 depts + recuperação tributária</div></div>
+    </div>
+    <div class="rapido-item" onclick="abrirArquivo('jcr_analisador_multiteses.html')">
+      <div class="ri-icon">⚖️</div>
+      <div class="ri-info"><div class="ri-nome">Analisador Multi-Teses</div><div class="ri-desc">Upload SPED → 12 teses</div></div>
+    </div>
+    <div class="rapido-item" onclick="abrirArquivo('proposta_sociedade_jcr.html')">
+      <div class="ri-icon">📋</div>
+      <div class="ri-info"><div class="ri-nome">Proposta de Sociedade</div><div class="ri-desc">Apresentação para o Wesley</div></div>
+    </div>
+    <div class="rapido-item" onclick="abrirArquivo('gclik_conhecimento.html')">
+      <div class="ri-icon">🎓</div>
+      <div class="ri-info"><div class="ri-nome">Base de Conhecimento</div><div class="ri-desc">63 cursos + importar por print</div></div>
+    </div>
+    <div class="rapido-item" onclick="abrirArquivo('arquitetura_sistema_jcr.html')">
+      <div class="ri-icon">🏗️</div>
+      <div class="ri-info"><div class="ri-nome">Arquitetura do Sistema</div><div class="ri-desc">Stack, banco, telas, roadmap</div></div>
+    </div>
+    <div class="rapido-item" onclick="abrirArquivo('analisador_pis_cofins_base.html')">
+      <div class="ri-icon">📊</div>
+      <div class="ri-info"><div class="ri-nome">Analisador PIS/COFINS</div><div class="ri-desc">Gross Up Reverso — .xlsx e .txt</div></div>
+    </div>
+    <div class="rapido-item" onclick="abrirArquivo('organograma_processo_comercial_jcr.html')">
+      <div class="ri-icon">🎯</div>
+      <div class="ri-info"><div class="ri-nome">Processo Comercial</div><div class="ri-desc">Funil + scripts WhatsApp</div></div>
+    </div>
+    <div class="rapido-item" onclick="abrirArquivo('jcr_analisador_multiteses.html')">
+      <div class="ri-icon">📁</div>
+      <div class="ri-info"><div class="ri-nome">Central de Arquivos</div><div class="ri-desc">Todos os materiais JCR</div></div>
+    </div>
+  </div>
+
+  <!-- PRÓXIMOS PASSOS + ATIVIDADE RECENTE -->
+  <div class="passos-grid">
+
+    <div class="passo-card">
+      <div class="passo-head">🎯 Próximos passos — escritório</div>
+      <div class="passo-body" id="passos-list">
+        <div class="passo-item" id="p1"><input type="checkbox" onchange="togglePasso('p1')"> Negociar proposta com Wesley — cargo + salário + prazo</div>
+        <div class="passo-item" id="p2"><input type="checkbox" onchange="togglePasso('p2')"> Abrir CNPJ da JCR Consultoria</div>
+        <div class="passo-item" id="p3"><input type="checkbox" onchange="togglePasso('p3')"> Consultar advogado societário antes de assinar</div>
+        <div class="passo-item" id="p4"><input type="checkbox" onchange="togglePasso('p4')"> Mapear carteira do sócio para recuperação</div>
+        <div class="passo-item" id="p5"><input type="checkbox" onchange="togglePasso('p5')"> Usar férias para estruturar os primeiros clientes</div>
+        <div class="passo-item" id="p6"><input type="checkbox" onchange="togglePasso('p6')"> Iniciar Estrategista Tributário (HOTMART)</div>
+        <div class="passo-item" id="p7"><input type="checkbox" onchange="togglePasso('p7')"> Publicar jcr-conhecimento no GitHub Pages</div>
+      </div>
+    </div>
+
+    <div class="passo-card">
+      <div class="passo-head">🕐 Construído nesta sessão</div>
+      <div style="padding:14px 18px">
+        <div class="timeline" id="timeline">
+          <div class="tl-item"><div class="tl-dot" style="background:#4f8ef7"></div><div class="tl-content"><div class="tl-title">Hub JCR — 6 bases</div><div class="tl-sub">Central de ferramentas completa</div></div><div class="tl-time">Hoje</div></div>
+          <div class="tl-item"><div class="tl-dot" style="background:#2dd4a0"></div><div class="tl-content"><div class="tl-title">Base de Conhecimento</div><div class="tl-sub">63 cursos + importar por print com IA</div></div><div class="tl-time">Hoje</div></div>
+          <div class="tl-item"><div class="tl-dot" style="background:#f2924a"></div><div class="tl-content"><div class="tl-title">Analisador Multi-Teses</div><div class="tl-sub">12 teses com abas individuais e relatórios</div></div><div class="tl-time">Hoje</div></div>
+          <div class="tl-item"><div class="tl-dot" style="background:#f2924a"></div><div class="tl-content"><div class="tl-title">Manual de Recuperação Tributária</div><div class="tl-sub">6 teses ADM + 5 JUD detalhadas</div></div><div class="tl-time">Hoje</div></div>
+          <div class="tl-item"><div class="tl-dot" style="background:#4f8ef7"></div><div class="tl-content"><div class="tl-title">Proposta de Sociedade</div><div class="tl-sub">HTML completo para apresentar ao Wesley</div></div><div class="tl-time">Hoje</div></div>
+          <div class="tl-item"><div class="tl-dot" style="background:#4f8ef7"></div><div class="tl-content"><div class="tl-title">Organograma + Funil Comercial</div><div class="tl-sub">20 depts + scripts WhatsApp + processo</div></div><div class="tl-time">Hoje</div></div>
+          <div class="tl-item"><div class="tl-dot" style="background:#a78bfa"></div><div class="tl-content"><div class="tl-title">Arquitetura do Sistema JCR</div><div class="tl-sub">Stack Python + HTML/JS + Supabase</div></div><div class="tl-time">Hoje</div></div>
+          <div class="tl-item"><div class="tl-dot" style="background:#2dd4a0"></div><div class="tl-content"><div class="tl-title">Central jcr-conhecimento</div><div class="tl-sub">GitHub Pages — index + 4 HTMLs</div></div><div class="tl-time">Hoje</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// ── GREETING ──
+function setGreeting(){
+  const h=new Date().getHours();
+  
+  document.getElementById('greeting').textContent=(h<12?'Bom dia':h<18?'Boa tarde':'Boa noite')+', Juliana';
+  const d=new Date();
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  document.getElementById('stat-data').textContent=dias[d.getDay()]+', '+d.getDate()+' '+meses[d.getMonth()];
+}
+setGreeting();
+
+// ── NAVEGAR PARA BASE ──
+const ARQUIVOS={
+  projeto:'organograma_detalhado_jcr.html',
+  conhecimento:'gclik_conhecimento.html',
+  recuperacao:'jcr_analisador_multiteses.html',
+  legislacao:'organograma_detalhado_jcr.html',
+  comercial:'organograma_processo_comercial_jcr.html',
+  clientes:'jcr_analisador_multiteses.html',
+};
+function abrirBase(id){ window.open(ARQUIVOS[id]||'#','_blank'); }
+function abrirArquivo(arq){ window.open(arq,'_blank'); }
+
+// ── PRÓXIMOS PASSOS ──
+function togglePasso(id){
+  const el=document.getElementById(id);
+  const chk=el.querySelector('input');
+  el.classList.toggle('done',chk.checked);
+  const passos=JSON.parse(localStorage.getItem('jcr_hub_passos')||'{}');
+  passos[id]=chk.checked;
+  localStorage.setItem('jcr_hub_passos',JSON.stringify(passos));
+}
+
+function carregarPassos(){
+  const passos=JSON.parse(localStorage.getItem('jcr_hub_passos')||'{}');
+  Object.entries(passos).forEach(([id,done])=>{
+    const el=document.getElementById(id);
+    if(el){
+      el.classList.toggle('done',done);
+      const chk=el.querySelector('input');
+      if(chk) chk.checked=done;
+    }
+  });
+}
+carregarPassos();
+</script>
+</body>
+</html>

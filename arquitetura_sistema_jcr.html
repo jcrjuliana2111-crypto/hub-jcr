@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arquitetura do Sistema JCR — Recuperação Tributária</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: #0F1E3C; --navy2: #1B3A6B; --gold: #C9A84C; --gold2: #F0D080;
+  --teal: #1A7F74; --rose: #8B2E4A; --light: #F4F1EB; --white: #FDFCF9;
+  --muted: #7A8499; --slate: #2D3B55; --purple: #3C3489;
+  --py: #3572A5; --js: #854F0B; --db: #0F6E56; --html: #993C1D;
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--navy); color: var(--white); min-height: 100vh; }
+
+nav {
+  padding: 1rem 2.5rem; display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid rgba(201,168,76,0.15);
+}
+.nav-brand { font-family: 'Playfair Display', serif; font-size: 15px; color: var(--gold); font-weight: 700; }
+.nav-sub { font-size: 11px; color: rgba(255,255,255,0.35); letter-spacing: 0.08em; text-transform: uppercase; }
+
+.hero { padding: 4rem 2.5rem 3rem; max-width: 1100px; margin: 0 auto; }
+.hero-badge { font-size:10px; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:var(--gold); margin-bottom:1rem; display:flex; align-items:center; gap:8px; }
+.hero-badge::before { content:''; display:inline-block; width:20px; height:1px; background:var(--gold); }
+.hero h1 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,4vw,3rem); font-weight:900; line-height:1.1; margin-bottom:0.75rem; }
+.hero h1 span { color:var(--gold); }
+.hero p { font-size:15px; color:rgba(255,255,255,0.5); max-width:600px; line-height:1.7; }
+
+/* TABS */
+.tabs { display:flex; gap:6px; padding:0 2.5rem; max-width:1100px; margin:0 auto 0; flex-wrap:wrap; }
+.tab {
+  padding:8px 18px; border-radius:8px 8px 0 0; font-size:12px; font-weight:500;
+  border:none; cursor:pointer; transition:all 0.15s; letter-spacing:0.03em;
+  background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.45); border:1px solid rgba(255,255,255,0.08);
+}
+.tab.active { background:var(--light); color:var(--navy); border-color:var(--light); }
+.tab:hover:not(.active) { background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.7); }
+
+/* MAIN */
+main { background:var(--light); color:var(--navy); min-height:600px; }
+.panel { display:none; max-width:1100px; margin:0 auto; padding:2.5rem; }
+.panel.active { display:block; }
+
+.section-eyebrow { font-size:10px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--gold); margin-bottom:4px; }
+.section-title { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:700; color:var(--navy); margin-bottom:0.5rem; }
+.section-desc { font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:2rem; max-width:700px; }
+.section-divider { width:40px; height:3px; background:var(--gold); border-radius:2px; margin-bottom:1.5rem; }
+
+/* FLUXO */
+.flow { display:flex; flex-direction:column; gap:0; }
+.flow-step {
+  display:flex; gap:0; align-items:stretch;
+}
+.flow-line { display:flex; flex-direction:column; align-items:center; width:48px; flex-shrink:0; }
+.flow-circle {
+  width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700; flex-shrink:0; z-index:1;
+}
+.flow-vline { width:2px; flex:1; min-height:20px; }
+.flow-content { flex:1; padding:0 0 2rem 1.25rem; }
+.flow-title { font-size:15px; font-weight:600; color:var(--navy); margin-bottom:6px; }
+.flow-desc { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:0.75rem; }
+.flow-tags { display:flex; flex-wrap:wrap; gap:5px; }
+.flow-tag { font-size:10px; padding:3px 9px; border-radius:5px; font-weight:500; }
+
+/* TELAS */
+.screens { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:1rem; }
+.screen {
+  background:var(--white); border-radius:12px; border:1px solid rgba(0,0,0,0.07);
+  overflow:hidden; transition:transform 0.15s;
+}
+.screen:hover { transform:translateY(-2px); }
+.screen-header { padding:10px 14px; display:flex; align-items:center; gap:8px; }
+.screen-dots { display:flex; gap:4px; }
+.screen-dot { width:8px; height:8px; border-radius:50%; }
+.screen-title-bar { font-size:10px; color:rgba(255,255,255,0.5); flex:1; text-align:center; }
+.screen-body { padding:12px 14px; min-height:160px; }
+.screen-label { font-size:11px; font-weight:600; color:var(--navy); margin-bottom:8px; }
+.screen-desc { font-size:11px; color:var(--muted); line-height:1.5; margin-bottom:8px; }
+.screen-mock { background:var(--light); border-radius:6px; padding:8px 10px; margin-bottom:6px; }
+.screen-mock-line { height:6px; border-radius:3px; margin-bottom:4px; }
+.screen-mock-line:last-child { margin-bottom:0; }
+.screen-badge { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; padding:2px 7px; border-radius:4px; display:inline-block; }
+
+/* BANCO */
+.db-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:1rem; }
+.db-table {
+  background:var(--white); border-radius:12px; border:1px solid rgba(0,0,0,0.07); overflow:hidden;
+}
+.db-header { padding:10px 14px; font-size:12px; font-weight:600; display:flex; align-items:center; gap:8px; }
+.db-body { padding:0; }
+.db-field { padding:7px 14px; font-size:11px; display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(0,0,0,0.05); }
+.db-field-name { color:var(--slate); font-family:'JetBrains Mono',monospace; font-size:10px; }
+.db-field-type { color:var(--muted); font-size:10px; font-family:'JetBrains Mono',monospace; }
+.db-pk { color:var(--gold); font-weight:700; }
+.db-fk { color:#185FA5; }
+
+/* STACK */
+.stack-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
+.stack-card {
+  background:var(--white); border-radius:12px; border:1px solid rgba(0,0,0,0.07);
+  padding:1.25rem; position:relative; overflow:hidden;
+}
+.stack-card::before { content:''; position:absolute; top:0; left:0; bottom:0; width:4px; }
+.stack-py::before { background:var(--py); }
+.stack-js::before { background:#C9A84C; }
+.stack-db::before { background:var(--db); }
+.stack-infra::before { background:var(--purple); }
+.stack-icon { font-size:24px; margin-bottom:8px; }
+.stack-name { font-size:14px; font-weight:600; color:var(--navy); margin-bottom:4px; }
+.stack-role { font-size:11px; color:var(--muted); margin-bottom:12px; line-height:1.5; }
+.stack-libs { display:flex; flex-wrap:wrap; gap:5px; }
+.stack-lib { font-size:10px; padding:3px 8px; border-radius:4px; background:var(--light); color:var(--slate); font-family:'JetBrains Mono',monospace; }
+
+/* ETAPAS */
+.etapas { display:flex; flex-direction:column; gap:10px; }
+.etapa {
+  background:var(--white); border-radius:12px; border:1px solid rgba(0,0,0,0.07);
+  padding:1.25rem; display:flex; gap:1rem; align-items:flex-start;
+}
+.etapa-num { width:32px; height:32px; border-radius:50%; background:var(--navy); color:var(--gold); font-family:'Playfair Display',serif; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.etapa-title { font-size:14px; font-weight:600; color:var(--navy); margin-bottom:4px; }
+.etapa-desc { font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:8px; }
+.etapa-tasks { display:flex; flex-wrap:wrap; gap:5px; }
+.etapa-task { font-size:10px; padding:3px 9px; border-radius:4px; background:var(--light); color:var(--slate); }
+.etapa-prazo { font-size:10px; font-weight:600; color:var(--gold); margin-top:6px; }
+
+footer { background:var(--navy); padding:1.5rem 2.5rem; text-align:center; border-top:1px solid rgba(201,168,76,0.15); }
+footer p { font-size:11px; color:rgba(255,255,255,0.3); }
+
+@media (max-width:640px) {
+  nav, .hero, .tabs, .panel { padding-left:1.25rem; padding-right:1.25rem; }
+  .stack-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div>
+    <div class="nav-brand">JCR Sistema</div>
+    <div class="nav-sub">Arquitetura — Recuperação Tributária</div>
+  </div>
+  <div style="font-size:11px;color:rgba(255,255,255,0.3);">Python + HTML/JS + Supabase</div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">Documento técnico</div>
+  <h1>Arquitetura do <span>Sistema JCR</span></h1>
+  <p>Estrutura completa do sistema de recuperação tributária — fluxo de dados, telas, banco de dados, stack tecnológico e roadmap de desenvolvimento.</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showPanel('fluxo')">Fluxo do sistema</button>
+  <button class="tab" onclick="showPanel('telas')">Telas</button>
+  <button class="tab" onclick="showPanel('banco')">Banco de dados</button>
+  <button class="tab" onclick="showPanel('stack')">Stack tecnológico</button>
+  <button class="tab" onclick="showPanel('roadmap')">Roadmap</button>
+</div>
+
+<main>
+
+<!-- FLUXO -->
+<div class="panel active" id="panel-fluxo">
+  <div class="section-eyebrow">Como o sistema funciona</div>
+  <h2 class="section-title">Fluxo Completo do Sistema</h2>
+  <div class="section-divider"></div>
+  <p class="section-desc">Do upload do arquivo SPED até o relatório final por cliente — cada etapa do processamento e onde cada tecnologia atua.</p>
+
+  <div class="flow">
+
+    <div class="flow-step">
+      <div class="flow-line">
+        <div class="flow-circle" style="background:#0C447C;color:#E6F1FB;">1</div>
+        <div class="flow-vline" style="background:rgba(12,68,124,0.3);"></div>
+      </div>
+      <div class="flow-content">
+        <div class="flow-title">Cadastro do cliente</div>
+        <div class="flow-desc">Analista cadastra o cliente no sistema com CNPJ, regime tributário, atividade e período a analisar. Dados salvos no Supabase.</div>
+        <div class="flow-tags">
+          <span class="flow-tag" style="background:#E6F1FB;color:#0C447C;">HTML/JS</span>
+          <span class="flow-tag" style="background:#E1F5EE;color:#085041;">Supabase</span>
+          <span class="flow-tag" style="background:#F1EFE8;color:#5F5E5A;">Tabela: clientes</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-line">
+        <div class="flow-circle" style="background:#185FA5;color:#E6F1FB;">2</div>
+        <div class="flow-vline" style="background:rgba(24,95,165,0.3);"></div>
+      </div>
+      <div class="flow-content">
+        <div class="flow-title">Upload dos arquivos SPED</div>
+        <div class="flow-desc">Analista faz upload do SPED Fiscal e/ou SPED Contribuições diretamente pela interface. Arquivos são enviados para o backend Python.</div>
+        <div class="flow-tags">
+          <span class="flow-tag" style="background:#E6F1FB;color:#0C447C;">HTML/JS — drag & drop</span>
+          <span class="flow-tag" style="background:#FAEEDA;color:#633806;">Python — recebe o arquivo</span>
+          <span class="flow-tag" style="background:#F1EFE8;color:#5F5E5A;">EFD Contribuições / SPED Fiscal</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-line">
+        <div class="flow-circle" style="background:#854F0B;color:#FAEEDA;">3</div>
+        <div class="flow-vline" style="background:rgba(133,79,11,0.3);"></div>
+      </div>
+      <div class="flow-content">
+        <div class="flow-title">Processamento Python — parsing do SPED</div>
+        <div class="flow-desc">Python lê o arquivo pipe-delimitado, extrai os registros por tipo (C100, C170, A100, A170, E110 etc.) e monta as estruturas de dados para análise.</div>
+        <div class="flow-tags">
+          <span class="flow-tag" style="background:#FAEEDA;color:#633806;">Python — parser SPED</span>
+          <span class="flow-tag" style="background:#FAEEDA;color:#633806;">pandas</span>
+          <span class="flow-tag" style="background:#F1EFE8;color:#5F5E5A;">Registros: C100, C170, A100, A170, E110</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-line">
+        <div class="flow-circle" style="background:#633806;color:#FAEEDA;">4</div>
+        <div class="flow-vline" style="background:rgba(99,56,6,0.3);"></div>
+      </div>
+      <div class="flow-content">
+        <div class="flow-title">Análise automática por tese</div>
+        <div class="flow-desc">Para cada tese habilitada, Python aplica as regras de identificação: cruza CST, CFOP, NCM e valores. Calcula o potencial de recuperação por período e por tese.</div>
+        <div class="flow-tags">
+          <span class="flow-tag" style="background:#FAEEDA;color:#633806;">Python — motor de regras</span>
+          <span class="flow-tag" style="background:#E6F1FB;color:#0C447C;">ADM: 6 teses</span>
+          <span class="flow-tag" style="background:#FBEAF0;color:#5C1A30;">JUD: 5 teses</span>
+          <span class="flow-tag" style="background:#F1EFE8;color:#5F5E5A;">pandas + numpy</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-line">
+        <div class="flow-circle" style="background:#0F6E56;color:#9FE1CB;">5</div>
+        <div class="flow-vline" style="background:rgba(15,110,86,0.3);"></div>
+      </div>
+      <div class="flow-content">
+        <div class="flow-title">Salvamento no banco de dados</div>
+        <div class="flow-desc">Resultado da análise salvo no Supabase por cliente, por tese e por período. Permite histórico e comparação entre análises.</div>
+        <div class="flow-tags">
+          <span class="flow-tag" style="background:#E1F5EE;color:#085041;">Supabase — PostgreSQL</span>
+          <span class="flow-tag" style="background:#F1EFE8;color:#5F5E5A;">Tabela: oportunidades</span>
+          <span class="flow-tag" style="background:#F1EFE8;color:#5F5E5A;">Tabela: analises</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-line">
+        <div class="flow-circle" style="background:#1B3A6B;color:#F0D080;">6</div>
+        <div class="flow-vline" style="background:rgba(27,58,107,0.3);"></div>
+      </div>
+      <div class="flow-content">
+        <div class="flow-title">Dashboard de oportunidades</div>
+        <div class="flow-desc">Interface exibe as oportunidades encontradas por cliente — valor estimado por tese, status ADM ou JUD, e próximos passos recomendados.</div>
+        <div class="flow-tags">
+          <span class="flow-tag" style="background:#E6F1FB;color:#0C447C;">HTML/JS — dashboard</span>
+          <span class="flow-tag" style="background:#E1F5EE;color:#085041;">Supabase — leitura</span>
+          <span class="flow-tag" style="background:#F1EFE8;color:#5F5E5A;">Chart.js — gráficos</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-line">
+        <div class="flow-circle" style="background:#C9A84C;color:#0F1E3C;">7</div>
+        <div class="flow-vline" style="background:transparent;"></div>
+      </div>
+      <div class="flow-content">
+        <div class="flow-title">Geração de relatório para o cliente</div>
+        <div class="flow-desc">Sistema gera relatório em PDF ou HTML com as oportunidades identificadas, valores estimados e orientação sobre ADM vs. JUD — pronto para apresentar ao cliente.</div>
+        <div class="flow-tags">
+          <span class="flow-tag" style="background:#FAEEDA;color:#633806;">Python — geração PDF</span>
+          <span class="flow-tag" style="background:#E6F1FB;color:#0C447C;">HTML — relatório visual</span>
+          <span class="flow-tag" style="background:#F1EFE8;color:#5F5E5A;">reportlab / weasyprint</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TELAS -->
+<div class="panel" id="panel-telas">
+  <div class="section-eyebrow">Interface do sistema</div>
+  <h2 class="section-title">Telas Principais</h2>
+  <div class="section-divider"></div>
+  <p class="section-desc">Cada tela que o analista vai usar — do login até o relatório final.</p>
+
+  <div class="screens">
+
+    <div class="screen">
+      <div class="screen-header" style="background:#0F1E3C;">
+        <div class="screen-dots"><div class="screen-dot" style="background:#ff5f57;"></div><div class="screen-dot" style="background:#febc2e;"></div><div class="screen-dot" style="background:#28c840;"></div></div>
+        <div class="screen-title-bar">Login</div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-label">Tela 1 — Login</div>
+        <div class="screen-desc">Autenticação via Supabase Auth. Cada analista tem seu acesso. Administrador (Juliana) tem visão completa.</div>
+        <div class="screen-mock">
+          <div class="screen-mock-line" style="background:#0F1E3C;width:60%;"></div>
+          <div class="screen-mock-line" style="background:#ddd;width:100%;height:24px;border-radius:4px;"></div>
+          <div class="screen-mock-line" style="background:#ddd;width:100%;height:24px;border-radius:4px;"></div>
+          <div class="screen-mock-line" style="background:#C9A84C;width:100%;height:28px;border-radius:4px;"></div>
+        </div>
+        <span class="screen-badge" style="background:#E6F1FB;color:#0C447C;">Supabase Auth</span>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="screen-header" style="background:#1B3A6B;">
+        <div class="screen-dots"><div class="screen-dot" style="background:#ff5f57;"></div><div class="screen-dot" style="background:#febc2e;"></div><div class="screen-dot" style="background:#28c840;"></div></div>
+        <div class="screen-title-bar">Dashboard</div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-label">Tela 2 — Dashboard Geral</div>
+        <div class="screen-desc">Visão geral: total de clientes, oportunidades identificadas, valor total estimado e status por tese.</div>
+        <div class="screen-mock">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;">
+            <div style="background:#E6F1FB;border-radius:4px;padding:6px;"><div style="font-size:10px;color:#0C447C;font-weight:600;">Clientes</div><div style="font-size:14px;font-weight:700;color:#0C447C;">24</div></div>
+            <div style="background:#EAF3DE;border-radius:4px;padding:6px;"><div style="font-size:10px;color:#27500A;font-weight:600;">Oport.</div><div style="font-size:14px;font-weight:700;color:#27500A;">68</div></div>
+          </div>
+          <div class="screen-mock-line" style="background:#ddd;width:100%;height:40px;border-radius:4px;"></div>
+        </div>
+        <span class="screen-badge" style="background:#EAF3DE;color:#27500A;">Chart.js</span>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="screen-header" style="background:#185FA5;">
+        <div class="screen-dots"><div class="screen-dot" style="background:#ff5f57;"></div><div class="screen-dot" style="background:#febc2e;"></div><div class="screen-dot" style="background:#28c840;"></div></div>
+        <div class="screen-title-bar">Clientes</div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-label">Tela 3 — Gestão de Clientes</div>
+        <div class="screen-desc">Lista de clientes com CNPJ, regime, status de análise e valor total de oportunidades identificadas.</div>
+        <div class="screen-mock">
+          <div style="background:#0F1E3C;border-radius:4px;padding:4px 6px;margin-bottom:4px;display:flex;gap:6px;">
+            <div style="font-size:9px;color:#F0D080;flex:2;">Cliente</div>
+            <div style="font-size:9px;color:#F0D080;flex:1;">Regime</div>
+            <div style="font-size:9px;color:#F0D080;flex:1;">Valor</div>
+          </div>
+          <div style="display:flex;gap:6px;padding:4px 6px;border-bottom:1px solid #eee;">
+            <div style="font-size:9px;color:#333;flex:2;">Empresa ABC</div>
+            <div style="font-size:9px;color:#333;flex:1;">Presumido</div>
+            <div style="font-size:9px;color:#0C447C;font-weight:600;flex:1;">R$ 45k</div>
+          </div>
+          <div style="display:flex;gap:6px;padding:4px 6px;">
+            <div style="font-size:9px;color:#333;flex:2;">Indústria XYZ</div>
+            <div style="font-size:9px;color:#333;flex:1;">Real</div>
+            <div style="font-size:9px;color:#0C447C;font-weight:600;flex:1;">R$ 120k</div>
+          </div>
+        </div>
+        <span class="screen-badge" style="background:#E6F1FB;color:#0C447C;">CRUD completo</span>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="screen-header" style="background:#633806;">
+        <div class="screen-dots"><div class="screen-dot" style="background:#ff5f57;"></div><div class="screen-dot" style="background:#febc2e;"></div><div class="screen-dot" style="background:#28c840;"></div></div>
+        <div class="screen-title-bar">Upload SPED</div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-label">Tela 4 — Upload e Análise</div>
+        <div class="screen-desc">Drag & drop do arquivo SPED. Seleção das teses a analisar. Botão para iniciar o processamento Python.</div>
+        <div class="screen-mock">
+          <div style="border:2px dashed #C9A84C;border-radius:6px;padding:12px;text-align:center;margin-bottom:6px;">
+            <div style="font-size:9px;color:#854F0B;">Arraste o arquivo SPED aqui</div>
+            <div style="font-size:8px;color:#aaa;">.txt pipe-delimitado</div>
+          </div>
+          <div style="background:#FAEEDA;border-radius:4px;padding:6px;font-size:9px;color:#633806;font-weight:600;">▶ Processar análise</div>
+        </div>
+        <span class="screen-badge" style="background:#FAEEDA;color:#633806;">Python backend</span>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="screen-header" style="background:#0F6E56;">
+        <div class="screen-dots"><div class="screen-dot" style="background:#ff5f57;"></div><div class="screen-dot" style="background:#febc2e;"></div><div class="screen-dot" style="background:#28c840;"></div></div>
+        <div class="screen-title-bar">Oportunidades</div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-label">Tela 5 — Oportunidades por Cliente</div>
+        <div class="screen-desc">Lista de teses com potencial identificado, separadas por ADM e JUD, com valor estimado e status de andamento.</div>
+        <div class="screen-mock">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee;">
+            <div style="font-size:9px;color:#333;">Excl. ICMS PIS/COFINS</div>
+            <div style="display:flex;gap:4px;align-items:center;">
+              <span style="font-size:8px;background:#E6F1FB;color:#0C447C;padding:1px 5px;border-radius:3px;">ADM</span>
+              <span style="font-size:9px;color:#0C447C;font-weight:600;">R$ 32k</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;">
+            <div style="font-size:9px;color:#333;">Excl. PIS/COFINS Base</div>
+            <div style="display:flex;gap:4px;align-items:center;">
+              <span style="font-size:8px;background:#FBEAF0;color:#5C1A30;padding:1px 5px;border-radius:3px;">JUD</span>
+              <span style="font-size:9px;color:#8B2E4A;font-weight:600;">R$ 88k</span>
+            </div>
+          </div>
+        </div>
+        <span class="screen-badge" style="background:#E1F5EE;color:#085041;">ADM + JUD</span>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="screen-header" style="background:#3C3489;">
+        <div class="screen-dots"><div class="screen-dot" style="background:#ff5f57;"></div><div class="screen-dot" style="background:#febc2e;"></div><div class="screen-dot" style="background:#28c840;"></div></div>
+        <div class="screen-title-bar">Relatório</div>
+      </div>
+      <div class="screen-body">
+        <div class="screen-label">Tela 6 — Geração de Relatório</div>
+        <div class="screen-desc">Geração do relatório final em PDF ou HTML para apresentar ao cliente. Inclui valor total, teses e próximos passos.</div>
+        <div class="screen-mock">
+          <div style="background:#3C3489;border-radius:4px;padding:8px;margin-bottom:6px;">
+            <div style="font-size:9px;color:#F0D080;font-weight:600;margin-bottom:4px;">Relatório — Cliente XYZ</div>
+            <div style="font-size:8px;color:rgba(255,255,255,0.6);">Oportunidades identificadas</div>
+            <div style="font-size:12px;color:#F0D080;font-weight:700;">R$ 152.400</div>
+          </div>
+          <div style="background:#C9A84C;border-radius:4px;padding:5px;text-align:center;font-size:9px;font-weight:600;color:#0F1E3C;">⬇ Exportar PDF</div>
+        </div>
+        <span class="screen-badge" style="background:#EEEDFE;color:#3C3489;">PDF / HTML</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BANCO -->
+<div class="panel" id="panel-banco">
+  <div class="section-eyebrow">Estrutura de dados</div>
+  <h2 class="section-title">Banco de Dados — Supabase</h2>
+  <div class="section-divider"></div>
+  <p class="section-desc">Tabelas do PostgreSQL no Supabase. Cada cliente tem suas análises, oportunidades e histórico de processamentos salvos.</p>
+
+  <div class="db-grid">
+
+    <div class="db-table">
+      <div class="db-header" style="background:#0F1E3C;color:#F0D080;">👥 clientes</div>
+      <div class="db-body">
+        <div class="db-field"><span class="db-field-name db-pk">id</span><span class="db-field-type">uuid PK</span></div>
+        <div class="db-field"><span class="db-field-name">cnpj</span><span class="db-field-type">varchar(14)</span></div>
+        <div class="db-field"><span class="db-field-name">razao_social</span><span class="db-field-type">text</span></div>
+        <div class="db-field"><span class="db-field-name">regime</span><span class="db-field-type">enum</span></div>
+        <div class="db-field"><span class="db-field-name">cnae_principal</span><span class="db-field-type">varchar(7)</span></div>
+        <div class="db-field"><span class="db-field-name">uf</span><span class="db-field-type">varchar(2)</span></div>
+        <div class="db-field"><span class="db-field-name">analista_id</span><span class="db-field-type db-fk">uuid FK</span></div>
+        <div class="db-field"><span class="db-field-name">criado_em</span><span class="db-field-type">timestamp</span></div>
+      </div>
+    </div>
+
+    <div class="db-table">
+      <div class="db-header" style="background:#185FA5;color:#E6F1FB;">📂 analises</div>
+      <div class="db-body">
+        <div class="db-field"><span class="db-field-name db-pk">id</span><span class="db-field-type">uuid PK</span></div>
+        <div class="db-field"><span class="db-field-name db-fk">cliente_id</span><span class="db-field-type">uuid FK</span></div>
+        <div class="db-field"><span class="db-field-name">tipo_sped</span><span class="db-field-type">enum</span></div>
+        <div class="db-field"><span class="db-field-name">periodo_inicio</span><span class="db-field-type">date</span></div>
+        <div class="db-field"><span class="db-field-name">periodo_fim</span><span class="db-field-type">date</span></div>
+        <div class="db-field"><span class="db-field-name">status</span><span class="db-field-type">enum</span></div>
+        <div class="db-field"><span class="db-field-name">arquivo_nome</span><span class="db-field-type">text</span></div>
+        <div class="db-field"><span class="db-field-name">processado_em</span><span class="db-field-type">timestamp</span></div>
+      </div>
+    </div>
+
+    <div class="db-table">
+      <div class="db-header" style="background:#0F6E56;color:#9FE1CB;">💰 oportunidades</div>
+      <div class="db-body">
+        <div class="db-field"><span class="db-field-name db-pk">id</span><span class="db-field-type">uuid PK</span></div>
+        <div class="db-field"><span class="db-field-name db-fk">analise_id</span><span class="db-field-type">uuid FK</span></div>
+        <div class="db-field"><span class="db-field-name db-fk">cliente_id</span><span class="db-field-type">uuid FK</span></div>
+        <div class="db-field"><span class="db-field-name">tese</span><span class="db-field-type">enum</span></div>
+        <div class="db-field"><span class="db-field-name">tipo</span><span class="db-field-type">ADM / JUD</span></div>
+        <div class="db-field"><span class="db-field-name">valor_estimado</span><span class="db-field-type">numeric</span></div>
+        <div class="db-field"><span class="db-field-name">periodo</span><span class="db-field-type">varchar(6)</span></div>
+        <div class="db-field"><span class="db-field-name">status</span><span class="db-field-type">enum</span></div>
+        <div class="db-field"><span class="db-field-name">observacoes</span><span class="db-field-type">text</span></div>
+      </div>
+    </div>
+
+    <div class="db-table">
+      <div class="db-header" style="background:#633806;color:#FAC775;">📊 itens_analisados</div>
+      <div class="db-body">
+        <div class="db-field"><span class="db-field-name db-pk">id</span><span class="db-field-type">uuid PK</span></div>
+        <div class="db-field"><span class="db-field-name db-fk">oportunidade_id</span><span class="db-field-type">uuid FK</span></div>
+        <div class="db-field"><span class="db-field-name">registro</span><span class="db-field-type">varchar(10)</span></div>
+        <div class="db-field"><span class="db-field-name">chave_nfe</span><span class="db-field-type">varchar(44)</span></div>
+        <div class="db-field"><span class="db-field-name">cfop</span><span class="db-field-type">varchar(4)</span></div>
+        <div class="db-field"><span class="db-field-name">cst</span><span class="db-field-type">varchar(3)</span></div>
+        <div class="db-field"><span class="db-field-name">valor_item</span><span class="db-field-type">numeric</span></div>
+        <div class="db-field"><span class="db-field-name">credito_apurado</span><span class="db-field-type">numeric</span></div>
+      </div>
+    </div>
+
+    <div class="db-table">
+      <div class="db-header" style="background:#5C1A30;color:#F4C0D1;">⚖️ acoes</div>
+      <div class="db-body">
+        <div class="db-field"><span class="db-field-name db-pk">id</span><span class="db-field-type">uuid PK</span></div>
+        <div class="db-field"><span class="db-field-name db-fk">oportunidade_id</span><span class="db-field-type">uuid FK</span></div>
+        <div class="db-field"><span class="db-field-name">tipo</span><span class="db-field-type">ADM / JUD</span></div>
+        <div class="db-field"><span class="db-field-name">status</span><span class="db-field-type">enum</span></div>
+        <div class="db-field"><span class="db-field-name">protocolo</span><span class="db-field-type">text</span></div>
+        <div class="db-field"><span class="db-field-name">advogado</span><span class="db-field-type">text</span></div>
+        <div class="db-field"><span class="db-field-name">valor_recuperado</span><span class="db-field-type">numeric</span></div>
+        <div class="db-field"><span class="db-field-name">honorario_exito</span><span class="db-field-type">numeric</span></div>
+        <div class="db-field"><span class="db-field-name">atualizado_em</span><span class="db-field-type">timestamp</span></div>
+      </div>
+    </div>
+
+    <div class="db-table">
+      <div class="db-header" style="background:#2D3B55;color:#B5D4F4;">👤 analistas</div>
+      <div class="db-body">
+        <div class="db-field"><span class="db-field-name db-pk">id</span><span class="db-field-type">uuid PK</span></div>
+        <div class="db-field"><span class="db-field-name">nome</span><span class="db-field-type">text</span></div>
+        <div class="db-field"><span class="db-field-name">email</span><span class="db-field-type">text</span></div>
+        <div class="db-field"><span class="db-field-name">perfil</span><span class="db-field-type">admin / analista</span></div>
+        <div class="db-field"><span class="db-field-name">ativo</span><span class="db-field-type">boolean</span></div>
+        <div class="db-field"><span class="db-field-name">criado_em</span><span class="db-field-type">timestamp</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- STACK -->
+<div class="panel" id="panel-stack">
+  <div class="section-eyebrow">Tecnologias escolhidas</div>
+  <h2 class="section-title">Stack Tecnológico</h2>
+  <div class="section-divider"></div>
+  <p class="section-desc">Cada tecnologia escolhida por um motivo específico — familiar, gratuita onde possível, e adequada ao problema.</p>
+
+  <div class="stack-grid">
+
+    <div class="stack-card stack-py">
+      <div class="stack-icon">🐍</div>
+      <div class="stack-name">Python — Backend</div>
+      <div class="stack-role">Processamento dos arquivos SPED, parser pipe-delimitado, aplicação das regras de cada tese, cálculo dos créditos e geração de relatórios PDF. Você já tem experiência com Python.</div>
+      <div class="stack-libs">
+        <span class="stack-lib">pandas</span>
+        <span class="stack-lib">numpy</span>
+        <span class="stack-lib">fastapi</span>
+        <span class="stack-lib">reportlab</span>
+        <span class="stack-lib">supabase-py</span>
+        <span class="stack-lib">uvicorn</span>
+      </div>
+    </div>
+
+    <div class="stack-card stack-js">
+      <div class="stack-icon">🌐</div>
+      <div class="stack-name">HTML + JavaScript — Frontend</div>
+      <div class="stack-role">Interface que os analistas usam no navegador. Upload de arquivos, visualização de oportunidades, dashboard e geração de relatórios. Mesmo padrão visual já construído.</div>
+      <div class="stack-libs">
+        <span class="stack-lib">HTML5</span>
+        <span class="stack-lib">CSS3</span>
+        <span class="stack-lib">JavaScript</span>
+        <span class="stack-lib">Chart.js</span>
+        <span class="stack-lib">Fetch API</span>
+      </div>
+    </div>
+
+    <div class="stack-card stack-db">
+      <div class="stack-icon">🗄️</div>
+      <div class="stack-name">Supabase — Banco de Dados</div>
+      <div class="stack-role">PostgreSQL gerenciado com autenticação de usuários, armazenamento de clientes, análises e oportunidades. Você já usa no App do Rafael — caminho conhecido.</div>
+      <div class="stack-libs">
+        <span class="stack-lib">PostgreSQL</span>
+        <span class="stack-lib">Supabase Auth</span>
+        <span class="stack-lib">Row Level Security</span>
+        <span class="stack-lib">Realtime</span>
+        <span class="stack-lib">Storage</span>
+      </div>
+    </div>
+
+    <div class="stack-card stack-infra">
+      <div class="stack-icon">🚀</div>
+      <div class="stack-name">Infraestrutura</div>
+      <div class="stack-role">Frontend no GitHub Pages (gratuito). Backend Python no Railway ou Render (gratuito até certo uso). Supabase free tier para começar — migra para pago quando crescer.</div>
+      <div class="stack-libs">
+        <span class="stack-lib">GitHub Pages</span>
+        <span class="stack-lib">Railway</span>
+        <span class="stack-lib">Supabase Free</span>
+        <span class="stack-lib">GitHub Actions</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ROADMAP -->
+<div class="panel" id="panel-roadmap">
+  <div class="section-eyebrow">Ordem de desenvolvimento</div>
+  <h2 class="section-title">Roadmap de Desenvolvimento</h2>
+  <div class="section-divider"></div>
+  <p class="section-desc">Construir por partes — cada etapa já entrega valor antes da próxima começar.</p>
+
+  <div class="etapas">
+
+    <div class="etapa">
+      <div class="etapa-num">1</div>
+      <div style="flex:1;">
+        <div class="etapa-title">Fundação — Parser SPED e banco de dados</div>
+        <div class="etapa-desc">Criar o parser Python que lê arquivos SPED pipe-delimitados e extrai os registros. Configurar o Supabase com as tabelas de clientes e análises. Testar com arquivos reais dos seus clientes.</div>
+        <div class="etapa-tasks">
+          <span class="etapa-task">Parser SPED Python</span>
+          <span class="etapa-task">Extração C100/C170</span>
+          <span class="etapa-task">Extração A100/A170</span>
+          <span class="etapa-task">Supabase — tabelas</span>
+          <span class="etapa-task">Testes com SPED real</span>
+        </div>
+        <div class="etapa-prazo">⏱ Estimativa: 2 a 3 semanas</div>
+      </div>
+    </div>
+
+    <div class="etapa">
+      <div class="etapa-num">2</div>
+      <div style="flex:1;">
+        <div class="etapa-title">Primeira tese — EFD x SPED (PIS/COFINS)</div>
+        <div class="etapa-desc">Implementar o cruzamento entre SPED Fiscal e SPED Contribuições — primeira e mais usada tese ADM. Validar com casos reais antes de avançar para as demais.</div>
+        <div class="etapa-tasks">
+          <span class="etapa-task">Cruzamento EFD x SPED</span>
+          <span class="etapa-task">Filtro por CST</span>
+          <span class="etapa-task">Cálculo do crédito</span>
+          <span class="etapa-task">Salvar oportunidades</span>
+          <span class="etapa-task">Validação com caso real</span>
+        </div>
+        <div class="etapa-prazo">⏱ Estimativa: 1 a 2 semanas</div>
+      </div>
+    </div>
+
+    <div class="etapa">
+      <div class="etapa-num">3</div>
+      <div style="flex:1;">
+        <div class="etapa-title">Interface básica — upload e resultados</div>
+        <div class="etapa-desc">Tela de upload do SPED, lista de clientes e visualização das oportunidades identificadas. Autenticação com Supabase Auth para controlar o acesso dos analistas.</div>
+        <div class="etapa-tasks">
+          <span class="etapa-task">Tela de login</span>
+          <span class="etapa-task">Upload de arquivo</span>
+          <span class="etapa-task">Lista de oportunidades</span>
+          <span class="etapa-task">Autenticação</span>
+          <span class="etapa-task">Gestão de clientes</span>
+        </div>
+        <div class="etapa-prazo">⏱ Estimativa: 2 semanas</div>
+      </div>
+    </div>
+
+    <div class="etapa">
+      <div class="etapa-num">4</div>
+      <div style="flex:1;">
+        <div class="etapa-title">Demais teses ADM</div>
+        <div class="etapa-desc">Implementar as outras 5 teses administrativas: Exclusão ICMS PIS/COFINS, ICMS-ST, GLP/Diesel, Monofásicos SN e PGDAS SN. Cada tese é um módulo independente.</div>
+        <div class="etapa-tasks">
+          <span class="etapa-task">Exclusão ICMS PIS/COFINS</span>
+          <span class="etapa-task">ICMS-ST</span>
+          <span class="etapa-task">GLP/Diesel LC 192</span>
+          <span class="etapa-task">Monofásicos SN</span>
+          <span class="etapa-task">PGDAS SN</span>
+        </div>
+        <div class="etapa-prazo">⏱ Estimativa: 3 a 4 semanas</div>
+      </div>
+    </div>
+
+    <div class="etapa">
+      <div class="etapa-num">5</div>
+      <div style="flex:1;">
+        <div class="etapa-title">Dashboard e relatório PDF</div>
+        <div class="etapa-desc">Dashboard com gráficos de oportunidades por cliente e por tese. Geração do relatório em PDF para apresentar ao cliente com o diagnóstico completo.</div>
+        <div class="etapa-tasks">
+          <span class="etapa-task">Dashboard Chart.js</span>
+          <span class="etapa-task">Totalizadores</span>
+          <span class="etapa-task">Geração PDF Python</span>
+          <span class="etapa-task">Relatório por cliente</span>
+          <span class="etapa-task">Export HTML</span>
+        </div>
+        <div class="etapa-prazo">⏱ Estimativa: 2 semanas</div>
+      </div>
+    </div>
+
+    <div class="etapa">
+      <div class="etapa-num">6</div>
+      <div style="flex:1;">
+        <div class="etapa-title">Teses JUD + gestão de ações</div>
+        <div class="etapa-desc">Implementar as 5 teses judiciais como análise de potencial (sem transmissão — apenas diagnóstico). Módulo de acompanhamento de ações em andamento com advogado parceiro.</div>
+        <div class="etapa-tasks">
+          <span class="etapa-task">5 teses JUD</span>
+          <span class="etapa-task">Gestão de ações</span>
+          <span class="etapa-task">Status por processo</span>
+          <span class="etapa-task">Controle de honorários</span>
+          <span class="etapa-task">Alertas de prazo</span>
+        </div>
+        <div class="etapa-prazo">⏱ Estimativa: 3 semanas</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</main>
+
+<footer>
+  <p>JCR Consultoria e Serviços Tributários — Arquitetura do Sistema — Abril 2026</p>
+</footer>
+
+<script>
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

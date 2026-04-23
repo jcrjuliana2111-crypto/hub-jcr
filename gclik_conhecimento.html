@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JCR — Conhecimento</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14;--surface:#13161e;--surface2:#1a1e2a;--surface3:#222739;
+  --border:#2a2f42;--border2:#363d55;
+  --accent:#4f8ef7;--accent2:#6fa3f8;--accent-soft:rgba(79,142,247,0.12);
+  --green:#2dd4a0;--green-soft:rgba(45,212,160,0.12);
+  --yellow:#f5c842;--yellow-soft:rgba(245,200,66,0.12);
+  --red:#f25c6e;--red-soft:rgba(242,92,110,0.12);
+  --orange:#f2924a;--orange-soft:rgba(242,146,74,0.12);
+  --purple:#a78bfa;--purple-soft:rgba(167,139,250,0.12);
+  --text:#e8eaf0;--text2:#8b92a8;--text3:#5d6480;
+  --radius:14px;--radius-sm:8px;
+  --font-display:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;--font-mono:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;gap:12px;background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:60px;position:sticky;top:0;z-index:50}
+.topbar-logo{font-family:var(--font-display);font-weight:800;font-size:20px;color:var(--accent);margin-right:4px}
+.nav-btn{background:none;border:none;color:var(--text2);font-family:var(--font-body);font-size:13px;font-weight:500;padding:8px 14px;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.nav-btn:hover{background:var(--surface2);color:var(--text)}
+.nav-btn.active{background:var(--accent-soft);color:var(--accent)}
+.nav-preview-note{font-size:11px;color:var(--text3);margin-left:auto;padding:5px 12px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)}
+
+/* ── PAGE ── */
+.page{padding:28px 32px;transition:margin-right .35s cubic-bezier(.4,0,.2,1)}
+.page.shifted{margin-right:520px}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--card-color,var(--accent))}
+.stat-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.stat-value{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--text);line-height:1;margin-bottom:3px}
+.stat-sub{font-size:12px;color:var(--text2)}
+
+/* ── PROGRESSO ── */
+.prog-strip{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:24px}
+.prog-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:6px}
+.prog-bar{height:5px;background:var(--surface3);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .5s ease}
+
+/* ── ABAS INTERNAS ── */
+.inner-tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px;width:fit-content;margin-bottom:24px}
+.itab{padding:8px 18px;border-radius:6px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;background:none;border:none;font-family:var(--font-body);transition:all .15s;display:flex;align-items:center;gap:7px}
+.itab:hover{color:var(--text);background:var(--surface2)}
+.itab.active{background:var(--accent);color:#fff}
+.itab .cnt{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;background:rgba(255,255,255,.2)}
+
+/* ── FILTROS ── */
+.filters{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.search-input{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 14px;outline:none;transition:border-color .2s;min-width:220px}
+.search-input:focus{border-color:var(--accent)}
+.search-input::placeholder{color:var(--text3)}
+.filter-select{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-family:var(--font-body);font-size:13px;padding:9px 14px;outline:none;cursor:pointer}
+.filter-select:focus{border-color:var(--accent)}
+.filter-count{font-size:12px;color:var(--text3);margin-left:auto;white-space:nowrap}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-green{background:var(--green-soft);color:var(--green)}
+.badge-yellow{background:var(--yellow-soft);color:var(--yellow)}
+.badge-blue{background:var(--accent-soft);color:var(--accent)}
+.badge-orange{background:var(--orange-soft);color:var(--orange)}
+.badge-purple{background:var(--purple-soft);color:var(--purple)}
+.badge-gray{background:rgba(93,100,128,.15);color:var(--text3)}
+.badge-red{background:var(--red-soft);color:var(--red)}
+
+/* ── TABELA ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.card-title{font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--text)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;padding:11px 16px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--surface2)}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s;cursor:pointer}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+tbody tr.row-active{background:var(--accent-soft)!important;border-left:3px solid var(--accent)}
+tbody td{padding:12px 16px;color:var(--text2);font-size:13px;vertical-align:middle}
+tbody td:first-child{color:var(--text);font-weight:500}
+.td-plat{font-family:var(--font-mono);font-size:11px}
+.td-arrow{color:var(--text3);font-size:12px;transition:color .15s}
+tbody tr:hover .td-arrow{color:var(--accent)}
+tbody tr.row-active .td-arrow{color:var(--accent)}
+
+/* ── GRID CARDS ── */
+.cursos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.curso-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;transition:all .15s;position:relative;overflow:hidden;cursor:pointer}
+.curso-card:hover{border-color:var(--border2);background:var(--surface2)}
+.curso-card.card-active{border-color:var(--accent);background:var(--accent-soft)}
+.curso-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px}
+.cc-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.cc-nome{font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text);line-height:1.35;flex:1}
+.cc-plat{font-size:10px;font-weight:700;font-family:var(--font-mono);padding:2px 8px;border-radius:4px;background:var(--surface3);color:var(--text3);white-space:nowrap;flex-shrink:0}
+.cc-area{font-size:11px;color:var(--text3);margin-bottom:8px}
+.cc-footer{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+
+/* ── MATERIAIS ── */
+.mat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.mat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:flex-start;gap:10px;transition:border-color .2s;cursor:pointer}
+.mat-card:hover{border-color:var(--accent);background:var(--surface2)}
+.mat-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:var(--surface3)}
+.mat-info{flex:1;min-width:0}
+.mat-nome{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;font-family:var(--font-display)}
+.mat-desc{font-size:11px;color:var(--text3);line-height:1.5}
+.mat-badges{display:flex;gap:4px;margin-top:7px;flex-wrap:wrap}
+
+/* ── PAINEL LATERAL ── */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:90;pointer-events:none;transition:background .35s}
+.drawer-overlay.open{background:rgba(0,0,0,0.5);pointer-events:all}
+
+.drawer{position:fixed;top:60px;right:0;bottom:0;width:520px;background:var(--surface);border-left:1px solid var(--border);z-index:100;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
+.drawer.open{transform:translateX(0)}
+
+.drawer-top{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface2)}
+.drawer-plat{font-family:var(--font-mono);font-size:11px;font-weight:700}
+.drawer-close{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:4px;border-radius:6px;transition:all .15s}
+.drawer-close:hover{background:var(--surface3);color:var(--text)}
+
+.drawer-hero{padding:18px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.drawer-nome{font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--text);margin-bottom:5px;line-height:1.25}
+.drawer-area{font-size:12px;color:var(--text3);margin-bottom:12px}
+.drawer-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.drawer-prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:5px}
+.drawer-prog-bar{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;margin-bottom:12px}
+.drawer-prog-fill{height:100%;border-radius:2px;background:var(--accent);transition:width .5s}
+.status-sel{display:flex;gap:5px;flex-wrap:wrap}
+.sbtn{padding:5px 12px;border-radius:999px;font-size:11px;font-weight:600;border:1px solid var(--border);background:none;color:var(--text3);cursor:pointer;font-family:var(--font-body);transition:all .15s}
+.sbtn:hover{border-color:var(--border2);color:var(--text2)}
+.sbtn.s-nao{background:var(--yellow-soft);color:var(--yellow);border-color:rgba(245,200,66,.3)}
+.sbtn.s-and{background:var(--orange-soft);color:var(--orange);border-color:rgba(242,146,74,.3)}
+.sbtn.s-uso{background:var(--green-soft);color:var(--green);border-color:rgba(45,212,160,.3)}
+.sbtn.s-ref{background:var(--accent-soft);color:var(--accent);border-color:rgba(79,142,247,.3)}
+
+.drawer-body{display:flex;flex:1;overflow:hidden}
+
+/* Sidebar de módulos dentro do drawer */
+.drawer-mods{width:170px;border-right:1px solid var(--border);padding:14px 12px;overflow-y:auto;flex-shrink:0;background:var(--surface2)}
+.dm-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.dm-item{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;margin-bottom:2px;border:1px solid transparent}
+.dm-item:hover{background:var(--surface3);border-color:var(--border)}
+.dm-item.dm-active{background:var(--accent-soft);border-color:rgba(79,142,247,.3)}
+.dm-chk{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .15s}
+.dm-chk.done{background:var(--green);border-color:var(--green)}
+.dm-chk.done::after{content:'✓';font-size:9px;color:#fff;font-weight:700}
+.dm-nome{font-size:11px;color:var(--text2);flex:1;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dm-item.dm-active .dm-nome{color:var(--text);font-weight:500}
+.dm-add{width:100%;background:none;border:1px dashed var(--border2);border-radius:5px;color:var(--text3);font-size:11px;padding:5px;cursor:pointer;font-family:var(--font-body);margin-top:6px;transition:all .15s}
+.dm-add:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Conteúdo do módulo dentro do drawer */
+.drawer-content{flex:1;overflow-y:auto;padding:16px}
+
+.mod-tabs{display:flex;gap:3px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px;margin-bottom:14px;flex-wrap:wrap}
+.mtab{padding:6px 12px;border-radius:5px;font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;background:none;border:none;font-family:var(--font-body);transition:all .15s;white-space:nowrap}
+.mtab:hover{color:var(--text);background:var(--surface3)}
+.mtab.active{background:var(--accent);color:#fff}
+
+.aba-content{display:none}
+.aba-content.active{display:block}
+
+.aba-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:10px 12px;outline:none;resize:vertical;min-height:120px;line-height:1.6;transition:border-color .2s}
+textarea:focus{border-color:var(--accent)}
+textarea::placeholder{color:var(--text3)}
+
+.ponto-list{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
+.ponto-item{display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)}
+.ponto-dot{color:var(--accent);font-size:14px;flex-shrink:0}
+.ponto-txt{flex:1;font-size:12px;color:var(--text2)}
+.ponto-rm{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:0 2px}
+.ponto-rm:hover{color:var(--red)}
+.ponto-input-row{display:flex;gap:6px}
+.ponto-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font-body);font-size:12px;padding:7px 10px;outline:none;transition:border-color .2s}
+.ponto-input:focus{border-color:var(--accent)}
+.ponto-input::placeholder{color:var(--text3)}
+
+.upload-zone{border:1.5px dashed var(--border2);border-radius:6px;padding:14px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:10px}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent-soft)}
+.uz-txt{font-size:11px;color:var(--text3);margin-top:5px}
+.file-list{display:flex;flex-direction:column;gap:5px}
+.file-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)}
+.fi-icon{font-size:16px;flex-shrink:0}
+.fi-info{flex:1;min-width:0}
+.fi-nome{font-size:11px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fi-size{font-size:10px;color:var(--text3)}
+.fi-rm{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px}
+.fi-rm:hover{color:var(--red)}
+
+.drawer-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--surface2);flex-shrink:0}
+
+/* ── BTNS ── */
+.btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:13px;font-weight:500;padding:9px 18px;cursor:pointer;transition:all .2s}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{background:var(--accent2)}
+.btn-ghost{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface3);color:var(--text)}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+/* PRIORIDADES */
+.prio-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.prio-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+.prio-title{font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text)}
+.prio-body{padding:14px 18px;display:flex;flex-direction:column;gap:8px}
+.prio-item{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:border-color .15s}
+.prio-item:hover{border-color:var(--accent)}
+.prio-emoji{font-size:16px;flex-shrink:0;margin-top:1px}
+.prio-info{flex:1}
+.prio-nome{font-size:13px;font-weight:600;color:var(--text)}
+.prio-sub{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* SAVE BADGE */
+.save-ind{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-size:12px;font-weight:600;padding:8px 20px;border-radius:999px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
+.save-ind.show{opacity:1}
+
+.empty-state{text-align:center;padding:3rem 2rem;color:var(--text3)}
+.empty-icon{font-size:36px;opacity:.3;margin-bottom:.75rem}
+
+@media(max-width:900px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .page.shifted{margin-right:0}
+  .drawer{width:100vw}
+}
+
+/* ── MODAL IMPORTAR PRINT ── */
+.ip-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.ip-overlay.open{display:flex}
+.ip-modal{background:var(--surface);border:1px solid var(--border2);border-radius:18px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.ip-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border)}
+.ip-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text)}
+.ip-close{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:4px;border-radius:6px}
+.ip-close:hover{background:var(--surface3);color:var(--text)}
+.ip-body{padding:20px 22px}
+.ip-drop{border:2px dashed var(--border2);border-radius:12px;padding:2.5rem;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px;position:relative}
+.ip-drop:hover,.ip-drop.drag{border-color:var(--accent);background:var(--accent-soft)}
+.ip-drop-icon{font-size:40px;margin-bottom:8px}
+.ip-drop-txt{font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px}
+.ip-drop-sub{font-size:12px;color:var(--text3)}
+.ip-preview{width:100%;border-radius:8px;margin-top:12px;display:none;max-height:200px;object-fit:contain}
+.ip-analyzing{display:none;text-align:center;padding:1.5rem}
+.ip-spin{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ip-result{display:none}
+.ip-field{margin-bottom:12px}
+.ip-field label{display:block;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.ip-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;transition:border-color .2s}
+.ip-input:focus{border-color:var(--accent)}
+.ip-select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;cursor:pointer}
+.ip-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.ip-erro{background:var(--red-soft);border:1px solid rgba(242,92,110,.2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:12px;display:none}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">JCR</div>
+  <button class="nav-btn">📊 Dashboard</button>
+  <button class="nav-btn">🏢 Clientes</button>
+  <button class="nav-btn active">🎓 Conhecimento</button>
+  <button class="nav-btn">💰 Honorários</button>
+  <div class="nav-preview-note">preview — fora do GClick</div>
+</div>
+
+<!-- OVERLAY -->
+<div class="drawer-overlay" id="overlay" onclick="fecharDrawer()"></div>
+
+<!-- PAGE -->
+<div class="page" id="page">
+
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px">
+    <div>
+      <div style="font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--text)">🎓 Conhecimento</div>
+      <div style="color:var(--text2);font-size:13px;margin-top:3px">Inventário de cursos, materiais JCR e prioridades de estudo</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-accent btn-sm" onclick="abrirImportPrint()">📸 Importar por print</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportarCSV()">⬇ Exportar lista</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card" style="--card-color:var(--accent)">
+      <div class="stat-label">Total de itens</div>
+      <div class="stat-value">63</div>
+      <div class="stat-sub">cursos e materiais</div>
+    </div>
+    <div class="stat-card" style="--card-color:var(--yellow)">
+      <div class="stat-label">Não iniciados</div>
+      <div class="stat-value" id="st-nao">—</div>
+      <div class="stat-sub">aguardando</div>
+    </div>
+    <div class="stat-card" style="--card-color:var(--orange)">
+      <div class="stat-label">Em andamento</div>
+      <div class="stat-value" id="st-and">—</div>
+      <div class="stat-sub">em progresso</div>
+    </div>
+    <div class="stat-card" style="--card-color:var(--green)">
+      <div class="stat-label">Em uso / referência</div>
+      <div class="stat-value" id="st-uso">—</div>
+      <div class="stat-sub">ativos</div>
+    </div>
+    <div class="stat-card" style="--card-color:var(--purple)">
+      <div class="stat-label">Materiais JCR</div>
+      <div class="stat-value">8</div>
+      <div class="stat-sub">criados na sessão</div>
+    </div>
+  </div>
+
+  <!-- PROGRESSO -->
+  <div class="prog-strip">
+    <div class="prog-label">
+      <span style="color:var(--text2);font-size:13px;font-weight:500">Progresso geral do inventário</span>
+      <span id="prog-pct" style="color:var(--accent);font-weight:600">—</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px">
+      <span style="font-size:12px;color:var(--green)">● Em uso/referência: <strong id="pg-uso">—</strong></span>
+      <span style="font-size:12px;color:var(--orange)">● Em andamento: <strong id="pg-and">—</strong></span>
+      <span style="font-size:12px;color:var(--yellow)">● Não iniciado: <strong id="pg-nao">—</strong></span>
+    </div>
+  </div>
+
+  <!-- ABAS -->
+  <div class="inner-tabs">
+    <button class="itab active" id="itab-cursos" onclick="showTab('cursos')">📚 Inventário <span class="cnt" id="cnt-cursos">63</span></button>
+    <button class="itab" id="itab-materiais" onclick="showTab('materiais')">🗂 Materiais JCR <span class="cnt">8</span></button>
+    <button class="itab" id="itab-prioridades" onclick="showTab('prioridades')">🎯 Prioridades</button>
+  </div>
+
+  <!-- ABA CURSOS -->
+  <div id="tab-cursos">
+    <div class="filters">
+      <input class="search-input" type="text" id="search-cursos" placeholder="🔍  Buscar curso, plataforma, área..." oninput="filtrar()">
+      <select class="filter-select" id="f-plat" onchange="filtrar()"><option value="">Todas as plataformas</option></select>
+      <select class="filter-select" id="f-area" onchange="filtrar()"><option value="">Todas as áreas</option></select>
+      <select class="filter-select" id="f-status" onchange="filtrar()">
+        <option value="">Todos os status</option>
+        <option>Não iniciado</option><option>Em andamento</option><option>Em uso</option><option>Referência</option>
+      </select>
+      <select class="filter-select" id="f-uso" onchange="filtrar()">
+        <option value="">Prof. + Pessoal</option><option>Profissional</option><option>Pessoal</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="toggleView()" id="btn-view">⊞ Cards</button>
+      <span class="filter-count" id="f-count">63 itens</span>
+    </div>
+
+    <div class="card" id="view-tabela">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Nome</th><th>Plataforma</th><th>Área</th><th>Subárea</th>
+            <th>Tipo</th><th>Uso</th><th>Status</th><th>Vitalício</th><th></th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="cursos-grid" id="view-cards" style="display:none"></div>
+    <div class="empty-state" id="empty" style="display:none"><div class="empty-icon">🔍</div><div>Nenhum resultado.</div></div>
+  </div>
+
+  <!-- ABA MATERIAIS -->
+  <div id="tab-materiais" style="display:none">
+    <div style="margin-bottom:20px">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:10px">Estratégia & Sociedade</div>
+      <div class="mat-grid" id="mat-est"></div>
+    </div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:10px">Recuperação Tributária</div>
+      <div class="mat-grid" id="mat-fis"></div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:10px">Arquitetura & Planejamento</div>
+      <div class="mat-grid" id="mat-arq"></div>
+    </div>
+  </div>
+
+  <!-- ABA PRIORIDADES -->
+  <div id="tab-prioridades" style="display:none">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="prio-card">
+        <div class="prio-head"><div class="prio-title">🔥 Estudar agora — impacto direto</div></div>
+        <div class="prio-body" id="prio-agora"></div>
+      </div>
+      <div class="prio-card">
+        <div class="prio-head"><div class="prio-title">📈 Em andamento — continuar</div></div>
+        <div class="prio-body" id="prio-and"></div>
+      </div>
+      <div class="prio-card">
+        <div class="prio-head"><div class="prio-title">🌱 Desenvolvimento pessoal</div></div>
+        <div class="prio-body" id="prio-pes"></div>
+      </div>
+      <div class="prio-card" style="background:var(--surface2)">
+        <div class="prio-head"><div class="prio-title">💡 Meta de estudos</div></div>
+        <div style="padding:16px 18px;font-size:13px;color:var(--text2);line-height:1.7">
+          Você tem <strong style="color:var(--yellow)" id="meta-nao">—</strong> cursos não iniciados.<br><br>
+          <div style="background:var(--surface);border-radius:8px;padding:12px;border:1px solid var(--border)">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Sugestão mensal</div>
+            <div style="color:var(--green);font-size:13px">✓ 1 curso profissional/mês</div>
+            <div style="color:var(--accent);font-size:13px">✓ 15 min de inglês/dia</div>
+            <div style="color:var(--purple);font-size:13px">✓ 1 referência/semana</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ DRAWER LATERAL ═══ -->
+<div class="drawer" id="drawer">
+  <div class="drawer-top">
+    <div class="drawer-plat" id="d-plat"></div>
+    <button class="drawer-close" onclick="fecharDrawer()">✕</button>
+  </div>
+
+  <div class="drawer-hero">
+    <div class="drawer-nome" id="d-nome"></div>
+    <div class="drawer-area" id="d-area"></div>
+    <div class="drawer-meta" id="d-meta"></div>
+    <div class="drawer-prog-label">
+      <span>Progresso dos módulos</span>
+      <span id="d-prog-pct" style="color:var(--accent)">0%</span>
+    </div>
+    <div class="drawer-prog-bar"><div class="drawer-prog-fill" id="d-prog-fill" style="width:0%"></div></div>
+    <div class="status-sel">
+      <span style="font-size:11px;color:var(--text3);align-self:center">Status:</span>
+      <button class="sbtn" id="d-s-nao" onclick="dSetStatus('Não iniciado')">Não iniciado</button>
+      <button class="sbtn" id="d-s-and" onclick="dSetStatus('Em andamento')">Em andamento</button>
+      <button class="sbtn" id="d-s-uso" onclick="dSetStatus('Em uso')">Em uso</button>
+      <button class="sbtn" id="d-s-ref" onclick="dSetStatus('Referência')">Referência</button>
+    </div>
+  </div>
+
+  <div class="drawer-body">
+    <!-- Módulos sidebar -->
+    <div class="drawer-mods">
+      <div class="dm-title">Módulos <span id="d-mod-prog" style="font-weight:400">0/0</span></div>
+      <div id="d-mod-list"></div>
+      <button class="dm-add" onclick="dAddModulo()">+ Módulo</button>
+    </div>
+
+    <!-- Conteúdo do módulo -->
+    <div class="drawer-content" id="d-content">
+      <div class="empty-state" style="padding:2rem 1rem">
+        <div class="empty-icon">📝</div>
+        <div style="font-size:12px">Crie ou selecione um módulo</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-footer">
+    <button class="btn btn-ghost btn-sm" onclick="dExportar()" style="flex:1">⬇ Exportar notas</button>
+    <button class="btn btn-accent btn-sm" onclick="dSalvar()" style="flex:1">💾 Salvar</button>
+  </div>
+</div>
+
+<div class="save-ind" id="saveInd">✓ Salvo automaticamente</div>
+
+<script>
+// ═══════════════════════════════════════════
+// DADOS
+// ═══════════════════════════════════════════
+const CURSOS=[
+  {id:'hotmart_vivendo',plat:'HOTMART',area:'Tributário',sub:'Planejamento',nome:'Vivendo do Tributário',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_estrategista',plat:'HOTMART',area:'Tributário',sub:'Planejamento',nome:'Estrategista Tributário',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_comunidade',plat:'HOTMART',area:'Tributário',sub:'Reforma',nome:'Comunidade da Reforma',tipo:'Comunidade',uso:'Profissional',vital:'Não',status:'Referência'},
+  {id:'hotmart_recuperatax',plat:'HOTMART',area:'Tributário',sub:'Recuperação',nome:'RECUPERATAX',tipo:'Comunidade',uso:'Profissional',vital:'Não',status:'Referência'},
+  {id:'hotmart_analista',plat:'HOTMART',area:'Tributário',sub:'Fiscal',nome:'Curso de Analista Fiscal',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_irpf',plat:'HOTMART',area:'Tributário',sub:'IRPF',nome:'Curso de Imposto de Renda',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_importacao',plat:'HOTMART',area:'Tributário',sub:'Importação',nome:'Capacitação Regime Especial Importação',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_ncm',plat:'HOTMART',area:'Tributário',sub:'Classificação Fiscal',nome:'CCLASSTRIB NCM/NBS',tipo:'E-book',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'hotmart_ia1',plat:'HOTMART',area:'Tecnologia',sub:'IA',nome:'IA para Contabilidade 2025/2026',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_ia2',plat:'HOTMART',area:'Tecnologia',sub:'IA',nome:'Ferramenta de Inteligência Artificial',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_nectar',plat:'HOTMART',area:'Tecnologia',sub:'Automação',nome:'Néctar Assistente Inteligente',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'hotmart_pbi',plat:'HOTMART',area:'Dados',sub:'Power BI',nome:'Power BI Expert',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_excel',plat:'HOTMART',area:'Dados',sub:'Excel',nome:'Curso de Excel Completo',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_biblia',plat:'HOTMART',area:'Dados',sub:'Excel',nome:'Bíblia do Excel',tipo:'E-book',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'hotmart_designer',plat:'HOTMART',area:'Marketing',sub:'Design',nome:'Full Pack Designer',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'hotmart_clientes',plat:'HOTMART',area:'Marketing',sub:'Tráfego',nome:'Método Clientes Infinitos',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'hotmart_presets',plat:'HOTMART',area:'Marketing',sub:'Design',nome:'Presets Brasil',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'hotmart_rotina',plat:'HOTMART',area:'Produtividade',sub:'Rotina',nome:'Rotina Sob Medida',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_90d',plat:'HOTMART',area:'Produtividade',sub:'Alta Performance',nome:'Projeto 90D',tipo:'Curso',uso:'Pessoal',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_ingles',plat:'HOTMART',area:'Idiomas',sub:'Inglês',nome:'Curso de Inglês Completo',tipo:'Curso',uso:'Pessoal',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_mastery',plat:'HOTMART',area:'Idiomas',sub:'Inglês',nome:'Biblioteca Mastery',tipo:'Curso',uso:'Pessoal',vital:'Sim',status:'Referência'},
+  {id:'hotmart_barriga',plat:'HOTMART',area:'Saúde',sub:'Emagrecimento',nome:'Desafio Barriga Zero',tipo:'Curso',uso:'Pessoal',vital:'Sim',status:'Não iniciado'},
+  {id:'hotmart_bio',plat:'HOTMART',area:'Saúde',sub:'Biohacking',nome:'O Verdadeiro Biohacking',tipo:'Curso',uso:'Pessoal',vital:'Sim',status:'Não iniciado'},
+  {id:'eduzz_passivo',plat:'EDUZZ',area:'Tributário',sub:'Passivo',nome:'Negociação Dívida Tributária Premium',tipo:'Curso',uso:'Profissional',vital:'Não',status:'Não iniciado'},
+  {id:'eduzz_bytec',plat:'EDUZZ',area:'Contábil',sub:'Rotina',nome:'Assistente Contábil BYTEC',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'eduzz_processos',plat:'EDUZZ',area:'Gestão',sub:'Processos',nome:'Processos Sem Segredos',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'eduzz_tempo',plat:'EDUZZ',area:'Produtividade',sub:'Gestão do Tempo',nome:'Gestão do Tempo Líderes',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'eduzz_ingles',plat:'EDUZZ',area:'Idiomas',sub:'Inglês',nome:'Plano Master Inglês',tipo:'Curso',uso:'Pessoal',vital:'Sim',status:'Não iniciado'},
+  {id:'eduzz_planilha',plat:'EDUZZ',area:'Financeiro',sub:'Controle',nome:'Planilha Financeira',tipo:'Planilha',uso:'Pessoal',vital:'Sim',status:'Referência'},
+  {id:'kiwify_nfse',plat:'KIWIFY',area:'Tributário',sub:'Operacional',nome:'Planilha NFS-e',tipo:'Planilha',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'kiwify_trib',plat:'KIWIFY',area:'Tributário',sub:'Planejamento',nome:'Tributação Plus',tipo:'Curso',uso:'Profissional',vital:'Não',status:'Não iniciado'},
+  {id:'kiwify_irpf',plat:'KIWIFY',area:'Tributário',sub:'IRPF',nome:'Curso IRPF GJ',tipo:'Curso',uso:'Profissional',vital:'Não',status:'Não iniciado'},
+  {id:'kiwify_tabela',plat:'KIWIFY',area:'Tributário',sub:'Reforma',nome:'Tabela Reforma Tributária',tipo:'Material',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'kiwify_ia',plat:'KIWIFY',area:'Tecnologia',sub:'IA',nome:'TributoSmart AI',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'kiwify_pack',plat:'KIWIFY',area:'Marketing',sub:'Conteúdo',nome:'Pack Contabilidade',tipo:'Material',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'kiwify_posts',plat:'KIWIFY',area:'Marketing',sub:'Conteúdo',nome:'Posts IRPF',tipo:'Material',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'kiwify_stories',plat:'KIWIFY',area:'Marketing',sub:'Conteúdo',nome:'Roteiros Stories Contabilidade',tipo:'Material',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'kiwify_planner',plat:'KIWIFY',area:'Produtividade',sub:'Organização',nome:'Planner TDAH',tipo:'Material',uso:'Pessoal',vital:'Sim',status:'Referência'},
+  {id:'kiwify_finplan',plat:'KIWIFY',area:'Financeiro',sub:'Controle',nome:'Planilha Financeira Empresarial',tipo:'Planilha',uso:'Pessoal',vital:'Sim',status:'Referência'},
+  {id:'kiwify_accent',plat:'KIWIFY',area:'Idiomas',sub:'Inglês',nome:'Método Accent Inglês',tipo:'Curso',uso:'Pessoal',vital:'Sim',status:'Não iniciado'},
+  {id:'udemy_pbi1',plat:'UDEMY',area:'Dados',sub:'Power BI',nome:'Power BI do Zero',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Em andamento'},
+  {id:'udemy_pbi2',plat:'UDEMY',area:'Dados',sub:'Power BI',nome:'Power BI Completo',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Em andamento'},
+  {id:'udemy_pbi3',plat:'UDEMY',area:'Dados',sub:'Power BI',nome:'Formação Power BI',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Em andamento'},
+  {id:'udemy_n8n',plat:'UDEMY',area:'Tecnologia',sub:'Automação',nome:'N8N Iniciantes',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Em andamento'},
+  {id:'udemy_chatbot',plat:'UDEMY',area:'Tecnologia',sub:'Automação',nome:'Chatbot WhatsApp',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Não iniciado'},
+  {id:'cefis_difal',plat:'CEFIS',area:'Tributário',sub:'ICMS',nome:'DIFAL ICMS',tipo:'Curso',uso:'Profissional',vital:'Não',status:'Não iniciado'},
+  {id:'greenn_virada',plat:'GREENN',area:'Tributário',sub:'Reforma',nome:'Plano Virada 2026',tipo:'Curso',uso:'Profissional',vital:'Não',status:'Referência'},
+  {id:'greenn_reforma',plat:'GREENN',area:'Tributário',sub:'Reforma',nome:'Reforma Tributária Sem Surto',tipo:'Curso',uso:'Profissional',vital:'Não',status:'Referência'},
+  {id:'cakto_ia',plat:'CAKTO',area:'Tecnologia',sub:'IA',nome:'IA para Contadores',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'cakto_saude',plat:'CAKTO',area:'Saúde',sub:'Bem-estar',nome:'Guia Saúde Natural',tipo:'E-book',uso:'Pessoal',vital:'Sim',status:'Não iniciado'},
+  {id:'kirvano_finzap',plat:'KIRVANO',area:'Financeiro',sub:'Controle',nome:'FinZap Controle Financeiro',tipo:'Ferramenta',uso:'Pessoal',vital:'Sim',status:'Em uso'},
+  {id:'kirvano_pilates',plat:'KIRVANO',area:'Saúde',sub:'Pilates',nome:'Pilates na Parede',tipo:'Curso',uso:'Pessoal',vital:'Sim',status:'Não iniciado'},
+  {id:'inner_ia',plat:'INNER IA',area:'Tecnologia',sub:'IA',nome:'Inner IA Assinatura',tipo:'Assinatura',uso:'Profissional',vital:'Assinatura',status:'Em uso'},
+  {id:'ferr_mobills',plat:'FERRAMENTA',area:'Financeiro',sub:'Controle',nome:'Mobills',tipo:'App',uso:'Pessoal',vital:'Sim',status:'Em uso'},
+  {id:'ferr_produtivo',plat:'FERRAMENTA',area:'Produtividade',sub:'Organização',nome:'Trabalho Produtivo PRO',tipo:'Ferramenta',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'ferr_anki',plat:'FERRAMENTA',area:'Idiomas',sub:'Inglês',nome:'Anki',tipo:'App',uso:'Pessoal',vital:'Sim',status:'Em uso'},
+  {id:'ferr_duolingo',plat:'FERRAMENTA',area:'Idiomas',sub:'Inglês',nome:'Duolingo',tipo:'App',uso:'Pessoal',vital:'Sim',status:'Em uso'},
+  {id:'ferr_mondly',plat:'FERRAMENTA',area:'Idiomas',sub:'Inglês',nome:'Mondly',tipo:'App',uso:'Pessoal',vital:'Sim',status:'Não iniciado'},
+  {id:'ferr_ewa',plat:'FERRAMENTA',area:'Idiomas',sub:'Inglês',nome:'EWA',tipo:'App',uso:'Pessoal',vital:'Sim',status:'Em uso'},
+  {id:'ferr_lera',plat:'FERRAMENTA',area:'Idiomas',sub:'Inglês',nome:'Lera',tipo:'App',uso:'Pessoal',vital:'Sim',status:'Não iniciado'},
+  {id:'ferr_cursa',plat:'FERRAMENTA',area:'Educação',sub:'Cursos',nome:'Cursa',tipo:'App',uso:'Pessoal',vital:'Sim',status:'Referência'},
+  {id:'ferr_univit',plat:'FERRAMENTA',area:'Educação',sub:'Cursos',nome:'Univitoria',tipo:'App',uso:'Pessoal',vital:'Sim',status:'Referência'},
+  {id:'ferr_chatbot',plat:'FERRAMENTA',area:'Tecnologia',sub:'IA',nome:'Chat Bot AI',tipo:'App',uso:'Profissional',vital:'Sim',status:'Referência'},
+  {id:'cont_musica',plat:'CONTEÚDO DIGITAL',area:'Entretenimento',sub:'Música',nome:'Pack 100 mil músicas',tipo:'Acervo',uso:'Pessoal',vital:'Sim',status:'Referência'},
+  {id:'guia_excel',plat:'GUIA DO EXCEL',area:'Dados',sub:'Excel',nome:'Curso Vitalício Excel',tipo:'Curso',uso:'Profissional',vital:'Sim',status:'Em uso'},
+];
+
+const MATERIAIS_JCR={
+  est:[
+    {icon:'📋',nome:'Proposta de Sociedade',desc:'Proposta completa para sócio contábil',tags:['Novo']},
+    {icon:'🏢',nome:'Organograma Detalhado',desc:'20 departamentos + manual recuperação + funil',tags:['Novo']},
+    {icon:'🗺️',nome:'Mapa Estratégico',desc:'Organograma visual por responsável',tags:['Estratégia']},
+  ],
+  fis:[
+    {icon:'⚖️',nome:'Analisador Multi-Teses',desc:'12 teses tributárias — upload SPED',tags:['Novo','JUD','ADM']},
+    {icon:'📊',nome:'Analisador PIS/COFINS Base',desc:'Gross Up Reverso — .xlsx e .txt',tags:['JUD']},
+  ],
+  arq:[
+    {icon:'🏗️',nome:'Arquitetura do Sistema',desc:'Fluxo, telas, banco, stack, roadmap',tags:['Técnico']},
+    {icon:'🌐',nome:'Central de Conhecimento',desc:'Index GitHub Pages',tags:['GitHub']},
+    {icon:'🎓',nome:'Esta página',desc:'Inventário integrado ao GClick',tags:['Novo']},
+  ]
+};
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let viewMode='tabela', filtrados=[...CURSOS];
+let cursoAtivo=null, moduloAtivo=null, abaAtiva='resumo';
+let dadosCursos={};
+let autoTimer=null;
+
+function platCor(p){
+  const m={HOTMART:'#f2924a',EDUZZ:'#4f8ef7',KIWIFY:'#2dd4a0',UDEMY:'#a78bfa',
+    CEFIS:'#f5c842',GREENN:'#2dd4a0','GUIA DO EXCEL':'#2dd4a0',CAKTO:'#f25c6e',
+    KIRVANO:'#f2924a','INNER IA':'#a78bfa',FERRAMENTA:'#8b92a8',
+    'CONTEÚDO DIGITAL':'#5d6480'};
+  return m[p]||'#5d6480';
+}
+function statusBadge(s){
+  const m={'Não iniciado':'badge-yellow','Em andamento':'badge-orange','Em uso':'badge-green','Referência':'badge-blue'};
+  return`<span class="badge ${m[s]||'badge-gray'}">${s}</span>`;
+}
+function usoBadge(u){return`<span class="badge ${u==='Profissional'?'badge-blue':'badge-purple'}">${u}</span>`}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+function init(){
+  calcStats();
+  preencherFiltros();
+  renderTabela(CURSOS);
+  renderMateriais();
+  renderPrioridades();
+  carregarDados();
+}
+
+function carregarDados(){
+  const raw=localStorage.getItem('jcr_conhecimento_dados');
+  if(raw) dadosCursos=JSON.parse(raw);
+}
+
+function salvarDados(silencioso=false){
+  localStorage.setItem('jcr_conhecimento_dados',JSON.stringify(dadosCursos));
+  if(!silencioso){
+    const ind=document.getElementById('saveInd');
+    ind.classList.add('show');
+    setTimeout(()=>ind.classList.remove('show'),2000);
+  }
+}
+
+function autoSave(){
+  coletarConteudoAtual();
+  clearTimeout(autoTimer);
+  autoTimer=setTimeout(()=>salvarDados(true),800);
+}
+
+// ═══════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════
+function calcStats(){
+  // Merge status salvo
+  CURSOS.forEach(c=>{
+    if(dadosCursos[c.id]?.status) c.status=dadosCursos[c.id].status;
+  });
+  const nao=CURSOS.filter(c=>c.status==='Não iniciado').length;
+  const and=CURSOS.filter(c=>c.status==='Em andamento').length;
+  const uso=CURSOS.filter(c=>c.status==='Em uso'||c.status==='Referência').length;
+  document.getElementById('st-nao').textContent=nao;
+  document.getElementById('st-and').textContent=and;
+  document.getElementById('st-uso').textContent=uso;
+  const pct=Math.round((uso+and)/CURSOS.length*100);
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-pct').textContent=pct+'% em uso ou andamento';
+  document.getElementById('pg-uso').textContent=uso;
+  document.getElementById('pg-and').textContent=and;
+  document.getElementById('pg-nao').textContent=nao;
+  const mn=document.getElementById('meta-nao');if(mn)mn.textContent=nao;
+}
+
+function preencherFiltros(){
+  const plats=[...new Set(CURSOS.map(c=>c.plat))].sort();
+  const areas=[...new Set(CURSOS.map(c=>c.area))].sort();
+  plats.forEach(p=>{const o=new Option(p,p);document.getElementById('f-plat').add(o)});
+  areas.forEach(a=>{const o=new Option(a,a);document.getElementById('f-area').add(o)});
+}
+
+// ═══════════════════════════════════════════
+// FILTRAR
+// ═══════════════════════════════════════════
+function filtrar(){
+  const q=document.getElementById('search-cursos').value.toLowerCase();
+  const pl=document.getElementById('f-plat').value;
+  const ar=document.getElementById('f-area').value;
+  const st=document.getElementById('f-status').value;
+  const us=document.getElementById('f-uso').value;
+  filtrados=CURSOS.filter(c=>{
+    return (!q||[c.nome,c.plat,c.area,c.sub].join(' ').toLowerCase().includes(q))
+      &&(!pl||c.plat===pl)&&(!ar||c.area===ar)&&(!st||c.status===st)&&(!us||c.uso===us);
+  });
+  document.getElementById('f-count').textContent=filtrados.length+' '+(filtrados.length===1?'item':'itens');
+  document.getElementById('cnt-cursos').textContent=filtrados.length;
+  document.getElementById('empty').style.display=filtrados.length===0?'block':'none';
+  if(viewMode==='tabela') renderTabela(filtrados); else renderCards(filtrados);
+}
+
+// ═══════════════════════════════════════════
+// RENDER TABELA
+// ═══════════════════════════════════════════
+function renderTabela(dados){
+  document.getElementById('tbody').innerHTML=dados.map(c=>`
+    <tr onclick="abrirDrawer('${c.id}')" id="row-${c.id}">
+      <td style="color:var(--accent)">${c.nome}</td>
+      <td><span class="td-plat" style="color:${platCor(c.plat)}">${c.plat}</span></td>
+      <td>${c.area}</td>
+      <td style="color:var(--text3)">${c.sub}</td>
+      <td><span class="badge badge-gray">${c.tipo}</span></td>
+      <td>${usoBadge(c.uso)}</td>
+      <td id="st-row-${c.id}">${statusBadge(c.status)}</td>
+      <td style="text-align:center">${c.vital==='Sim'?'<span style="color:var(--green)">✓</span>':c.vital==='Assinatura'?'<span style="color:var(--accent)">↻</span>':'<span style="color:var(--text3)">—</span>'}</td>
+      <td class="td-arrow">→</td>
+    </tr>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// RENDER CARDS
+// ═══════════════════════════════════════════
+function renderCards(dados){
+  document.getElementById('view-cards').innerHTML=dados.map(c=>`
+    <div class="curso-card" style="--card-color:${platCor(c.plat)}" onclick="abrirDrawer('${c.id}')" id="card-${c.id}">
+      <div class="cc-header">
+        <div class="cc-nome">${c.nome}</div>
+        <div class="cc-plat" style="color:${platCor(c.plat)}">${c.plat}</div>
+      </div>
+      <div class="cc-area">${c.area} › ${c.sub}</div>
+      <div class="cc-footer">
+        ${statusBadge(c.status)}
+        ${usoBadge(c.uso)}
+        <span class="badge badge-gray">${c.tipo}</span>
+        <span style="margin-left:auto;font-size:11px;color:var(--text3)">→</span>
+      </div>
+    </div>`).join('');
+}
+
+function toggleView(){
+  viewMode=viewMode==='tabela'?'cards':'tabela';
+  document.getElementById('btn-view').textContent=viewMode==='cards'?'☰ Tabela':'⊞ Cards';
+  document.getElementById('view-tabela').style.display=viewMode==='tabela'?'block':'none';
+  document.getElementById('view-cards').style.display=viewMode==='cards'?'grid':'none';
+  if(viewMode==='cards') renderCards(filtrados); else renderTabela(filtrados);
+}
+
+// ═══════════════════════════════════════════
+// MATERIAIS & PRIORIDADES
+// ═══════════════════════════════════════════
+function renderMateriais(){
+  ['est','fis','arq'].forEach(g=>{
+    document.getElementById('mat-'+g).innerHTML=MATERIAIS_JCR[g].map(m=>`
+      <div class="mat-card">
+        <div class="mat-icon">${m.icon}</div>
+        <div class="mat-info">
+          <div class="mat-nome">${m.nome}</div>
+          <div class="mat-desc">${m.desc}</div>
+          <div class="mat-badges">${m.tags.map(t=>`<span class="badge badge-blue" style="font-size:10px">${t}</span>`).join('')}</div>
+        </div>
+      </div>`).join('');
+  });
+}
+
+function renderPrioridades(){
+  const ag=[
+    {id:'hotmart_estrategista',motivo:'Base para o escritório'},
+    {id:'hotmart_recuperatax',motivo:'Alimenta o sistema de recuperação'},
+    {id:'eduzz_passivo',motivo:'Gestão de passivo — alto valor'},
+    {id:'greenn_reforma',motivo:'Diferencial urgente — IBS/CBS 2026'},
+    {id:'cefis_difal',motivo:'Especialização SC e RO'},
+  ];
+  const and=CURSOS.filter(c=>c.status==='Em andamento');
+  const pes=[
+    {id:'hotmart_ingles',motivo:'15 min/dia com apps em uso'},
+    {id:'hotmart_rotina',motivo:'Organizar tempo para o escritório'},
+    {id:'kirvano_pilates',motivo:'Saúde para sustentar a jornada'},
+  ];
+
+  const renderPrio=(lista,elId,emoji)=>{
+    document.getElementById(elId).innerHTML=lista.map(i=>{
+      const c=CURSOS.find(x=>x.id===(i.id||i.id));
+      if(!c) return'';
+      return`<div class="prio-item" onclick="abrirDrawer('${c.id}')">
+        <span class="prio-emoji">${emoji}</span>
+        <div class="prio-info">
+          <div class="prio-nome">${c.nome}</div>
+          <div class="prio-sub"><span style="color:${platCor(c.plat)}">${c.plat}</span>${i.motivo?' — '+i.motivo:' — '+c.area+' › '+c.sub}</div>
+        </div>
+      </div>`;
+    }).join('');
+  };
+  renderPrio(ag,'prio-agora','🔥');
+  renderPrio(and,'prio-and','📈');
+  renderPrio(pes,'prio-pes','🌱');
+}
+
+// ═══════════════════════════════════════════
+// ABAS
+// ═══════════════════════════════════════════
+function showTab(id){
+  ['cursos','materiais','prioridades'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===id?'block':'none';
+    document.getElementById('itab-'+t).classList.toggle('active',t===id);
+  });
+}
+
+// ═══════════════════════════════════════════
+// DRAWER
+// ═══════════════════════════════════════════
+function abrirDrawer(id){
+  coletarConteudoAtual();
+  cursoAtivo=id;
+  const c=CURSOS.find(x=>x.id===id);
+  if(!c) return;
+  if(!dadosCursos[id]) dadosCursos[id]={status:c.status,modulos:[],anotacoes:{}};
+  const d=dadosCursos[id];
+
+  // Destacar linha/card ativo
+  document.querySelectorAll('.row-active,.card-active').forEach(el=>{
+    el.classList.remove('row-active','card-active');
+  });
+  const row=document.getElementById('row-'+id);
+  if(row) row.classList.add('row-active');
+  const card=document.getElementById('card-'+id);
+  if(card) card.classList.add('card-active');
+
+  // Preencher drawer
+  document.getElementById('d-plat').innerHTML=`<span style="color:${platCor(c.plat)}">${c.plat}</span>`;
+  document.getElementById('d-nome').textContent=c.nome;
+  document.getElementById('d-area').textContent=c.area+' › '+c.sub;
+  const statusBadges={'Não iniciado':'badge-yellow','Em andamento':'badge-orange','Em uso':'badge-green','Referência':'badge-blue'};
+  document.getElementById('d-meta').innerHTML=`
+    <span class="badge ${statusBadges[d.status||c.status]||'badge-gray'}" id="d-badge-st">${d.status||c.status}</span>
+    <span class="badge badge-gray">${c.tipo}</span>
+    <span class="badge ${c.uso==='Profissional'?'badge-blue':'badge-purple'}">${c.uso}</span>`;
+
+  dRenderStatusBtns();
+  dAtualizarProg();
+  dRenderModulos();
+  moduloAtivo=d.modulos.length>0?d.modulos[0].id:null;
+  if(moduloAtivo) dRenderConteudo(moduloAtivo);
+  else document.getElementById('d-content').innerHTML='<div class="empty-state" style="padding:2rem 1rem"><div class="empty-icon">📝</div><div style="font-size:12px">Clique em "+ Módulo" para começar</div></div>';
+
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('page').classList.add('shifted');
+}
+
+function fecharDrawer(){
+  coletarConteudoAtual();
+  salvarDados(true);
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('page').classList.remove('shifted');
+  document.querySelectorAll('.row-active,.card-active').forEach(el=>el.classList.remove('row-active','card-active'));
+  cursoAtivo=null;
+}
+
+// ═══════════════════════════════════════════
+// DRAWER — STATUS
+// ═══════════════════════════════════════════
+function dSetStatus(s){
+  if(!cursoAtivo) return;
+  dadosCursos[cursoAtivo].status=s;
+  const c=CURSOS.find(x=>x.id===cursoAtivo);
+  if(c) c.status=s;
+  dRenderStatusBtns();
+  const sb=document.getElementById('d-badge-st');
+  const statusBadges={'Não iniciado':'badge-yellow','Em andamento':'badge-orange','Em uso':'badge-green','Referência':'badge-blue'};
+  if(sb){sb.className='badge '+statusBadges[s];sb.textContent=s;}
+  // Atualizar linha da tabela
+  const strow=document.getElementById('st-row-'+cursoAtivo);
+  if(strow) strow.innerHTML=statusBadge(s);
+  calcStats();
+  autoSave();
+}
+
+function dRenderStatusBtns(){
+  if(!cursoAtivo) return;
+  const s=dadosCursos[cursoAtivo]?.status||'';
+  document.getElementById('d-s-nao').className='sbtn'+(s==='Não iniciado'?' s-nao':'');
+  document.getElementById('d-s-and').className='sbtn'+(s==='Em andamento'?' s-and':'');
+  document.getElementById('d-s-uso').className='sbtn'+(s==='Em uso'?' s-uso':'');
+  document.getElementById('d-s-ref').className='sbtn'+(s==='Referência'?' s-ref':'');
+}
+
+function dAtualizarProg(){
+  if(!cursoAtivo) return;
+  const d=dadosCursos[cursoAtivo];
+  const total=d.modulos.length, done=d.modulos.filter(m=>m.done).length;
+  const pct=total>0?Math.round(done/total*100):0;
+  document.getElementById('d-prog-fill').style.width=pct+'%';
+  document.getElementById('d-prog-pct').textContent=pct+'%';
+  document.getElementById('d-mod-prog').textContent=done+'/'+total;
+}
+
+// ═══════════════════════════════════════════
+// DRAWER — MÓDULOS
+// ═══════════════════════════════════════════
+function dRenderModulos(){
+  if(!cursoAtivo) return;
+  const d=dadosCursos[cursoAtivo];
+  const el=document.getElementById('d-mod-list');
+  el.innerHTML=d.modulos.map(m=>`
+    <div class="dm-item${moduloAtivo===m.id?' dm-active':''}" id="dmi-${m.id}" onclick="dAtivarModulo('${m.id}')">
+      <div class="dm-chk${m.done?' done':''}" onclick="event.stopPropagation();dToggleDone('${m.id}')"></div>
+      <div class="dm-nome" title="${m.nome}">${m.nome}</div>
+    </div>`).join('');
+  dAtualizarProg();
+}
+
+function dAddModulo(){
+  if(!cursoAtivo) return;
+  const nome=prompt('Nome do módulo ou aula:');
+  if(!nome||!nome.trim()) return;
+  const id='m'+Date.now();
+  const d=dadosCursos[cursoAtivo];
+  d.modulos.push({id,nome:nome.trim(),done:false});
+  if(!d.anotacoes) d.anotacoes={};
+  d.anotacoes[id]={resumo:'',pontos:[],aplicacao:'',anotacoes:'',arquivos:[]};
+  dRenderModulos();
+  dAtivarModulo(id);
+  autoSave();
+}
+
+function dToggleDone(id){
+  if(!cursoAtivo) return;
+  const m=dadosCursos[cursoAtivo].modulos.find(x=>x.id===id);
+  if(m){m.done=!m.done;dRenderModulos();autoSave();}
+}
+
+function dAtivarModulo(id){
+  coletarConteudoAtual();
+  moduloAtivo=id;
+  dRenderModulos();
+  dRenderConteudo(id);
+}
+
+// ═══════════════════════════════════════════
+// DRAWER — CONTEÚDO DO MÓDULO
+// ═══════════════════════════════════════════
+function dRenderConteudo(id){
+  if(!cursoAtivo) return;
+  const d=dadosCursos[cursoAtivo];
+  if(!d.anotacoes[id]) d.anotacoes[id]={resumo:'',pontos:[],aplicacao:'',anotacoes:'',arquivos:[]};
+  const a=d.anotacoes[id];
+  const m=d.modulos.find(x=>x.id===id);
+
+  document.getElementById('d-content').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px">
+      <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text);line-height:1.3">${m.nome}</div>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--text3);white-space:nowrap">
+        <input type="checkbox" ${m.done?'checked':''} onchange="dToggleDone('${id}')" style="accent-color:var(--green)"> Concluído
+      </label>
+    </div>
+
+    <div class="mod-tabs">
+      <button class="mtab${abaAtiva==='resumo'?' active':''}" onclick="dSwitchAba('resumo')">📝 Resumo</button>
+      <button class="mtab${abaAtiva==='pontos'?' active':''}" onclick="dSwitchAba('pontos')">⭐ Pontos</button>
+      <button class="mtab${abaAtiva==='aplicacao'?' active':''}" onclick="dSwitchAba('aplicacao')">🚀 Aplicação</button>
+      <button class="mtab${abaAtiva==='anotacoes'?' active':''}" onclick="dSwitchAba('anotacoes')">🗒 Notas</button>
+      <button class="mtab${abaAtiva==='arquivos'?' active':''}" onclick="dSwitchAba('arquivos')">📎 Arquivos</button>
+    </div>
+
+    <div class="aba-content${abaAtiva==='resumo'?' active':''}" id="da-resumo">
+      <div class="aba-label">Resumo do módulo</div>
+      <textarea id="dta-resumo" placeholder="O que você aprendeu neste módulo?" oninput="autoSave()">${a.resumo||''}</textarea>
+    </div>
+
+    <div class="aba-content${abaAtiva==='pontos'?' active':''}" id="da-pontos">
+      <div class="aba-label">Pontos-chave <span id="d-pontos-cnt" style="font-weight:400">(${(a.pontos||[]).length})</span></div>
+      <div class="ponto-list" id="d-ponto-list"></div>
+      <div class="ponto-input-row">
+        <input class="ponto-input" id="d-novo-ponto" placeholder="Novo ponto-chave..." onkeydown="if(event.key==='Enter')dAddPonto()">
+        <button class="btn btn-accent btn-sm" onclick="dAddPonto()">+</button>
+      </div>
+    </div>
+
+    <div class="aba-content${abaAtiva==='aplicacao'?' active':''}" id="da-aplicacao">
+      <div class="aba-label">Aplicação prática</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Como usar no escritório? Quais clientes? Qual ação?</div>
+      <textarea id="dta-aplicacao" placeholder="Ex: Aplicar no cliente X, usar na reunião Y..." oninput="autoSave()" style="min-height:110px">${a.aplicacao||''}</textarea>
+    </div>
+
+    <div class="aba-content${abaAtiva==='anotacoes'?' active':''}" id="da-anotacoes">
+      <div class="aba-label">Anotações livres</div>
+      <textarea id="dta-anotacoes" placeholder="Cole textos, trechos de PDFs, links, transcrições..." oninput="autoSave()" style="min-height:130px">${a.anotacoes||''}</textarea>
+    </div>
+
+    <div class="aba-content${abaAtiva==='arquivos'?' active':''}" id="da-arquivos">
+      <div class="aba-label">Arquivos <span id="d-arq-cnt" style="font-weight:400">(${(a.arquivos||[]).length})</span></div>
+      <div class="upload-zone" onclick="document.getElementById('d-fi').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="dDropArq(event)">
+        <div style="font-size:22px">📎</div>
+        <div class="uz-txt">Arraste ou clique — PDF, imagem, planilha</div>
+      </div>
+      <input type="file" id="d-fi" multiple style="display:none" onchange="dUploadArq(event)">
+      <div class="file-list" id="d-file-list"></div>
+    </div>`;
+
+  dRenderPontos(id);
+  dRenderArquivos(id);
+}
+
+function dSwitchAba(aba){
+  coletarConteudoAtual();
+  abaAtiva=aba;
+  ['resumo','pontos','aplicacao','anotacoes','arquivos'].forEach(a=>{
+    const el=document.getElementById('da-'+a);
+    if(el) el.className='aba-content'+(a===aba?' active':'');
+    const t=document.querySelector(`.mtab[onclick="dSwitchAba('${a}')"]`);
+    if(t) t.className='mtab'+(a===aba?' active':'');
+  });
+}
+
+// ═══════════════════════════════════════════
+// PONTOS
+// ═══════════════════════════════════════════
+function dRenderPontos(id){
+  const a=dadosCursos[cursoAtivo]?.anotacoes?.[id]||{};
+  const el=document.getElementById('d-ponto-list');
+  if(!el) return;
+  const pts=a.pontos||[];
+  el.innerHTML=pts.map((p,i)=>`
+    <div class="ponto-item">
+      <span class="ponto-dot">●</span>
+      <span class="ponto-txt">${p}</span>
+      <button class="ponto-rm" onclick="dRemovePonto(${i})">✕</button>
+    </div>`).join('');
+  const cnt=document.getElementById('d-pontos-cnt');
+  if(cnt) cnt.textContent='('+pts.length+')';
+}
+
+function dAddPonto(){
+  const inp=document.getElementById('d-novo-ponto');
+  const val=inp.value.trim();
+  if(!val||!cursoAtivo||!moduloAtivo) return;
+  const d=dadosCursos[cursoAtivo];
+  if(!d.anotacoes[moduloAtivo]) d.anotacoes[moduloAtivo]={resumo:'',pontos:[],aplicacao:'',anotacoes:'',arquivos:[]};
+  d.anotacoes[moduloAtivo].pontos.push(val);
+  inp.value='';
+  dRenderPontos(moduloAtivo);
+  autoSave();
+}
+
+function dRemovePonto(i){
+  dadosCursos[cursoAtivo].anotacoes[moduloAtivo].pontos.splice(i,1);
+  dRenderPontos(moduloAtivo);
+  autoSave();
+}
+
+// ═══════════════════════════════════════════
+// ARQUIVOS
+// ═══════════════════════════════════════════
+function dDropArq(e){e.preventDefault();e.currentTarget.classList.remove('drag');dProcArqs(e.dataTransfer.files)}
+function dUploadArq(e){dProcArqs(e.target.files);e.target.value=''}
+function dProcArqs(files){
+  if(!cursoAtivo||!moduloAtivo) return;
+  const d=dadosCursos[cursoAtivo];
+  if(!d.anotacoes[moduloAtivo]) d.anotacoes[moduloAtivo]={resumo:'',pontos:[],aplicacao:'',anotacoes:'',arquivos:[]};
+  Array.from(files).forEach(f=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      d.anotacoes[moduloAtivo].arquivos.push({nome:f.name,size:f.size,tipo:f.type,data:e.target.result});
+      dRenderArquivos(moduloAtivo);
+      autoSave();
+    };
+    r.readAsDataURL(f);
+  });
+}
+
+function dRenderArquivos(id){
+  const a=dadosCursos[cursoAtivo]?.anotacoes?.[id]||{};
+  const el=document.getElementById('d-file-list');
+  if(!el) return;
+  const arqs=a.arquivos||[];
+  const cnt=document.getElementById('d-arq-cnt');
+  if(cnt) cnt.textContent='('+arqs.length+')';
+  el.innerHTML=arqs.map((f,i)=>{
+    const icon=f.tipo?.includes('pdf')?'📄':f.tipo?.includes('image')?'🖼️':f.nome.includes('.xls')?'📊':'📎';
+    const sz=f.size>1048576?(f.size/1048576).toFixed(1)+' MB':(f.size/1024).toFixed(0)+' KB';
+    return`<div class="file-item">
+      <span class="fi-icon">${icon}</span>
+      <div class="fi-info"><div class="fi-nome">${f.nome}</div><div class="fi-size">${sz}</div></div>
+      <a href="${f.data}" download="${f.nome}" class="btn btn-ghost btn-sm" style="padding:4px 8px;font-size:11px">⬇</a>
+      <button class="fi-rm" onclick="dRemoveArq(${i})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function dRemoveArq(i){
+  dadosCursos[cursoAtivo].anotacoes[moduloAtivo].arquivos.splice(i,1);
+  dRenderArquivos(moduloAtivo);
+  autoSave();
+}
+
+// ═══════════════════════════════════════════
+// COLETAR CONTEÚDO ANTES DE SALVAR/TROCAR
+// ═══════════════════════════════════════════
+function coletarConteudoAtual(){
+  if(!cursoAtivo||!moduloAtivo) return;
+  const d=dadosCursos[cursoAtivo];
+  if(!d||!d.anotacoes[moduloAtivo]) return;
+  const a=d.anotacoes[moduloAtivo];
+  const tr=document.getElementById('dta-resumo');
+  const ta=document.getElementById('dta-aplicacao');
+  const tan=document.getElementById('dta-anotacoes');
+  if(tr) a.resumo=tr.value;
+  if(ta) a.aplicacao=ta.value;
+  if(tan) a.anotacoes=tan.value;
+}
+
+// ═══════════════════════════════════════════
+// EXPORTAR NOTAS DO CURSO ATIVO
+// ═══════════════════════════════════════════
+function dExportar(){
+  if(!cursoAtivo) return;
+  coletarConteudoAtual();
+  const c=CURSOS.find(x=>x.id===cursoAtivo);
+  const d=dadosCursos[cursoAtivo];
+  let txt=`NOTAS DO CURSO — ${c.nome}\nPlataforma: ${c.plat} | Status: ${d.status}\n${'═'.repeat(60)}\n\n`;
+  (d.modulos||[]).forEach(m=>{
+    const a=d.anotacoes?.[m.id]||{};
+    txt+=`📌 ${m.nome}${m.done?' [CONCLUÍDO]':''}\n${'─'.repeat(40)}\n`;
+    if(a.resumo) txt+=`\nRESUMO:\n${a.resumo}\n`;
+    if(a.pontos?.length) txt+=`\nPONTOS-CHAVE:\n${a.pontos.map(p=>'• '+p).join('\n')}\n`;
+    if(a.aplicacao) txt+=`\nAPLICAÇÃO PRÁTICA:\n${a.aplicacao}\n`;
+    if(a.anotacoes) txt+=`\nANOTAÇÕES:\n${a.anotacoes}\n`;
+    txt+='\n';
+  });
+  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`notas_${cursoAtivo}.txt`;a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function dSalvar(){salvarDados(false)}
+
+// ═══════════════════════════════════════════
+// EXPORTAR CSV LISTA
+// ═══════════════════════════════════════════
+function exportarCSV(){
+  let csv='Nome;Plataforma;Área;Subárea;Tipo;Uso;Status;Vitalício\n';
+  filtrados.forEach(c=>csv+=`${c.nome};${c.plat};${c.area};${c.sub};${c.tipo};${c.uso};${c.status};${c.vital}\n`);
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='jcr_inventario_cursos.csv';a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+
+// ═══════════════════════════════════════════
+// IMPORTAR POR PRINT — IA
+// ═══════════════════════════════════════════
+let ipImageBase64 = null;
+
+function abrirImportPrint(){
+  document.getElementById('ip-overlay').classList.add('open');
+  ipReset();
+}
+
+function fecharImportPrint(e){
+  if(e&&e.target!==document.getElementById('ip-overlay')) return;
+  document.getElementById('ip-overlay').classList.remove('open');
+  ipReset();
+}
+
+function ipReset(){
+  ipImageBase64=null;
+  document.getElementById('ip-preview').style.display='none';
+  document.getElementById('ip-preview').src='';
+  document.getElementById('ip-analyzing').style.display='none';
+  document.getElementById('ip-result').style.display='none';
+  document.getElementById('ip-erro').style.display='none';
+  document.getElementById('ip-btn-salvar').style.display='none';
+  document.getElementById('ip-drop').style.display='block';
+  document.getElementById('ip-fi').value='';
+}
+
+function ipDrop(e){
+  e.preventDefault();
+  document.getElementById('ip-drop').classList.remove('drag');
+  const f=e.dataTransfer.files[0];
+  if(f&&f.type.startsWith('image/')) ipProcessarImagem(f);
+}
+
+function ipSelecionarArq(e){
+  const f=e.target.files[0];
+  if(f) ipProcessarImagem(f);
+}
+
+function ipProcessarImagem(file){
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    const dataUrl=e.target.result;
+    ipImageBase64=dataUrl.split(',')[1];
+    // Mostrar preview
+    const prev=document.getElementById('ip-preview');
+    prev.src=dataUrl;prev.style.display='block';
+    // Iniciar análise
+    document.getElementById('ip-drop').style.cursor='default';
+    document.getElementById('ip-analyzing').style.display='block';
+    document.getElementById('ip-result').style.display='none';
+    document.getElementById('ip-erro').style.display='none';
+    document.getElementById('ip-btn-salvar').style.display='none';
+    await ipAnalisarComIA(ipImageBase64, file.type||'image/png');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function ipAnalisarComIA(base64, mimeType){
+  const msgEl=document.getElementById('ip-msg');
+  try {
+    msgEl.textContent='Enviando para análise...';
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{
+          role:'user',
+          content:[
+            {
+              type:'image',
+              source:{type:'base64',media_type:mimeType,data:base64}
+            },
+            {
+              type:'text',
+              text:`Analise este print de um curso ou produto digital e extraia as informações. Responda SOMENTE em JSON válido, sem texto antes ou depois, sem markdown:
+{
+  "nome": "nome completo do curso/produto",
+  "plataforma": "nome da plataforma (HOTMART, EDUZZ, KIWIFY, UDEMY, etc — se não identificar, use o que aparecer)",
+  "tipo": "Curso ou E-book ou Comunidade ou Planilha ou Material ou Ferramenta ou App ou Assinatura",
+  "area": "área principal (Tributário, Tecnologia, Dados, Marketing, Produtividade, Idiomas, Saúde, Financeiro, Gestão, Contábil)",
+  "subarea": "subárea específica",
+  "uso": "Profissional ou Pessoal",
+  "vital": "Sim ou Não ou Assinatura"
+}`
+            }
+          ]
+        }]
+      })
+    });
+
+    if(!resp.ok){
+      const err=await resp.json();
+      throw new Error(err.error?.message||'Erro na API');
+    }
+
+    const data=await resp.json();
+    const texto=data.content[0].text.trim();
+    const json=JSON.parse(texto);
+
+    // Preencher campos
+    document.getElementById('ip-nome').value=json.nome||'';
+    document.getElementById('ip-plat').value=(json.plataforma||'').toUpperCase();
+    document.getElementById('ip-area').value=json.area||'';
+    document.getElementById('ip-sub').value=json.subarea||json.sub||'';
+
+    const tipoEl=document.getElementById('ip-tipo');
+    const tipoOpts=['Curso','E-book','Comunidade','Planilha','Material','Ferramenta','App','Assinatura','Acervo'];
+    const tipoMatch=tipoOpts.find(t=>t.toLowerCase()===json.tipo?.toLowerCase());
+    if(tipoMatch) tipoEl.value=tipoMatch;
+
+    const usoEl=document.getElementById('ip-uso');
+    if(json.uso?.toLowerCase().includes('pessoal')) usoEl.value='Pessoal';
+    else usoEl.value='Profissional';
+
+    const vitalEl=document.getElementById('ip-vital');
+    if(json.vital?.toLowerCase()==='assinatura') vitalEl.value='Assinatura';
+    else if(json.vital?.toLowerCase()==='não'||json.vital?.toLowerCase()==='nao') vitalEl.value='Não';
+    else vitalEl.value='Sim';
+
+    document.getElementById('ip-analyzing').style.display='none';
+    document.getElementById('ip-result').style.display='block';
+    document.getElementById('ip-btn-salvar').style.display='block';
+
+  } catch(err){
+    document.getElementById('ip-analyzing').style.display='none';
+    const erEl=document.getElementById('ip-erro');
+    erEl.style.display='block';
+    erEl.textContent='Erro ao analisar: '+err.message+'. Preencha os campos manualmente.';
+    document.getElementById('ip-result').style.display='block';
+    document.getElementById('ip-btn-salvar').style.display='block';
+  }
+}
+
+function ipSalvar(){
+  const nome=document.getElementById('ip-nome').value.trim();
+  if(!nome){alert('Preencha o nome do curso.');return;}
+
+  const plat=document.getElementById('ip-plat').value.trim().toUpperCase()||'OUTRO';
+  const id=plat.toLowerCase()+'_'+nome.toLowerCase().replace(/[^a-z0-9]/g,'_').slice(0,25)+'_'+Date.now();
+
+  const novo={
+    id,
+    plat,
+    area:document.getElementById('ip-area').value.trim()||'Outros',
+    sub:document.getElementById('ip-sub').value.trim()||'Geral',
+    nome,
+    tipo:document.getElementById('ip-tipo').value,
+    uso:document.getElementById('ip-uso').value,
+    vital:document.getElementById('ip-vital').value,
+    status:document.getElementById('ip-status').value,
+  };
+
+  // Adicionar ao array
+  CURSOS.unshift(novo);
+  filtrados=[...CURSOS];
+
+  // Atualizar total no stat
+  document.querySelector('.stat-card:first-child .stat-value').textContent=CURSOS.length;
+
+  // Re-renderizar
+  calcStats();
+  preencherFiltrosNovo(novo);
+  filtrar();
+
+  // Salvar no storage
+  const extras=JSON.parse(localStorage.getItem('jcr_cursos_extras')||'[]');
+  extras.push(novo);
+  localStorage.setItem('jcr_cursos_extras',JSON.stringify(extras));
+
+  // Fechar e abrir drawer do novo curso
+  document.getElementById('ip-overlay').classList.remove('open');
+  ipReset();
+  setTimeout(()=>abrirDrawer(id),200);
+
+  // Mostrar toast
+  const ind=document.getElementById('saveInd');
+  ind.textContent='✓ "'+nome.slice(0,30)+'" adicionado!';
+  ind.classList.add('show');
+  setTimeout(()=>{ind.classList.remove('show');ind.textContent='✓ Salvo automaticamente';},3000);
+}
+
+function preencherFiltrosNovo(c){
+  // Adicionar plataforma nova se não existe
+  const fp=document.getElementById('f-plat');
+  if(![...fp.options].find(o=>o.value===c.plat)){
+    fp.add(new Option(c.plat,c.plat));
+  }
+  const fa=document.getElementById('f-area');
+  if(![...fa.options].find(o=>o.value===c.area)){
+    fa.add(new Option(c.area,c.area));
+  }
+}
+
+// Carregar cursos extras do storage ao init
+function carregarExtras(){
+  const extras=JSON.parse(localStorage.getItem('jcr_cursos_extras')||'[]');
+  extras.forEach(e=>{
+    if(!CURSOS.find(c=>c.id===e.id)) CURSOS.unshift(e);
+  });
+  filtrados=[...CURSOS];
+}
+
+
+carregarExtras();
+init();
+</script>
+
+<!-- MODAL IMPORTAR POR PRINT -->
+<div class="ip-overlay" id="ip-overlay" onclick="fecharImportPrint(event)">
+  <div class="ip-modal">
+    <div class="ip-head">
+      <div class="ip-title">📸 Importar curso por print</div>
+      <button class="ip-close" onclick="fecharImportPrint()">✕</button>
+    </div>
+    <div class="ip-body">
+      <div class="ip-drop" id="ip-drop"
+        onclick="document.getElementById('ip-fi').click()"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="ipDrop(event)">
+        <div class="ip-drop-icon">🖼️</div>
+        <div class="ip-drop-txt">Arraste o print aqui ou clique para selecionar</div>
+        <div class="ip-drop-sub">PNG, JPG, WEBP — print da página do curso</div>
+        <img id="ip-preview" class="ip-preview">
+      </div>
+      <input type="file" id="ip-fi" accept="image/*" style="display:none" onchange="ipSelecionarArq(event)">
+
+      <div class="ip-erro" id="ip-erro"></div>
+
+      <div class="ip-analyzing" id="ip-analyzing">
+        <div class="ip-spin"></div>
+        <div style="font-size:13px;color:var(--text2)" id="ip-msg">Analisando o print com IA...</div>
+      </div>
+
+      <div class="ip-result" id="ip-result">
+        <div style="font-size:12px;color:var(--green);margin-bottom:14px;display:flex;align-items:center;gap:6px">
+          <span>✓</span> Informações extraídas — confirme e ajuste se necessário
+        </div>
+        <div class="ip-field">
+          <label>Nome do curso</label>
+          <input class="ip-input" id="ip-nome" type="text" placeholder="Nome do curso">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="ip-field">
+            <label>Plataforma</label>
+            <input class="ip-input" id="ip-plat" type="text" placeholder="Ex: HOTMART">
+          </div>
+          <div class="ip-field">
+            <label>Tipo</label>
+            <select class="ip-select" id="ip-tipo">
+              <option>Curso</option><option>E-book</option><option>Comunidade</option>
+              <option>Planilha</option><option>Material</option><option>Ferramenta</option>
+              <option>App</option><option>Assinatura</option><option>Acervo</option>
+            </select>
+          </div>
+          <div class="ip-field">
+            <label>Área</label>
+            <input class="ip-input" id="ip-area" type="text" placeholder="Ex: Tributário">
+          </div>
+          <div class="ip-field">
+            <label>Subárea</label>
+            <input class="ip-input" id="ip-sub" type="text" placeholder="Ex: Recuperação">
+          </div>
+          <div class="ip-field">
+            <label>Uso</label>
+            <select class="ip-select" id="ip-uso">
+              <option>Profissional</option><option>Pessoal</option>
+            </select>
+          </div>
+          <div class="ip-field">
+            <label>Status</label>
+            <select class="ip-select" id="ip-status">
+              <option>Não iniciado</option><option>Em andamento</option>
+              <option>Em uso</option><option>Referência</option>
+            </select>
+          </div>
+        </div>
+        <div class="ip-field">
+          <label>Vitalício</label>
+          <select class="ip-select" id="ip-vital">
+            <option>Sim</option><option>Não</option><option>Assinatura</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="ip-foot">
+      <button class="btn btn-ghost btn-sm" onclick="fecharImportPrint()">Cancelar</button>
+      <button class="btn btn-accent btn-sm" id="ip-btn-salvar" onclick="ipSalvar()" style="display:none">✓ Adicionar ao inventário</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa Estratégico — JCR + Wesley</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0F1E3C;
+    --navy2: #1B3A6B;
+    --gold: #C9A84C;
+    --gold2: #F0D080;
+    --teal: #1A7F74;
+    --teal2: #2ABFB0;
+    --rose: #8B2E4A;
+    --rose2: #D4607E;
+    --slate: #2D3B55;
+    --light: #F4F1EB;
+    --white: #FDFCF9;
+    --muted: #7A8499;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--white);
+    color: var(--navy);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--navy);
+    padding: 3rem 3rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 70%);
+  }
+  .header-badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .header-badge::before {
+    content: '';
+    display: inline-block;
+    width: 24px; height: 2px;
+    background: var(--gold);
+  }
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 900;
+    color: var(--white);
+    line-height: 1.15;
+    margin-bottom: 0.5rem;
+  }
+  .header h1 span { color: var(--gold); }
+  .header p {
+    font-size: 15px;
+    color: rgba(255,255,255,0.55);
+    font-weight: 300;
+    max-width: 480px;
+  }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2rem;
+    padding: 1.25rem 3rem;
+    background: var(--light);
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--slate);
+  }
+  .legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  /* MAIN GRID */
+  .main {
+    padding: 2.5rem 3rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  /* PILLAR CARDS */
+  .pillar {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.07);
+  }
+  .pillar-header {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .pillar-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .pillar-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .pillar-sub {
+    font-size: 12px;
+    font-weight: 400;
+    margin-top: 2px;
+    opacity: 0.75;
+  }
+  .pillar-body {
+    padding: 0 1.5rem 1.5rem;
+    background: var(--white);
+  }
+  .service-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    font-size: 13.5px;
+    line-height: 1.4;
+    color: var(--slate);
+  }
+  .service-item:last-child { border-bottom: none; }
+  .service-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  /* COLOR THEMES */
+  .theme-ju .pillar-header { background: linear-gradient(135deg, #1B3A6B 0%, #0F1E3C 100%); color: white; }
+  .theme-ju .pillar-icon { background: rgba(201,168,76,0.2); }
+  .theme-ju .service-dot { background: var(--navy2); }
+  .theme-ju .tag-aprender { background: #E8F0FB; color: #1B3A6B; }
+  .theme-ju .tag-exec { background: #FFF8E7; color: #8B6800; }
+
+  .theme-wesley .pillar-header { background: linear-gradient(135deg, #1A7F74 0%, #0F5A51 100%); color: white; }
+  .theme-wesley .pillar-icon { background: rgba(255,255,255,0.2); }
+  .theme-wesley .service-dot { background: var(--teal); }
+
+  .theme-juridico .pillar-header { background: linear-gradient(135deg, #8B2E4A 0%, #5C1A30 100%); color: white; }
+  .theme-juridico .pillar-icon { background: rgba(255,255,255,0.2); }
+  .theme-juridico .service-dot { background: var(--rose); }
+  .theme-juridico .tag-parceiro { background: #FDE8EF; color: #8B2E4A; }
+
+  .theme-diff .pillar-header { background: linear-gradient(135deg, #C9A84C 0%, #8B6800 100%); color: white; }
+  .theme-diff .pillar-icon { background: rgba(255,255,255,0.2); }
+  .theme-diff .service-dot { background: var(--gold); }
+  .theme-diff .tag-diff { background: #FFF8E7; color: #8B6800; }
+
+  /* BOTTOM SECTION */
+  .bottom {
+    padding: 0 3rem 3rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.25rem;
+  }
+  .mini-card {
+    background: var(--light);
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+  .mini-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--gold);
+    display: inline-block;
+  }
+  .mini-item {
+    font-size: 13px;
+    color: var(--slate);
+    padding: 4px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.4;
+  }
+  .mini-item::before {
+    content: '→';
+    color: var(--gold);
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* FOOTER */
+  .footer {
+    background: var(--navy);
+    padding: 1.25rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer p {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+  }
+  .footer strong {
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  @media (max-width: 700px) {
+    .main { grid-template-columns: 1fr; padding: 1.5rem; }
+    .bottom { grid-template-columns: 1fr; padding: 0 1.5rem 2rem; }
+    .header, .legend, .footer { padding-left: 1.5rem; padding-right: 1.5rem; }
+  }
+
+  /* Print */
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">Documento estratégico — confidencial</div>
+  <h1>Mapa do <span>Escritório Completo</span></h1>
+  <p>Divisão de frentes, responsabilidades e diferenciais — JCR Consultoria + Parceiro Wesley</p>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#1B3A6B"></div> Sua área — execute agora</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#1A7F74"></div> Área do Wesley</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#8B2E4A"></div> Jurídico — parceiro externo</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#C9A84C"></div> Diferenciais competitivos</div>
+  <div class="legend-item" style="font-size:12px; color:var(--muted);">
+    <span style="background:#E8F0FB;color:#1B3A6B;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;">APRENDER</span> pode desenvolver
+    &nbsp;
+    <span style="background:#FFF8E7;color:#8B6800;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;">EXECUTA JÁ</span> domínio atual
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- SUA ÁREA -->
+  <div class="pillar theme-ju">
+    <div class="pillar-header">
+      <div class="pillar-icon">⚖️</div>
+      <div>
+        <div class="pillar-title">Fiscal & Tributário</div>
+        <div class="pillar-sub">Sua frente principal — área administrativa</div>
+      </div>
+    </div>
+    <div class="pillar-body">
+      <div class="service-item"><div class="service-dot"></div><span>Recuperação de créditos ICMS, PIS/COFINS, IRPJ/CSLL <span class="tag tag-exec">Executa já</span></span></div>
+      <div class="service-item"><div class="service-dot"></div><span>PER/DCOMP e ressarcimento federal <span class="tag tag-exec">Executa já</span></span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Benefícios fiscais — SC, RO, GO e outros estados <span class="tag tag-exec">Executa já</span></span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Parcelamentos: PGFN, REFIS, PERT, Recupera Mais SC <span class="tag tag-exec">Executa já</span></span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Diagnóstico de passivo fiscal e risco tributário <span class="tag tag-exec">Executa já</span></span></div>
+      <div class="service-item"><div class="service-dot"></div><span>SPED Fiscal, EFD Contribuições, ECF, DCTF <span class="tag tag-exec">Executa já</span></span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Simples Nacional, Lucro Presumido e Lucro Real <span class="tag tag-exec">Executa já</span></span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Impugnações administrativas — CARF e tribunais estaduais <span class="tag tag-aprender">Aprender</span></span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Planejamento tributário e reorganização societária <span class="tag tag-aprender">Aprender</span></span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Due diligence fiscal (M&A e compra de empresas) <span class="tag tag-aprender">Aprender</span></span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Reforma Tributária — IBS, CBS, IS — adaptação de clientes <span class="tag tag-aprender">Aprender</span></span></div>
+    </div>
+  </div>
+
+  <!-- ÁREA DO WESLEY -->
+  <div class="pillar theme-wesley">
+    <div class="pillar-header">
+      <div class="pillar-icon">📒</div>
+      <div>
+        <div class="pillar-title">Contabilidade & DP</div>
+        <div class="pillar-sub">Frente do Wesley — estrutura existente</div>
+      </div>
+    </div>
+    <div class="pillar-body">
+      <div class="service-item"><div class="service-dot"></div><span>Escrituração contábil e balanços</span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Apuração de resultados (DRE, BP, DMPL)</span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Departamento pessoal — folha, férias, rescisões</span></div>
+      <div class="service-item"><div class="service-dot"></div><span>eSocial e DCTFWeb</span></div>
+      <div class="service-item"><div class="service-dot"></div><span>FGTS Digital e INSS</span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Abertura, alteração e encerramento de empresas</span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Certidões negativas e regularização cadastral</span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Relacionamento com a carteira atual de clientes</span></div>
+    </div>
+  </div>
+
+  <!-- JURÍDICO -->
+  <div class="pillar theme-juridico">
+    <div class="pillar-header">
+      <div class="pillar-icon">⚖</div>
+      <div>
+        <div class="pillar-title">Jurídico Tributário</div>
+        <div class="pillar-sub">Parceiro externo — honorários compartilhados</div>
+      </div>
+    </div>
+    <div class="pillar-body">
+      <div class="service-item"><div class="service-dot"></div><span>Defesa em execuções fiscais (PGFN e estados) <span class="tag tag-parceiro">Parceiro</span></span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Mandado de segurança tributário <span class="tag tag-parceiro">Parceiro</span></span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Ação anulatória de débito fiscal <span class="tag tag-parceiro">Parceiro</span></span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Embargos à execução e desbloqueio de SISBAJUD <span class="tag tag-parceiro">Parceiro</span></span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Teses tributárias — STF/STJ (exclusão ICMS PIS/COFINS etc.) <span class="tag tag-parceiro">Parceiro</span></span></div>
+      <div class="service-item"><div class="service-dot"></div><span>Contrato societário e estrutura jurídica do escritório</span></div>
+      <div class="service-item" style="padding-top:0.75rem; border-top: 1px dashed rgba(0,0,0,0.1);">
+        <div class="service-dot" style="background:#C9A84C"></div>
+        <span style="font-size:12.5px; color:#5C3D00;"><strong>Como funcionar:</strong> você identifica o problema, aciona o parceiro, divide os honorários. O cliente fica com você — o jurídico é suporte.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIFERENCIAIS -->
+  <div class="pillar theme-diff">
+    <div class="pillar-header">
+      <div class="pillar-icon">★</div>
+      <div>
+        <div class="pillar-title">Diferenciais Competitivos</div>
+        <div class="pillar-sub">O que vai te separar da concorrência</div>
+      </div>
+    </div>
+    <div class="pillar-body">
+      <div class="service-item"><div class="service-dot"></div><span><strong>Reforma Tributária como serviço</strong> — poucos dominam IBS/CBS agora. Quem ensinar o cliente ganha fidelidade</span></div>
+      <div class="service-item"><div class="service-dot"></div><span><strong>Laudo de risco tributário</strong> — relatório periódico de risco, créditos e oportunidades. Alto valor percebido</span></div>
+      <div class="service-item"><div class="service-dot"></div><span><strong>Honorário de êxito</strong> na recuperação — cliente não tem risco inicial, facilita a venda</span></div>
+      <div class="service-item"><div class="service-dot"></div><span><strong>Diagnóstico fiscal gratuito</strong> como porta de entrada — mostra o problema, fecha para resolver</span></div>
+      <div class="service-item"><div class="service-dot"></div><span><strong>Especialização em importação/exportação</strong> — SC e RO já são seu diferencial geográfico</span></div>
+      <div class="service-item"><div class="service-dot"></div><span><strong>Dashboard de saúde fiscal</strong> — cliente vê em tempo real risco, créditos e vencimentos</span></div>
+      <div class="service-item"><div class="service-dot"></div><span><strong>Acompanhamento de crescimento</strong> — guia o cliente do Simples ao Lucro Real antecipando cada mudança</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM CARDS -->
+<div class="bottom">
+  <div class="mini-card">
+    <div class="mini-title">Estrutura pessoal</div>
+    <div class="mini-item">Você — fiscal/tributário/recuperação</div>
+    <div class="mini-item">Wesley — contabilidade/DP</div>
+    <div class="mini-item">Parceiro jurídico — demandas judiciais</div>
+    <div class="mini-item">Analista fiscal — contratar ao crescer</div>
+    <div class="mini-item">Assessor societário — antes de assinar</div>
+  </div>
+  <div class="mini-card">
+    <div class="mini-title">O que aprender agora</div>
+    <div class="mini-item">Impugnações no CARF</div>
+    <div class="mini-item">Planejamento tributário avançado</div>
+    <div class="mini-item">Due diligence fiscal</div>
+    <div class="mini-item">IBS/CBS — Reforma Tributária</div>
+    <div class="mini-item">Precificação de serviços consultivos</div>
+  </div>
+  <div class="mini-card">
+    <div class="mini-title">Estrutura comercial</div>
+    <div class="mini-item">Proposta comercial por serviço</div>
+    <div class="mini-item">Tabela de honorários + êxito</div>
+    <div class="mini-item">Site + Instagram JCR ativos</div>
+    <div class="mini-item">WhatsApp Business com funil</div>
+    <div class="mini-item">Contrato padrão por modalidade</div>
+  </div>
+</div>
+
+<div class="footer">
+  <p><strong>JCR Consultoria e Serviços Tributários</strong> — Documento estratégico confidencial</p>
+  <p>Campinas, SP — Abril de 2026</p>
+</div>
+
+</body>
+</html>

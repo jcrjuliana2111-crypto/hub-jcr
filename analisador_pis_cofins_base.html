@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JCR — Exclusão PIS/COFINS da Própria Base</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy:#0F1E3C; --navy2:#1B3A6B; --gold:#C9A84C; --gold2:#F0D080;
+  --teal:#1A7F74; --rose:#8B2E4A; --light:#F4F1EB; --white:#FDFCF9;
+  --muted:#7A8499; --slate:#2D3B55;
+}
+body { font-family:'DM Sans',sans-serif; background:var(--light); color:var(--navy); min-height:100vh; }
+nav { background:var(--navy); padding:1rem 2rem; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(201,168,76,0.2); }
+.nav-brand { font-family:'Playfair Display',serif; font-size:15px; color:var(--gold); font-weight:700; }
+.nav-badge { font-size:10px; padding:3px 9px; border-radius:4px; background:#FBEAF0; color:#5C1A30; font-weight:700; letter-spacing:0.06em; }
+.hero { background:var(--navy); padding:3rem 2rem 2.5rem; }
+.hero-inner { max-width:900px; margin:0 auto; }
+.hero-top { display:flex; align-items:flex-start; justify-content:space-between; gap:2rem; flex-wrap:wrap; }
+.hero-badge { font-size:10px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--gold); margin-bottom:.75rem; display:flex; align-items:center; gap:8px; }
+.hero-badge::before { content:''; width:18px; height:1px; background:var(--gold); }
+h1 { font-family:'Playfair Display',serif; font-size:clamp(1.6rem,3vw,2.4rem); font-weight:900; color:white; line-height:1.15; margin-bottom:.5rem; }
+h1 span { color:var(--gold); }
+.hero-desc { font-size:13px; color:rgba(255,255,255,0.5); line-height:1.7; max-width:480px; }
+.hero-info { background:rgba(255,255,255,0.06); border-radius:12px; border:1px solid rgba(255,255,255,0.1); padding:1rem 1.25rem; min-width:220px; }
+.info-row { display:flex; justify-content:space-between; font-size:12px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.07); }
+.info-row:last-child { border-bottom:none; }
+.info-label { color:rgba(255,255,255,0.45); }
+.info-val { color:var(--gold2); font-weight:500; }
+main { max-width:900px; margin:0 auto; padding:2rem; }
+.formatos { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1.25rem; }
+.formato-tag { font-size:11px; padding:5px 12px; border-radius:6px; font-weight:500; border:1px solid rgba(0,0,0,0.1); background:var(--white); color:var(--slate); display:flex; align-items:center; gap:6px; }
+.dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.upload-area { background:var(--white); border-radius:16px; border:2px dashed rgba(201,168,76,0.4); padding:2.5rem 2rem; text-align:center; cursor:pointer; transition:all 0.2s; margin-bottom:1.25rem; }
+.upload-area:hover,.upload-area.drag { border-color:var(--gold); background:rgba(201,168,76,0.04); }
+.upload-area.has-file { border-style:solid; border-color:var(--teal); background:rgba(26,127,116,0.04); }
+.upload-icon { font-size:36px; margin-bottom:.75rem; }
+.upload-title { font-size:16px; font-weight:600; color:var(--navy); margin-bottom:5px; }
+.upload-sub { font-size:13px; color:var(--muted); margin-bottom:1.25rem; }
+.upload-btn { display:inline-block; padding:10px 24px; border-radius:8px; background:var(--navy); color:var(--gold2); font-size:13px; font-weight:500; cursor:pointer; border:none; }
+.file-info { display:none; margin-top:1rem; padding:10px 16px; background:var(--light); border-radius:8px; font-size:13px; color:var(--slate); }
+.formato-detected { display:none; margin-bottom:1.25rem; padding:12px 16px; border-radius:10px; font-size:13px; border:1px solid; }
+.fmt-xlsx { background:#EAF3DE; border-color:#97C459; color:#27500A; }
+.fmt-sped { background:#E6F1FB; border-color:#85B7EB; color:#0C447C; }
+.fmt-txt { background:#FAEEDA; border-color:#EF9F27; color:#633806; }
+.col-check { background:var(--white); border-radius:12px; padding:1.25rem; margin-bottom:1.25rem; border:1px solid rgba(0,0,0,0.07); display:none; }
+.col-title { font-size:12px; font-weight:600; color:var(--navy); margin-bottom:.75rem; text-transform:uppercase; letter-spacing:0.06em; }
+.col-list { display:flex; flex-wrap:wrap; gap:6px; }
+.col-tag { font-size:11px; padding:3px 9px; border-radius:5px; font-family:'JetBrains Mono',monospace; }
+.col-ok { background:#EAF3DE; color:#27500A; }
+.col-miss { background:#FCEBEB; color:#791F1F; }
+.btn-analisar { width:100%; padding:14px; border-radius:12px; border:none; background:var(--navy); color:var(--gold2); font-size:15px; font-weight:600; cursor:pointer; display:none; margin-bottom:2rem; font-family:'DM Sans',sans-serif; }
+.btn-analisar:disabled { opacity:.5; cursor:not-allowed; }
+.loading { display:none; text-align:center; padding:2rem; }
+.loading-bar { width:100%; height:4px; background:rgba(0,0,0,0.08); border-radius:2px; overflow:hidden; margin:1rem 0; }
+.loading-fill { height:100%; background:var(--gold); border-radius:2px; animation:load 2s ease-in-out infinite; }
+@keyframes load { 0%{width:0%}50%{width:70%}100%{width:100%} }
+.loading-text { font-size:13px; color:var(--muted); }
+.resultado { display:none; }
+.stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
+.stat-card { background:var(--white); border-radius:14px; padding:1.25rem; border:1px solid rgba(0,0,0,0.07); text-align:center; }
+.stat-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px; }
+.stat-value { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:700; }
+.stat-sub { font-size:11px; color:var(--muted); margin-top:4px; }
+.stat-pis .stat-value { color:#185FA5; }
+.stat-cofins .stat-value { color:#854F0B; }
+.stat-total .stat-value { color:var(--teal); }
+.alerta { background:var(--navy); border-radius:12px; padding:1rem 1.25rem; margin-bottom:1.5rem; border-left:3px solid var(--gold); }
+.alerta p { font-size:13px; color:rgba(255,255,255,0.65); line-height:1.6; }
+.alerta strong { color:var(--gold); }
+.tabela-wrap { background:var(--white); border-radius:14px; overflow:hidden; border:1px solid rgba(0,0,0,0.07); margin-bottom:1.5rem; }
+.tabela-header { padding:1rem 1.25rem; background:var(--navy); display:flex; justify-content:space-between; align-items:center; }
+.tabela-title { font-size:13px; font-weight:600; color:var(--gold2); }
+table { width:100%; border-collapse:collapse; }
+thead tr { background:var(--light); }
+th { padding:10px 14px; text-align:left; font-size:11px; font-weight:600; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; }
+td { padding:9px 14px; font-size:13px; color:var(--slate); border-top:1px solid rgba(0,0,0,0.05); }
+td.num { text-align:right; font-family:'JetBrains Mono',monospace; font-size:12px; }
+td.destaque { font-weight:600; color:var(--teal); }
+tr:hover td { background:rgba(0,0,0,0.02); }
+.tfoot td { background:var(--navy); color:var(--gold2); font-weight:600; font-family:'JetBrains Mono',monospace; font-size:12px; }
+.chart-wrap { background:var(--white); border-radius:14px; padding:1.5rem; border:1px solid rgba(0,0,0,0.07); margin-bottom:1.5rem; }
+.chart-title { font-size:13px; font-weight:600; color:var(--navy); margin-bottom:1rem; }
+.btn-export { width:100%; padding:12px; border-radius:10px; border:1px solid var(--navy); background:transparent; color:var(--navy); font-size:14px; font-weight:500; cursor:pointer; transition:all 0.15s; font-family:'DM Sans',sans-serif; margin-bottom:.5rem; }
+.btn-export:hover { background:var(--navy); color:var(--gold2); }
+footer { background:var(--navy); padding:1.25rem 2rem; text-align:center; margin-top:3rem; }
+footer p { font-size:11px; color:rgba(255,255,255,0.3); }
+@media(max-width:600px){ .stat-grid{grid-template-columns:1fr} .hero-top{flex-direction:column} }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">JCR Sistema</div>
+  <span class="nav-badge">JUD</span>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-top">
+      <div>
+        <div class="hero-badge">Recuperação Tributária</div>
+        <h1>Exclusão PIS/COFINS<br>da <span>Própria Base</span></h1>
+        <p class="hero-desc">Gross Up Reverso — faça upload da planilha ou do arquivo SPED e veja o potencial de recuperação em segundos.</p>
+      </div>
+      <div class="hero-info">
+        <div class="info-row"><span class="info-label">Tipo</span><span class="info-val">JUD — Judicial</span></div>
+        <div class="info-row"><span class="info-label">Fundamento</span><span class="info-val">RE 574.706/PR</span></div>
+        <div class="info-row"><span class="info-label">Prazo</span><span class="info-val">Últimos 5 anos</span></div>
+        <div class="info-row"><span class="info-label">Regime</span><span class="info-val">Lucro Real</span></div>
+        <div class="info-row"><span class="info-label">CSTs válidas</span><span class="info-val">01, 02, 49, 50</span></div>
+        <div class="info-row"><span class="info-label">SELIC</span><span class="info-val">Não inclusa</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div style="margin-bottom:.75rem;">
+    <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Formatos aceitos</div>
+    <div class="formatos">
+      <div class="formato-tag"><div class="dot" style="background:#3B6D11"></div>.xlsx — Planilha do sistema (já calculada)</div>
+      <div class="formato-tag"><div class="dot" style="background:#185FA5"></div>.txt — SPED EFD Contribuições bruto</div>
+      <div class="formato-tag"><div class="dot" style="background:#854F0B"></div>.txt — Exportação tabulada do sistema</div>
+    </div>
+  </div>
+
+  <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+    <div class="upload-icon">📂</div>
+    <div class="upload-title">Arraste o arquivo aqui</div>
+    <div class="upload-sub">.xlsx ou .txt — o sistema detecta o formato automaticamente</div>
+    <button class="upload-btn" onclick="event.stopPropagation();document.getElementById('fileInput').click()">Selecionar arquivo</button>
+    <div class="file-info" id="fileInfo"></div>
+  </div>
+  <input type="file" id="fileInput" accept=".xlsx,.xls,.txt,.csv" style="display:none" onchange="onFileSelect(event)">
+
+  <div class="formato-detected" id="formatoDetected"></div>
+  <div class="col-check" id="colCheck">
+    <div class="col-title">Colunas identificadas</div>
+    <div class="col-list" id="colList"></div>
+  </div>
+  <button class="btn-analisar" id="btnAnalisar" onclick="analisar()">▶ Analisar — calcular créditos a recuperar</button>
+
+  <div class="loading" id="loading">
+    <div class="loading-text" id="loadingText">Carregando arquivo...</div>
+    <div class="loading-bar"><div class="loading-fill"></div></div>
+  </div>
+
+  <div class="resultado" id="resultado">
+    <div class="stat-grid">
+      <div class="stat-card stat-pis"><div class="stat-label">PIS a recuperar</div><div class="stat-value" id="valPis">—</div><div class="stat-sub" id="subPis"></div></div>
+      <div class="stat-card stat-cofins"><div class="stat-label">COFINS a recuperar</div><div class="stat-value" id="valCofins">—</div><div class="stat-sub" id="subCofins"></div></div>
+      <div class="stat-card stat-total"><div class="stat-label">Total (sem SELIC)</div><div class="stat-value" id="valTotal">—</div><div class="stat-sub" id="subTotal"></div></div>
+    </div>
+    <div class="alerta"><p><strong>⚠ Atenção antes de protocolar:</strong> Valores sem correção SELIC. Valide itens com regime especial — o sistema não identifica essas exceções automaticamente. Esta tese requer ação judicial — acione seu advogado parceiro.</p></div>
+    <div class="chart-wrap">
+      <div class="chart-title">Total a recuperar por período (R$)</div>
+      <div style="position:relative;height:260px;"><canvas id="chartPeriodos" role="img" aria-label="Gráfico de recuperação por período"></canvas></div>
+    </div>
+    <div class="tabela-wrap">
+      <div class="tabela-header">
+        <span class="tabela-title">Detalhamento por período</span>
+        <span style="font-size:11px;color:rgba(255,255,255,0.4);" id="resumoItens"></span>
+      </div>
+      <table>
+        <thead><tr><th>Período</th><th style="text-align:right">Itens</th><th style="text-align:right">PIS</th><th style="text-align:right">COFINS</th><th style="text-align:right">Total</th></tr></thead>
+        <tbody id="tabelaBody"></tbody>
+        <tfoot><tr id="tabelaFoot"></tr></tfoot>
+      </table>
+    </div>
+    <button class="btn-export" onclick="exportarCSV()">⬇ Exportar resumo por período (.csv)</button>
+    <button class="btn-export" onclick="exportarRelatorio()">📄 Gerar relatório para o cliente (.html)</button>
+  </div>
+</main>
+
+<footer><p>JCR Consultoria e Serviços Tributários — Sistema de Recuperação Tributária</p></footer>
+
+<script>
+let dadosAnalise = null;
+let chartInstance = null;
+
+// ── DRAG & DROP ───────────────────────────────────────────────────────────────
+const uploadArea = document.getElementById('uploadArea');
+uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('drag'); });
+uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag'));
+uploadArea.addEventListener('drop', e => { e.preventDefault(); uploadArea.classList.remove('drag'); const f = e.dataTransfer.files[0]; if(f) processFile(f); });
+function onFileSelect(e) { const f = e.target.files[0]; if(f) processFile(f); }
+
+function processFile(file) {
+  document.getElementById('fileInfo').style.display = 'block';
+  document.getElementById('fileInfo').textContent = `📄 ${file.name} — ${(file.size/1024/1024).toFixed(2)} MB`;
+  uploadArea.classList.add('has-file');
+  document.getElementById('resultado').style.display = 'none';
+  document.getElementById('colCheck').style.display = 'none';
+  document.getElementById('formatoDetected').style.display = 'none';
+  document.getElementById('btnAnalisar').style.display = 'none';
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext === 'xlsx' || ext === 'xls') lerXLSX(file);
+  else lerTXT(file);
+}
+
+// ── XLSX ──────────────────────────────────────────────────────────────────────
+function lerXLSX(file) {
+  const r = new FileReader();
+  r.onload = e => {
+    const wb = XLSX.read(e.target.result, { type:'binary', cellDates:true });
+    const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval:null });
+    if (!json.length) { alert('Planilha vazia!'); return; }
+    window._dados = json;
+    mostrarFmt('fmt-xlsx', `✓ Planilha Excel — ${json.length.toLocaleString('pt-BR')} linhas detectadas`);
+    verificarColunas(json);
+  };
+  r.readAsBinaryString(file);
+}
+
+// ── TXT ───────────────────────────────────────────────────────────────────────
+function lerTXT(file) {
+  const r = new FileReader();
+  r.onload = e => {
+    const texto = e.target.result;
+    const linhas = texto.split('\n').map(l => l.replace(/\r$/, '')).filter(l => l.trim());
+    if (!linhas.length) { alert('Arquivo vazio!'); return; }
+
+    // Detectar se é SPED bruto: tem registros C170 com tab
+    const ehSPED = linhas.some(l => {
+      const c = l.split('\t');
+      return c[1] === 'C170' || c[1] === 'C100' || l.startsWith('|C170|') || l.startsWith('|0000|');
+    });
+
+    if (ehSPED) {
+      const sep = linhas[0].startsWith('|') ? '|' : '\t';
+      const dados = parsearSPED(linhas, sep);
+      window._dados = dados;
+      mostrarFmt('fmt-sped', `✓ SPED EFD Contribuições detectado — ${dados.length.toLocaleString('pt-BR')} itens C170 extraídos`);
+      mostrarBtn(true);
+    } else {
+      // TXT exportado: primeira linha é cabeçalho
+      const sep = linhas[0].includes('\t') ? '\t' : ';';
+      const cols = linhas[0].split(sep).map(c => c.trim());
+      const dados = linhas.slice(1).map(l => {
+        const vals = l.split(sep);
+        const obj = {};
+        cols.forEach((col, i) => { obj[col] = vals[i] !== undefined ? vals[i].trim() : null; });
+        return obj;
+      }).filter(r => Object.values(r).some(v => v));
+      window._dados = dados;
+      mostrarFmt('fmt-txt', `✓ Exportação tabulada detectada — ${dados.length.toLocaleString('pt-BR')} linhas`);
+      verificarColunas(dados);
+    }
+  };
+  r.readAsText(file, 'latin1');
+}
+
+// ── PARSER SPED EFD CONTRIBUIÇÕES ────────────────────────────────────────────
+// Layout C170 (tab-delimitado, campo [0] vazio):
+// [1]=REG [2]=NUM_ITEM [3]=COD_ITEM [4]=DESCR [5]=QTD [6]=UNID [7]=VL_ITEM
+// [8]=VL_DESC [9]=IND_MOV [10]=CST_PIS(alt) [11]=CFOP [12]=COD_CTA
+// [25]=CST_PIS [26]=VL_BC_PIS [27]=ALIQ_PIS [30]=VL_PIS
+// [31]=CST_COFINS [32]=VL_BC_COFINS [33]=ALIQ_COFINS [36]=VL_COFINS
+function parsearSPED(linhas, sep) {
+  const dados = [];
+  let periodo = '', cnpj = '', empresa = '', c100 = null;
+
+  linhas.forEach(linha => {
+    const c = linha.split(sep);
+    // Remover primeiro campo vazio em tab-delimitado
+    const base = sep === '\t' ? c : ['', ...c.slice(1)];
+    const reg = (base[1] || '').trim();
+
+    if (reg === '0000') {
+      const dt = (base[7] || '').trim();
+      if (dt.length === 8) periodo = `01/${dt.slice(2,4)}/${dt.slice(4,8)}`;
+      empresa = (base[8] || '').trim();
+      cnpj = (base[9] || '').trim();
+    }
+
+    if (reg === 'C100') {
+      c100 = {
+        chave: (base[9] || '').trim(),
+        num: (base[8] || '').trim(),
+        data: (base[10] || '').trim()
+      };
+    }
+
+    if (reg === 'C170') {
+      // CST pode estar em [10] ou [25] dependendo da versão do layout
+      const cst_pis_raw = (base[25] || base[10] || '').trim();
+      const dados_item = {
+        'Período': periodo,
+        'CNPJ': cnpj,
+        'Nome Empresa': empresa,
+        'Núm. Item': (base[2] || '').trim(),
+        'Cód. Item': (base[3] || '').trim(),
+        'CFOP Item': (base[11] || '').trim(),
+        'Valor Item': br(base[7]),
+        'Valor Desconto Item': br(base[8]),
+        'CST PIS/COFINS Item': parseInt(cst_pis_raw) || 0,
+        'Valor BC PIS/COFINS Item': br(base[26]),
+        'Alíquota PIS Item': br(base[27]),
+        'Valor PIS Item': br(base[30]),
+        'Alíquota COFINS Item': br(base[33]),
+        'Valor COFINS Item': br(base[36]),
+        'Chave Documento': c100 ? c100.chave : '',
+        'Núm. Documento': c100 ? c100.num : '',
+        'Data Documento': c100 ? c100.data : ''
+      };
+      dados.push(dados_item);
+    }
+  });
+  return dados;
+}
+
+function br(v) {
+  if (!v || v === '') return 0;
+  return parseFloat(String(v).replace(/\./g,'').replace(',','.')) || 0;
+}
+
+// ── UI ────────────────────────────────────────────────────────────────────────
+function mostrarFmt(cls, msg) {
+  const el = document.getElementById('formatoDetected');
+  el.className = 'formato-detected ' + cls;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function mostrarBtn(ok) {
+  const btn = document.getElementById('btnAnalisar');
+  btn.style.display = 'block';
+  btn.disabled = !ok;
+  btn.textContent = ok ? '▶ Analisar — calcular créditos a recuperar' : '✗ Colunas necessárias não encontradas';
+}
+
+const COLS = ['CST PIS/COFINS Item','Valor BC PIS/COFINS Item','Alíquota PIS Item','Valor PIS Item','Alíquota COFINS Item','Valor COFINS Item','Período'];
+
+function verificarColunas(json) {
+  const cols = Object.keys(json[0] || {});
+  const el = document.getElementById('colCheck');
+  const lista = document.getElementById('colList');
+  el.style.display = 'block';
+  lista.innerHTML = '';
+  let ok = true;
+  COLS.forEach(c => {
+    const found = cols.includes(c);
+    if (!found) ok = false;
+    const tag = document.createElement('span');
+    tag.className = 'col-tag ' + (found ? 'col-ok' : 'col-miss');
+    tag.textContent = (found ? '✓ ' : '✗ ') + c;
+    lista.appendChild(tag);
+  });
+  mostrarBtn(ok);
+}
+
+// ── ANÁLISE ───────────────────────────────────────────────────────────────────
+const CST_OK = new Set([1,2,49,50]);
+
+function analisar() {
+  const json = window._dados;
+  document.getElementById('btnAnalisar').style.display = 'none';
+  document.getElementById('colCheck').style.display = 'none';
+  const loading = document.getElementById('loading');
+  loading.style.display = 'block';
+
+  const msgs = [
+    `Processando ${json.length.toLocaleString('pt-BR')} itens...`,
+    'Aplicando critérios de elegibilidade...',
+    'Calculando créditos a recuperar...'
+  ];
+  let mi = 0;
+  const iv = setInterval(() => { if(mi<msgs.length) document.getElementById('loadingText').textContent = msgs[mi++]; }, 600);
+
+  setTimeout(() => {
+    clearInterval(iv);
+    const porPeriodo = {};
+
+    json.forEach(row => {
+      const cst = parseInt(row['CST PIS/COFINS Item']) || 0;
+      const bc = num(row['Valor BC PIS/COFINS Item']);
+      const aliqP = num(row['Alíquota PIS Item']);
+      const valP = num(row['Valor PIS Item']);
+      const aliqC = num(row['Alíquota COFINS Item']);
+      const valC = num(row['Valor COFINS Item']);
+      const per = String(row['Período'] || 'Sem período');
+
+      if (!CST_OK.has(cst)) return;
+      const diff = valP + valC;
+      if (diff <= 0) return;
+
+      const novaBase = Math.max(0, bc - diff);
+      const pisRec = Math.max(0, valP - novaBase * aliqP / 100);
+      const cofRec = Math.max(0, valC - novaBase * aliqC / 100);
+      const tot = pisRec + cofRec;
+      if (tot <= 0) return;
+
+      if (!porPeriodo[per]) porPeriodo[per] = { itens:0, pis:0, cofins:0, total:0 };
+      porPeriodo[per].itens++;
+      porPeriodo[per].pis += pisRec;
+      porPeriodo[per].cofins += cofRec;
+      porPeriodo[per].total += tot;
+    });
+
+    const periodos = Object.keys(porPeriodo).sort();
+    let tP=0, tC=0, tG=0, tI=0;
+    periodos.forEach(p => { tP+=porPeriodo[p].pis; tC+=porPeriodo[p].cofins; tG+=porPeriodo[p].total; tI+=porPeriodo[p].itens; });
+
+    dadosAnalise = { porPeriodo, periodos, totalPis:tP, totalCofins:tC, totalGeral:tG, totalItens:tI, totalLinhas:json.length };
+    loading.style.display = 'none';
+    renderResultado(dadosAnalise);
+  }, 1800);
+}
+
+function num(v) {
+  if (v === null || v === undefined || v === '') return 0;
+  if (typeof v === 'number') return v;
+  return parseFloat(String(v).replace(/\./g,'').replace(',','.')) || 0;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function fmt(v) { return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtK(v) {
+  if(v>=1000000) return 'R$ '+(v/1000000).toFixed(1)+'M';
+  if(v>=1000) return 'R$ '+(v/1000).toFixed(0)+'k';
+  return fmt(v);
+}
+
+function renderResultado(d) {
+  document.getElementById('resultado').style.display = 'block';
+  document.getElementById('valPis').textContent = fmtK(d.totalPis);
+  document.getElementById('subPis').textContent = fmt(d.totalPis);
+  document.getElementById('valCofins').textContent = fmtK(d.totalCofins);
+  document.getElementById('subCofins').textContent = fmt(d.totalCofins);
+  document.getElementById('valTotal').textContent = fmtK(d.totalGeral);
+  document.getElementById('subTotal').textContent = fmt(d.totalGeral);
+  document.getElementById('resumoItens').textContent =
+    `${d.totalItens.toLocaleString('pt-BR')} elegíveis de ${d.totalLinhas.toLocaleString('pt-BR')} analisados`;
+
+  const tbody = document.getElementById('tabelaBody');
+  tbody.innerHTML = '';
+  d.periodos.forEach(p => {
+    const r = d.porPeriodo[p];
+    tbody.innerHTML += `<tr><td>${p}</td><td class="num">${r.itens.toLocaleString('pt-BR')}</td><td class="num">${fmt(r.pis)}</td><td class="num">${fmt(r.cofins)}</td><td class="num destaque">${fmt(r.total)}</td></tr>`;
+  });
+  document.getElementById('tabelaFoot').innerHTML = `
+    <td style="padding:10px 14px;color:#F0D080;">TOTAL</td>
+    <td class="num" style="padding:10px 14px;color:#F0D080;">${d.totalItens.toLocaleString('pt-BR')}</td>
+    <td class="num" style="padding:10px 14px;color:#F0D080;">${fmt(d.totalPis)}</td>
+    <td class="num" style="padding:10px 14px;color:#F0D080;">${fmt(d.totalCofins)}</td>
+    <td class="num" style="padding:10px 14px;color:#F0D080;font-weight:700;">${fmt(d.totalGeral)}</td>`;
+
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(document.getElementById('chartPeriodos'), {
+    type:'bar',
+    data:{
+      labels:d.periodos,
+      datasets:[
+        {label:'PIS',data:d.periodos.map(p=>d.porPeriodo[p].pis),backgroundColor:'#185FA5',borderWidth:0},
+        {label:'COFINS',data:d.periodos.map(p=>d.porPeriodo[p].cofins),backgroundColor:'#C9A84C',borderWidth:0}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{stacked:true,ticks:{font:{size:9},maxRotation:60}},
+        y:{stacked:true,ticks:{callback:v=>'R$ '+(v/1000).toFixed(0)+'k',font:{size:10}}}
+      }
+    }
+  });
+  document.getElementById('resultado').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── EXPORTAR ──────────────────────────────────────────────────────────────────
+function exportarCSV() {
+  if(!dadosAnalise) return;
+  const d = dadosAnalise;
+  let csv = 'Período;Itens;PIS a Recuperar;COFINS a Recuperar;Total a Recuperar\n';
+  d.periodos.forEach(p => {
+    const r=d.porPeriodo[p];
+    csv+=`${p};${r.itens};${r.pis.toFixed(2).replace('.',',')};${r.cofins.toFixed(2).replace('.',',')};${r.total.toFixed(2).replace('.',',')}\n`;
+  });
+  csv+=`TOTAL;${d.totalItens};${d.totalPis.toFixed(2).replace('.',',')};${d.totalCofins.toFixed(2).replace('.',',')};${d.totalGeral.toFixed(2).replace('.',',')}\n`;
+  baixar('\uFEFF'+csv,'recuperacao_pis_cofins_base.csv','text/csv;charset=utf-8;');
+}
+
+function exportarRelatorio() {
+  if(!dadosAnalise) return;
+  const d=dadosAnalise, hoje=new Date().toLocaleDateString('pt-BR');
+  const linhas=d.periodos.map(p=>{const r=d.porPeriodo[p];return`<tr><td>${p}</td><td style="text-align:right">${r.itens.toLocaleString('pt-BR')}</td><td style="text-align:right">${fmt(r.pis)}</td><td style="text-align:right">${fmt(r.cofins)}</td><td style="text-align:right;font-weight:600;color:#1A7F74">${fmt(r.total)}</td></tr>`;}).join('');
+  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Diagnóstico JCR</title>
+  <style>body{font-family:Arial,sans-serif;max-width:800px;margin:0 auto;padding:2rem;color:#1B3A6B}
+  h1{color:#0F1E3C;border-bottom:3px solid #C9A84C;padding-bottom:.5rem}
+  .box{background:#F4F1EB;border-radius:8px;padding:1rem;margin:1rem 0}
+  table{width:100%;border-collapse:collapse;margin:1rem 0}
+  th{background:#0F1E3C;color:#F0D080;padding:8px 12px;text-align:left;font-size:12px}
+  td{padding:8px 12px;border-bottom:1px solid #eee;font-size:13px}
+  .total{background:#0F1E3C;color:#F0D080;font-weight:700}
+  .alerta{background:#FFF8E7;border-left:4px solid #C9A84C;padding:1rem;font-size:13px}
+  </style></head><body>
+  <h1>Diagnóstico de Recuperação Tributária</h1>
+  <p><strong>Tese:</strong> Exclusão do PIS/COFINS da Própria Base (Gross Up Reverso)</p>
+  <p><strong>Tipo:</strong> Judicial (JUD) | <strong>Fundamento:</strong> RE 574.706/PR | <strong>Data:</strong> ${hoje}</p>
+  <div class="box"><strong>Total identificado (sem SELIC):</strong><br>
+  PIS: ${fmt(d.totalPis)} | COFINS: ${fmt(d.totalCofins)} | <strong>TOTAL: ${fmt(d.totalGeral)}</strong></div>
+  <table><thead><tr><th>Período</th><th>Itens</th><th>PIS</th><th>COFINS</th><th>Total</th></tr></thead>
+  <tbody>${linhas}</tbody>
+  <tfoot><tr class="total"><td>TOTAL</td><td style="text-align:right">${d.totalItens.toLocaleString('pt-BR')}</td><td style="text-align:right">${fmt(d.totalPis)}</td><td style="text-align:right">${fmt(d.totalCofins)}</td><td style="text-align:right">${fmt(d.totalGeral)}</td></tr></tfoot>
+  </table>
+  <div class="alerta">⚠ <strong>Importante:</strong> Valores sem correção SELIC. Validar itens com regime especial antes de protocolar. Tese requer ação judicial.</div>
+  <p style="margin-top:2rem;font-size:11px;color:#999">JCR Consultoria e Serviços Tributários — Campinas, SP</p>
+  </body></html>`;
+  baixar(html,'relatorio_recuperacao_pis_cofins_base.html','text/html;charset=utf-8;');
+}
+
+function baixar(conteudo, nome, tipo) {
+  const blob=new Blob([conteudo],{type:tipo});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=nome; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+</script>
+</body>
+</html>
