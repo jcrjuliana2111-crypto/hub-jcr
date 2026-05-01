@@ -161,10 +161,11 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 <div class="modal-overlay" id="modalOverlay" onclick="fecharModal(event)">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title">➕ Adicionar ferramenta</div>
+      <div class="modal-title" id="modal-title">➕ Adicionar ferramenta</div>
       <button class="modal-close" onclick="fecharModal()">✕</button>
     </div>
     <div class="modal-body">
+      <input type="hidden" id="m-id" value="">
       <div class="mfield"><label>Nome da ferramenta</label><input type="text" id="m-nome" placeholder="Ex: Calculadora de DIFAL"></div>
       <div class="mfield"><label>Arquivo HTML (nome do arquivo)</label><input type="text" id="m-arquivo" placeholder="Ex: calculadora_difal.html"></div>
       <div class="mfield-row">
@@ -187,7 +188,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
     </div>
     <div class="modal-foot">
       <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
-      <button class="btn-salvar" onclick="salvarFerramenta()">✓ Adicionar</button>
+      <button class="btn-salvar" id="btn-salvar" onclick="salvarFerramenta()">✓ Adicionar</button>
     </div>
   </div>
 </div>
@@ -315,7 +316,10 @@ function cardHTML(f) {
           onclick="window.open('${f.arquivo}','_blank')">
           Abrir ${f.nome.split('—')[0].trim()} →
         </button>
-        ${!f.padrao ? `<button onclick="remover('${f.id}')" style="width:100%;margin-top:6px;padding:6px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text3);font-size:11px;cursor:pointer;font-family:var(--font-body)">🗑️ Remover</button>` : ''}
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button onclick="editarFerramenta('${f.id}')" style="flex:1;padding:6px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text3);font-size:11px;cursor:pointer;font-family:var(--font-body);transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">✏️ Editar</button>
+          ${!f.padrao ? `<button onclick="remover('${f.id}')" style="flex:1;padding:6px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text3);font-size:11px;cursor:pointer;font-family:var(--font-body);transition:all .15s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">🗑️ Remover</button>` : ''}
+        </div>
       </div>
     </div>`;
 }
@@ -335,6 +339,9 @@ function corTexto(hex) {
 function abrirModal(cat) {
   limparModal();
   if (cat) document.getElementById('m-cat').value = cat;
+  document.getElementById('m-id').value = '';
+  document.getElementById('modal-title').textContent = '➕ Adicionar ferramenta';
+  document.getElementById('btn-salvar').textContent = '✓ Adicionar';
   document.getElementById('modalOverlay').classList.add('open');
 }
 
@@ -378,11 +385,51 @@ function salvarFerramenta() {
     padrao: false
   };
 
-  ferramentas.push(nova);
+  const idExistente = document.getElementById('m-id').value;
+  if (idExistente) {
+    // Editar — preservar flag padrao se existir
+    const idx = ferramentas.findIndex(x=>x.id===idExistente);
+    if (idx >= 0) {
+      nova.id = idExistente;
+      nova.padrao = ferramentas[idx].padrao || false;
+      ferramentas[idx] = nova;
+    }
+  } else {
+    // Novo
+    ferramentas.push(nova);
+  }
   filtradas = [...ferramentas];
   salvarExtras();
   document.getElementById('modalOverlay').classList.remove('open');
   filtrar();
+}
+
+function editarFerramenta(id) {
+  const f = ferramentas.find(x=>x.id===id);
+  if (!f) return;
+
+  // Preencher modal com dados da ferramenta
+  document.getElementById('m-id').value = f.id;
+  document.getElementById('m-nome').value = f.nome || '';
+  document.getElementById('m-arquivo').value = f.arquivo || '';
+  document.getElementById('m-sub').value = f.sub || '';
+  document.getElementById('m-desc').value = f.desc || '';
+  document.getElementById('m-itens').value = (f.itens || []).join('\n');
+  document.getElementById('m-tag').value = f.tag || '';
+  document.getElementById('m-cor').value = f.cor || '#4f8ef7';
+  document.getElementById('m-icon').value = f.icon || '🔧';
+
+  // Selecionar categoria
+  const catSel = document.getElementById('m-cat');
+  for (let o of catSel.options) {
+    if (o.value === f.categoria) { o.selected = true; break; }
+  }
+
+  // Atualizar título e botão do modal
+  document.getElementById('modal-title').textContent = '✏️ Editar ferramenta';
+  document.getElementById('btn-salvar').textContent = '✓ Salvar alterações';
+
+  document.getElementById('modalOverlay').classList.add('open');
 }
 
 function remover(id) {
