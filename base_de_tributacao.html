@@ -7,75 +7,73 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font-sans,system-ui,sans-serif);font-size:13px;background:var(--color-background-primary,#fff);color:var(--color-text-primary,#111);min-height:100vh}
-
-/* ---- TOP HEADER ---- */
-.header{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--color-border-secondary,#e2e2e2);background:var(--color-background-primary,#fff);position:sticky;top:0;z-index:100}
-.header-title{font-size:14px;font-weight:600;color:var(--color-text-primary,#111);white-space:nowrap}
+.header{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--color-border-secondary,#e2e2e2);background:var(--color-background-primary,#fff);position:sticky;top:0;z-index:100;flex-wrap:wrap}
+.header-title{font-size:14px;font-weight:600;white-space:nowrap}
 .header-subtitle{font-size:11px;color:var(--color-text-secondary,#888)}
 .header-sep{width:1px;height:28px;background:var(--color-border-secondary,#e2e2e2);margin:0 4px}
-.company-selector-wrap{display:flex;align-items:center;gap:8px;flex:1}
+.company-selector-wrap{display:flex;align-items:center;gap:8px;flex:1;min-width:200px}
 .company-selector-wrap label{font-size:11px;color:var(--color-text-secondary,#888);white-space:nowrap}
 .company-selector{padding:5px 10px;border-radius:6px;border:1px solid var(--color-border-secondary,#e2e2e2);background:var(--color-background-primary,#fff);color:var(--color-text-primary,#111);font-size:13px;font-family:inherit;cursor:pointer;min-width:180px}
 .company-badge{display:inline-flex;align-items:center;gap:5px;background:var(--color-background-secondary,#f5f5f5);border:1px solid var(--color-border-secondary,#e2e2e2);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--color-text-secondary,#666)}
 .company-badge .dot{width:7px;height:7px;border-radius:50%;background:#1D9E75}
-.btn-add-company{padding:5px 12px;border-radius:6px;border:1px dashed var(--color-border-secondary,#ccc);background:transparent;color:var(--color-text-secondary,#666);font-size:12px;font-family:inherit;cursor:pointer;white-space:nowrap}
+.btn-add-company{padding:5px 12px;border-radius:6px;border:1px dashed #ccc;background:transparent;color:var(--color-text-secondary,#666);font-size:12px;font-family:inherit;cursor:pointer;white-space:nowrap}
 .btn-add-company:hover{background:var(--color-background-secondary,#f5f5f5);border-color:#1D9E75;color:#1D9E75}
-
-/* ---- APP ---- */
 .app{padding:1rem 16px}
-
-/* ---- NO COMPANY STATE ---- */
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:12px;text-align:center}
 .empty-state .icon{font-size:40px;opacity:.4}
-.empty-state h2{font-size:16px;font-weight:600;color:var(--color-text-primary,#111)}
+.empty-state h2{font-size:16px;font-weight:600}
 .empty-state p{font-size:13px;color:var(--color-text-secondary,#888);max-width:380px;line-height:1.6}
-
-/* ---- MODAL ---- */
-.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center}
+/* MODALS */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center;padding:16px}
 .modal-backdrop.open{display:flex}
-.modal{background:var(--color-background-primary,#fff);border-radius:10px;padding:24px;width:100%;max-width:500px;box-shadow:0 8px 40px rgba(0,0,0,.18);position:relative}
+.modal{background:var(--color-background-primary,#fff);border-radius:10px;padding:24px;width:100%;max-width:520px;box-shadow:0 8px 40px rgba(0,0,0,.18);position:relative;max-height:90vh;overflow-y:auto}
+.modal.wide{max-width:700px}
 .modal h2{font-size:15px;font-weight:600;margin-bottom:4px}
-.modal p{font-size:12px;color:var(--color-text-secondary,#888);margin-bottom:16px;line-height:1.5}
-.modal-close{position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;font-size:16px;color:var(--color-text-secondary,#888);line-height:1}
+.modal-desc{font-size:12px;color:var(--color-text-secondary,#888);margin-bottom:16px;line-height:1.5}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;font-size:18px;color:var(--color-text-secondary,#888);line-height:1;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px}
+.modal-close:hover{background:var(--color-background-secondary,#f5f5f5)}
 .form-field{margin-bottom:12px}
 .form-field label{display:block;font-size:11px;color:var(--color-text-secondary,#888);margin-bottom:4px;font-weight:500}
 .form-field input,.form-field select,.form-field textarea{width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--color-border-secondary,#e2e2e2);background:var(--color-background-primary,#fff);color:var(--color-text-primary,#111);font-size:13px;font-family:inherit}
-.form-field textarea{height:70px;resize:vertical;line-height:1.5}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{outline:none;border-color:#1D9E75}
+.form-field textarea{height:60px;resize:vertical;line-height:1.5}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;border-top:1px solid var(--color-border-secondary,#e2e2e2);padding-top:14px}
-.btn{padding:7px 14px;border-radius:6px;border:0.5px solid var(--color-border-secondary,#e2e2e2);background:var(--color-background-primary,#fff);color:var(--color-text-primary,#111);font-size:13px;font-family:inherit;cursor:pointer;white-space:nowrap}
+.modal-tabs{display:flex;gap:0;border-bottom:1px solid var(--color-border-secondary,#e2e2e2);margin-bottom:16px}
+.modal-tab{padding:6px 14px;font-size:12px;font-family:inherit;border:none;background:transparent;cursor:pointer;color:var(--color-text-secondary,#666);border-bottom:2px solid transparent;margin-bottom:-1px}
+.modal-tab.active{color:var(--color-text-primary,#111);border-bottom-color:#1D9E75;font-weight:500}
+.modal-tab-panel{display:none}.modal-tab-panel.active{display:block}
+/* BUTTONS */
+.btn{padding:7px 14px;border-radius:6px;border:0.5px solid var(--color-border-secondary,#e2e2e2);background:var(--color-background-primary,#fff);color:var(--color-text-primary,#111);font-size:13px;font-family:inherit;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
 .btn:hover{background:var(--color-background-secondary,#f5f5f5)}
 .btn-primary{background:#1D9E75;color:#fff;border-color:#1D9E75}.btn-primary:hover{background:#167a5b}
 .btn-danger{border-color:#E24B4A;color:#A32D2D;background:#FCEBEB}.btn-danger:hover{background:#F7C1C1}
 .btn-restore{border-color:#1D9E75;color:#0F6E56;background:#E1F5EE}.btn-restore:hover{background:#9FE1CB}
-
-/* ---- COMPANY HEADER ---- */
+.btn-sm{padding:5px 10px;font-size:12px}
+/* COMPANY HEADER */
 .company-header{background:var(--color-background-secondary,#f5f5f5);border-radius:8px;padding:12px 14px;margin-bottom:1rem;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.company-info h2{font-size:15px;font-weight:600;color:var(--color-text-primary,#111)}
-.company-info .meta{font-size:11px;color:var(--color-text-secondary,#888);margin-top:3px;line-height:1.6}
+.company-info h2{font-size:15px;font-weight:600}
+.company-info .meta{font-size:11px;color:var(--color-text-secondary,#888);margin-top:3px;line-height:1.7}
 .company-actions{display:flex;gap:6px;flex-wrap:wrap}
-
-/* ---- TABS ---- */
+/* TABS */
 .tabs-nav{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1.5px solid var(--color-border-secondary,#e2e2e2);margin-bottom:1rem}
 .tab-btn{padding:7px 14px;font-size:12px;font-family:inherit;border:none;background:transparent;cursor:pointer;color:var(--color-text-secondary,#666);border-bottom:2px solid transparent;margin-bottom:-1.5px;white-space:nowrap;border-radius:4px 4px 0 0}
 .tab-btn:hover{background:var(--color-background-secondary,#f5f5f5)}
 .tab-btn.active{color:var(--color-text-primary,#111);border-bottom-color:#1D9E75;font-weight:500;background:var(--color-background-secondary,#f5f5f5)}
 .tab-panel{display:none}.tab-panel.active{display:block}
-
-/* ---- CARDS ---- */
+/* CARDS */
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px;margin-bottom:1rem}
 .card{background:var(--color-background-secondary,#f5f5f5);border-radius:8px;padding:10px 12px}
 .card-label{font-size:11px;color:var(--color-text-secondary,#666);margin-bottom:3px}
-.card-val{font-size:18px;font-weight:500;color:var(--color-text-primary,#111)}
+.card-val{font-size:18px;font-weight:500}
 .card-sub{font-size:11px;color:var(--color-text-secondary,#666);margin-top:2px}
-
-/* ---- TOPBAR ---- */
+/* TOPBAR */
 .topbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:1rem}
 .topbar input,.topbar select{padding:7px 10px;border-radius:6px;border:0.5px solid var(--color-border-secondary,#e2e2e2);background:var(--color-background-primary,#fff);color:var(--color-text-primary,#111);font-size:13px;font-family:inherit}
 .topbar input{flex:1;min-width:180px}
 .topbar select{cursor:pointer}
-
-/* ---- TABLES ---- */
+/* TABLES */
 .table-wrap{overflow-x:auto;border-radius:8px;border:0.5px solid var(--color-border-tertiary,#e8e8e8)}
 table{width:100%;border-collapse:collapse}
 thead th{background:var(--color-background-secondary,#f5f5f5);padding:8px 10px;text-align:left;font-weight:500;color:var(--color-text-secondary,#666);font-size:11px;white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary,#e8e8e8)}
@@ -83,110 +81,105 @@ thead th:first-child{width:36px;text-align:center}
 tbody td{padding:7px 10px;border-bottom:0.5px solid var(--color-border-tertiary,#e8e8e8);color:var(--color-text-primary,#111);vertical-align:middle;font-size:12px}
 tbody tr:last-child td{border-bottom:none}
 tbody tr:hover{background:var(--color-background-secondary,#f5f5f5)}
-tbody tr.excluded{opacity:0.35;background:var(--color-background-secondary,#f5f5f5)}
+tbody tr.excluded{opacity:0.35;background:var(--color-background-secondary,#f5f5f5)!important}
 tbody tr.excluded td{text-decoration:line-through;color:var(--color-text-tertiary,#999)}
-
-/* ---- BADGES ---- */
+.alert-row td{background:#FAEEDA!important}
+.alert-row.excluded td{background:var(--color-background-secondary,#f5f5f5)!important}
+/* BADGES */
 .badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;white-space:nowrap}
 .b-green{background:#EAF3DE;color:#3B6D11}.b-amber{background:#FAEEDA;color:#854F0B}.b-blue{background:#E6F1FB;color:#185FA5}
 .b-coral{background:#FAECE7;color:#993C1D}.b-teal{background:#E1F5EE;color:#0F6E56}.b-gray{background:#F1EFE8;color:#5F5E5A}
 .b-red{background:#FCEBEB;color:#A32D2D}.b-purple{background:#EEEDFE;color:#534AB7}
-.ncm{font-family:monospace;font-size:11px;color:var(--color-text-secondary,#666)}
-.alert-row td{background:#FAEEDA!important}
-.alert-row.excluded td{background:var(--color-background-secondary,#f5f5f5)!important}
-.count{font-size:12px;color:var(--color-text-secondary,#666);margin-bottom:6px}
-.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
-.leg-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--color-text-secondary,#666)}
+.ncm-code{font-family:monospace;font-size:11px;color:var(--color-text-secondary,#666)}
+/* ACTION BAR */
 .action-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0;margin-bottom:8px;border-bottom:0.5px solid var(--color-border-tertiary,#e8e8e8)}
 .sel-count{font-size:12px;color:var(--color-text-secondary,#666)}
+.count-label{font-size:12px;color:var(--color-text-secondary,#666);margin-bottom:6px}
 input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:#1D9E75}
-
-/* ---- SECTION ---- */
-.section-title{font-size:13px;font-weight:600;color:var(--color-text-primary,#111);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--color-border-secondary,#e2e2e2)}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--color-text-secondary,#666)}
+/* SECTION */
+.section-title{font-size:13px;font-weight:600;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--color-border-secondary,#e2e2e2)}
 .section-desc{font-size:12px;color:var(--color-text-secondary,#666);margin-bottom:10px}
 .info-box{background:var(--color-background-secondary,#f5f5f5);border-left:3px solid #1D9E75;padding:10px 12px;border-radius:0 6px 6px 0;margin-bottom:12px;font-size:12px;line-height:1.6}
 .info-box.warn{border-left-color:#E8930A}.info-box.danger{border-left-color:#E24B4A}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-@media(max-width:600px){.grid-2{grid-template-columns:1fr}}
+@media(max-width:640px){.grid-2,.form-row,.form-row-3{grid-template-columns:1fr}}
 .sub-section{margin-bottom:16px}
-.matrix-table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+/* MATRIX */
+.matrix-table{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
 .matrix-table th{background:var(--color-background-secondary,#f5f5f5);padding:7px 10px;font-size:11px;font-weight:500;color:var(--color-text-secondary,#666);border:0.5px solid var(--color-border-tertiary,#e8e8e8);text-align:center}
 .matrix-table td{padding:6px 10px;border:0.5px solid var(--color-border-tertiary,#e8e8e8);text-align:center;font-size:12px}
 .matrix-table .uf-label{font-weight:600;background:var(--color-background-secondary,#f5f5f5);text-align:left}
-.cell-12{background:#E1F5EE;color:#0F6E56;font-weight:500}.cell-7{background:#E6F1FB;color:#185FA5;font-weight:500}
-.cell-17{background:#FAEEDA;color:#854F0B;font-weight:500}.cell-18{background:#FAECE7;color:#993C1D;font-weight:500}
-.cell-same{background:#F1EFE8;color:#5F5E5A;font-weight:500}
+.cell-12{background:#E1F5EE;color:#0F6E56;font-weight:500}.cell-7{background:#E6F1FB;color:#185FA5;font-weight:500}.cell-same{background:#F1EFE8;color:#5F5E5A;font-weight:500}
+/* IMPORT */
+.import-zone{border:2px dashed var(--color-border-secondary,#e2e2e2);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
+.import-zone:hover,.import-zone.drag-over{border-color:#1D9E75;background:#f0fdf7}
+.import-zone p{font-size:12px;color:var(--color-text-secondary,#666);margin-top:6px}
+.import-zone .iz-icon{font-size:28px}
+.chip{display:inline-block;background:var(--color-background-secondary,#f5f5f5);border:1px solid var(--color-border-secondary,#e2e2e2);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;margin:2px}
 </style>
 </head>
 <body>
 
-<!-- ===== HEADER ===== -->
 <div class="header">
   <div>
     <div class="header-title">📊 Base de Tributação</div>
-    <div class="header-subtitle">Ferramenta de parametrização fiscal por empresa</div>
+    <div class="header-subtitle">Parametrização fiscal por empresa</div>
   </div>
   <div class="header-sep"></div>
   <div class="company-selector-wrap">
     <label>Empresa:</label>
     <select class="company-selector" id="company-selector" onchange="loadCompany(this.value)">
-      <option value="">— Selecione uma empresa —</option>
+      <option value="">— Selecione —</option>
     </select>
     <span class="company-badge" id="active-badge" style="display:none"><span class="dot"></span><span id="active-badge-text"></span></span>
   </div>
-  <button class="btn-add-company" onclick="openModal('new')">+ Nova empresa</button>
+  <button class="btn-add-company" onclick="openCompanyModal('new')">+ Nova empresa</button>
 </div>
 
-<!-- ===== APP ===== -->
 <div class="app">
-  <!-- Empty state -->
   <div class="empty-state" id="empty-state">
     <div class="icon">🏢</div>
     <h2>Nenhuma empresa selecionada</h2>
-    <p>Selecione uma empresa no menu acima para visualizar a base de tributação, ou clique em <strong>+ Nova empresa</strong> para cadastrar.</p>
+    <p>Selecione uma empresa no menu ou clique em <strong>+ Nova empresa</strong> para cadastrar.</p>
   </div>
 
-  <!-- Company content -->
   <div id="company-content" style="display:none">
-
     <div class="company-header">
       <div class="company-info">
         <h2 id="ch-nome"></h2>
         <div class="meta" id="ch-meta"></div>
       </div>
       <div class="company-actions">
-        <button class="btn" onclick="openModal('edit')">✏️ Editar empresa</button>
-        <button class="btn btn-danger" onclick="deleteCompany()">🗑 Excluir empresa</button>
+        <button class="btn btn-sm" onclick="openCompanyModal('edit')">✏️ Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCompany()">🗑 Excluir</button>
       </div>
     </div>
 
     <div class="tabs-nav">
       <button class="tab-btn active" onclick="showTab('tab-ncm',this)">📋 Base NCM</button>
       <button class="tab-btn" onclick="showTab('tab-icms',this)">🗺️ ICMS por UF</button>
-      <button class="tab-btn" onclick="showTab('tab-interestadual',this)">↔️ Vendas Interestaduais</button>
+      <button class="tab-btn" onclick="showTab('tab-interestadual',this)">↔️ Interestaduais</button>
       <button class="tab-btn" onclick="showTab('tab-difal',this)">⚡ DIFAL</button>
       <button class="tab-btn" onclick="showTab('tab-transferencia',this)">🔄 Transferências</button>
       <button class="tab-btn" onclick="showTab('tab-importacao',this)">🌍 Importação</button>
       <button class="tab-btn" onclick="showTab('tab-st',this)">🔒 ICMS-ST</button>
     </div>
 
-    <!-- TAB NCM -->
     <div class="tab-panel active" id="tab-ncm">
       <div class="cards" id="summary-cards"></div>
       <div class="legend">
-        <div class="leg-item"><span class="badge b-green">Alíq. Zero</span> PIS/COFINS zero</div>
-        <div class="leg-item"><span class="badge b-teal">Isento ICMS</span> cesta básica / verificar</div>
-        <div class="leg-item"><span class="badge b-amber">Verificar</span> atenção especial</div>
-        <div class="leg-item"><span class="badge b-red">Alerta</span> fora do core</div>
-        <div class="leg-item"><span class="badge b-gray">Não alimentício</span> uso/consumo/ativo</div>
+        <div class="leg-item"><span class="badge b-green">0%</span> PIS/COFINS zero</div>
+        <div class="leg-item"><span class="badge b-teal">Isento</span> ICMS isento</div>
+        <div class="leg-item"><span class="badge b-amber">Verificar</span> atenção</div>
+        <div class="leg-item"><span class="badge b-red">Alerta</span> requer análise</div>
       </div>
       <div class="topbar">
-        <input type="text" id="busca" placeholder="Buscar produto ou NCM..." oninput="renderNcm()">
+        <input type="text" id="busca" placeholder="Buscar NCM, produto, grupo..." oninput="renderNcm()">
         <select id="filtro-grupo" onchange="renderNcm()"><option value="">Todos os grupos</option></select>
         <select id="filtro-alerta" onchange="renderNcm()">
-          <option value="">Todos</option>
-          <option value="ok">Sem alertas</option>
-          <option value="alerta">Com alerta</option>
+          <option value="">Todos</option><option value="ok">Sem alertas</option><option value="alerta">Com alerta</option>
         </select>
         <select id="filtro-excluidos" onchange="renderNcm()">
           <option value="ativos">Ocultar excluídos</option>
@@ -195,535 +188,228 @@ input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:#1D9E75}
         </select>
       </div>
       <div class="action-bar">
-        <button class="btn" onclick="selectAll()">Selecionar todos visíveis</button>
-        <button class="btn" onclick="clearSel()">Limpar seleção</button>
+        <button class="btn btn-sm" onclick="selectAll()">Selecionar visíveis</button>
+        <button class="btn btn-sm" onclick="clearSel()">Limpar seleção</button>
         <span class="sel-count" id="sel-count">0 selecionados</span>
         <div style="flex:1"></div>
-        <button class="btn btn-danger" onclick="excluirSelecionados()">Excluir selecionados</button>
-        <button class="btn btn-restore" onclick="restaurarSelecionados()">Restaurar selecionados</button>
+        <button class="btn btn-sm" onclick="openImportModal()">⬆️ Importar itens</button>
+        <button class="btn btn-sm btn-primary" onclick="openAddItemModal()">+ Adicionar item</button>
+        <button class="btn btn-sm btn-danger" onclick="excluirSelecionados()">Excluir sel.</button>
+        <button class="btn btn-sm btn-restore" onclick="restaurarSelecionados()">Restaurar sel.</button>
       </div>
-      <div class="count" id="count-label"></div>
+      <div class="count-label" id="count-label"></div>
       <div class="table-wrap">
         <table>
           <thead><tr>
             <th><input type="checkbox" id="chk-all" onchange="toggleAll(this.checked)"></th>
-            <th>NCM</th><th>Descrição resumida</th><th>Grupo</th>
+            <th>NCM</th><th>Descrição</th><th>Grupo</th>
             <th>PIS</th><th>COFINS</th><th>IPI</th>
-            <th>ICMS (referência)</th><th>ST?</th><th>Observação / Alerta</th>
+            <th>ICMS ref.</th><th>ST?</th><th>Observação</th><th></th>
           </tr></thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- TAB ICMS -->
     <div class="tab-panel" id="tab-icms">
       <div class="section-title">Alíquotas internas de ICMS — estados da empresa</div>
       <div class="section-desc" id="icms-desc"></div>
       <div id="icms-content"></div>
     </div>
 
-    <!-- TAB INTERESTADUAL -->
     <div class="tab-panel" id="tab-interestadual">
-      <div class="section-title">Alíquotas interestaduais de ICMS — operações de saída</div>
-      <div class="section-desc">Alíquotas aplicáveis nas vendas interestaduais (B2B), conforme Resolução Senado nº 22/1989. Para B2C aplica-se DIFAL.</div>
+      <div class="section-title">Alíquotas interestaduais de ICMS</div>
+      <div class="section-desc">Vendas B2B conforme Res. Senado 22/1989. Para B2C aplica-se DIFAL.</div>
       <div id="interestadual-content"></div>
     </div>
 
-    <!-- TAB DIFAL -->
     <div class="tab-panel" id="tab-difal">
       <div class="section-title">DIFAL — Diferencial de Alíquota</div>
-      <div class="section-desc">Incide em vendas B2C para outro estado e em aquisições de ativo imobilizado/uso e consumo interestadual.</div>
+      <div class="section-desc">Vendas B2C para outro estado e aquisições de ativo / uso e consumo interestaduais.</div>
       <div id="difal-content"></div>
     </div>
 
-    <!-- TAB TRANSFERÊNCIA -->
     <div class="tab-panel" id="tab-transferencia">
-      <div class="section-title">Transferências entre filiais — ICMS</div>
-      <div class="section-desc">Regras conforme ADC 49/STF e Convênio ICMS 109/2024 — opção de destaque do ICMS para fins de crédito.</div>
+      <div class="section-title">Transferências entre filiais</div>
+      <div class="section-desc">Regras conforme ADC 49/STF e Convênio ICMS 109/2024.</div>
       <div id="transferencia-content"></div>
     </div>
 
-    <!-- TAB IMPORTAÇÃO -->
     <div class="tab-panel" id="tab-importacao">
-      <div class="section-title">Importação / Entrada de mercadoria do exterior</div>
-      <div class="section-desc">Tributos incidentes na importação — II, IPI, PIS-Imp, COFINS-Imp, ICMS-Imp.</div>
+      <div class="section-title">Importação — entrada do exterior</div>
+      <div class="section-desc">Tributos incidentes: II, IPI, PIS-Imp, COFINS-Imp e ICMS-Imp.</div>
       <div id="importacao-content"></div>
     </div>
 
-    <!-- TAB ST -->
     <div class="tab-panel" id="tab-st">
       <div class="section-title">ICMS-ST — Substituição Tributária</div>
-      <div class="section-desc">Produtos sujeitos ao regime de ST por estado.</div>
+      <div class="section-desc">Situação de ST dos produtos por estado.</div>
       <div id="st-content"></div>
     </div>
+  </div>
+</div>
 
-  </div><!-- /company-content -->
-</div><!-- /app -->
-
-<!-- ===== MODAL ===== -->
-<div class="modal-backdrop" id="modal-backdrop">
+<!-- MODAL EMPRESA -->
+<div class="modal-backdrop" id="modal-company">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal()">✕</button>
-    <h2 id="modal-title">Nova empresa</h2>
-    <p id="modal-desc">Preencha os dados da empresa. Os detalhes de cada aba poderão ser editados depois diretamente na ferramenta.</p>
+    <button class="modal-close" onclick="closeModal('modal-company')">✕</button>
+    <h2 id="mc-title">Nova empresa</h2>
+    <div class="modal-desc">Dados cadastrais. NCMs e parâmetros são configurados separadamente por empresa.</div>
     <div class="form-row">
-      <div class="form-field">
-        <label>Nome da empresa *</label>
-        <input type="text" id="f-nome" placeholder="Ex: Patagonia">
+      <div class="form-field"><label>Nome *</label><input type="text" id="f-nome" placeholder="Ex: Patagonia"></div>
+      <div class="form-field"><label>Setor / foco</label><input type="text" id="f-setor" placeholder="Ex: Alimentos, Farmácia"></div>
+    </div>
+    <div class="form-field"><label>Estados com filiais (separados por vírgula)</label><input type="text" id="f-estados" placeholder="Ex: SP, PR, SC"></div>
+    <div class="form-row">
+      <div class="form-field"><label>Regime tributário</label>
+        <select id="f-regime"><option>Lucro Real</option><option>Lucro Presumido</option><option>Simples Nacional</option></select>
       </div>
-      <div class="form-field">
-        <label>Setor / foco</label>
-        <input type="text" id="f-setor" placeholder="Ex: Alimentos, Varejo, Logística">
-      </div>
+      <div class="form-field"><label>CNPJ (opcional)</label><input type="text" id="f-cnpj" placeholder="00.000.000/0000-00"></div>
     </div>
-    <div class="form-field">
-      <label>Estados com filiais (separados por vírgula)</label>
-      <input type="text" id="f-estados" placeholder="Ex: SP, PR, SC, RO, PE">
-    </div>
-    <div class="form-field">
-      <label>Regime tributário</label>
-      <select id="f-regime">
-        <option value="Lucro Real">Lucro Real</option>
-        <option value="Lucro Presumido">Lucro Presumido</option>
-        <option value="Simples Nacional">Simples Nacional</option>
-      </select>
-    </div>
-    <div class="form-field">
-      <label>Observações gerais</label>
-      <textarea id="f-obs" placeholder="Informações relevantes sobre a empresa, operações especiais, etc."></textarea>
-    </div>
+    <div class="form-field"><label>Observações</label><textarea id="f-obs" placeholder="Informações relevantes sobre as operações..."></textarea></div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn" onclick="closeModal('modal-company')">Cancelar</button>
       <button class="btn btn-primary" onclick="saveCompany()">Salvar empresa</button>
     </div>
   </div>
 </div>
 
+<!-- MODAL ITEM -->
+<div class="modal-backdrop" id="modal-add-item">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-add-item')">✕</button>
+    <h2 id="mai-title">Adicionar item</h2>
+    <div class="modal-desc">Dados tributários do produto para esta empresa.</div>
+    <input type="hidden" id="ai-edit-id">
+    <div class="form-row">
+      <div class="form-field"><label>NCM *</label><input type="text" id="ai-ncm" placeholder="00000000" maxlength="8"></div>
+      <div class="form-field"><label>Grupo</label><input type="text" id="ai-grupo" placeholder="Ex: Bovino, Ativo/TI"></div>
+    </div>
+    <div class="form-field"><label>Descrição *</label><input type="text" id="ai-desc" placeholder="Descreva o produto"></div>
+    <div class="form-row-3">
+      <div class="form-field"><label>PIS</label><input type="text" id="ai-pis" placeholder="0%, 1,65%"></div>
+      <div class="form-field"><label>COFINS</label><input type="text" id="ai-cofins" placeholder="0%, 7,60%"></div>
+      <div class="form-field"><label>IPI</label><input type="text" id="ai-ipi" placeholder="0%, Verificar"></div>
+    </div>
+    <div class="form-field"><label>ICMS (referência)</label><input type="text" id="ai-icms" placeholder="Ex: 12% SP/PR · 7% interestadual"></div>
+    <div class="form-field"><label>ST?</label><input type="text" id="ai-st" placeholder="Ex: ST — SP obrigatória, Não usual, Verificar"></div>
+    <div class="form-field"><label>Observação</label><textarea id="ai-obs" placeholder="Legislação, pontos de atenção..."></textarea></div>
+    <div class="form-field">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="ai-alerta" style="width:14px;height:14px"> Marcar como alerta (destaca em amarelo)
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-add-item')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveItem()">Salvar item</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL IMPORTAR -->
+<div class="modal-backdrop" id="modal-import">
+  <div class="modal wide">
+    <button class="modal-close" onclick="closeModal('modal-import')">✕</button>
+    <h2>Importar itens</h2>
+    <div class="modal-tabs">
+      <button class="modal-tab active" onclick="showImportTab('it-csv',this)">📄 CSV</button>
+      <button class="modal-tab" onclick="showImportTab('it-json',this)">{ } JSON</button>
+      <button class="modal-tab" onclick="showImportTab('it-manual',this)">✏️ Texto manual</button>
+    </div>
+
+    <div class="modal-tab-panel active" id="it-csv">
+      <div class="import-zone" id="drop-zone" onclick="document.getElementById('file-input').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+        <div class="iz-icon">📂</div>
+        <strong>Clique para selecionar ou arraste o arquivo CSV</strong>
+        <p>Colunas esperadas (separador: <code>;</code> ou <code>,</code>):<br>
+        <span class="chip">ncm</span><span class="chip">desc</span><span class="chip">grupo</span><span class="chip">pis</span><span class="chip">cofins</span><span class="chip">ipi</span><span class="chip">icms</span><span class="chip">st</span><span class="chip">obs</span><span class="chip">alerta</span></p>
+      </div>
+      <input type="file" id="file-input" accept=".csv,.txt" style="display:none" onchange="handleFileSelect(event)">
+      <div id="csv-preview" class="import-preview" style="margin-top:12px"></div>
+      <div class="info-box" style="margin-top:12px">A coluna <code>alerta</code> aceita: <code>sim</code> / <code>nao</code> / <code>true</code> / <code>false</code>. A 1ª linha deve ser o cabeçalho.</div>
+    </div>
+
+    <div class="modal-tab-panel" id="it-json">
+      <div class="form-field">
+        <label>Cole o JSON (array de objetos)</label>
+        <textarea id="json-input" style="height:160px;font-family:monospace;font-size:11px" placeholder='[{"ncm":"02044200","desc":"Cordeiro cortes","grupo":"Cordeiro","pis":"0%","cofins":"0%","ipi":"0%","icms":"12%","st":"Não usual","obs":"Lei 10.925/04","alerta":false}]'></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="importJson()">Processar JSON</button>
+      <div id="json-preview" style="margin-top:12px"></div>
+    </div>
+
+    <div class="modal-tab-panel" id="it-manual">
+      <div class="form-field">
+        <label>Uma linha por item: <code>NCM;Descrição;Grupo;PIS;COFINS;IPI;ICMS;ST;Obs;Alerta</code></label>
+        <textarea id="manual-input" style="height:160px;font-family:monospace;font-size:11px" placeholder="02044200;Cordeiro cortes;Cordeiro;0%;0%;0%;12%;Não usual;Lei 10.925/04;nao"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="importManual()">Processar linhas</button>
+      <div id="manual-preview" style="margin-top:12px"></div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:8px">
+      <button class="btn" onclick="closeModal('modal-import')">Fechar</button>
+      <button class="btn btn-primary" id="btn-confirm-import" style="display:none" onclick="confirmImport()">✅ Confirmar importação</button>
+    </div>
+  </div>
+</div>
+
 <script>
-// ============================== DATA STORE ==============================
-// Each company has: id, nome, setor, estados[], regime, obs, ncms[], excluded (Set->Array), state per tab
+const STORAGE_KEY='base_tributacao_v3';
+const PATAGONIA_ID='patagonia';
+function loadStore(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}catch(e){return{}}}
+function saveStore(d){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(d))}catch(e){}}
 
-const STORAGE_KEY = 'base_tributacao_empresas';
+let store=loadStore();
+let currentId=null;
+let excluded=new Set();
+let selected=new Set();
+let visibleIds=[];
+let currentNcms=[];
+let companyModalMode='new';
+let pendingImport=[];
 
-function loadStore(){
-  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'); }catch(e){return {};}
-}
-function saveStore(data){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }catch(e){}
-}
-
-let store = loadStore();
-let currentCompanyId = null;
-let excluded = new Set();
-let selected = new Set();
-let visibleIds = [];
-let currentNcms = [];
-let modalMode = 'new'; // 'new' | 'edit'
-
-// ============================== PATAGONIA DEFAULT DATA ==============================
-const PATAGONIA_ID = 'patagonia';
-const PATAGONIA_DATA = {
-  id: PATAGONIA_ID,
-  nome: 'Patagonia',
-  setor: 'Alimentos — carnes, peixes, queijos, congelados',
-  estados: ['SP','PR','SC','RO','PE'],
-  regime: 'Lucro Real',
-  obs: 'Foco em produtos alimentícios da Lei 10.925/04. Importa cordeiro, bacalhau e wagyu — atentar para alíquota interestadual de 4% (Res. SF 13/12). Tem filiais em SP, PR, SC, RO e PE.',
-  ncms: [
-    {id:0,ncm:'20041000',desc:'Batata congelada (pré-frita)',grupo:'Batata',pis:'0%',cofins:'0%',ipi:'0%',icms:'12% SC/PR/SP · 17% RO · 18% PE',st:'Verificar protocolo',obs:'Lei 10.925/04. ST pode incidir em alguns estados.',alerta:false},
-    {id:1,ncm:'02044200',desc:'Cordeiro — cortes com osso (costela, carré, paleta, pernil)',grupo:'Cordeiro',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE · 12% SC/RO',st:'Não usual',obs:'Lei 10.925/04. Se importado: alíq. interestadual 4%.',alerta:false},
-    {id:2,ncm:'02044300',desc:'Cordeiro — cortes desossados (alcatra)',grupo:'Cordeiro',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE · 12% SC/RO',st:'Não usual',obs:'Lei 10.925/04.',alerta:false},
-    {id:3,ncm:'02043000',desc:'Carcaça inteira de cordeiro',grupo:'Cordeiro',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE · 12% SC/RO',st:'Não usual',obs:'Lei 10.925/04.',alerta:false},
-    {id:4,ncm:'03046290',desc:'Filé de peixe congelado (Pangasius)',grupo:'Peixe',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE — verificar SC/RO',st:'Verificar',obs:'Lei 10.925/04. Se importado: 4% interestadual.',alerta:false},
-    {id:5,ncm:'08111000',desc:'Morango congelado',grupo:'Outros alimentos',pis:'0%',cofins:'0%',ipi:'0%',icms:'Verificar isenção por UF',st:'Não usual',obs:'Frutas congeladas — verificar benefício ICMS por UF.',alerta:false},
-    {id:6,ncm:'04061010',desc:'Queijo mozzarella / mussarela',grupo:'Queijo',pis:'0%',cofins:'0%',ipi:'0%',icms:'12% SP/PR/SC · 17% RO · 18% PE. ST em SP.',st:'ST — SP obrigatória',obs:'Lei 10.925/04. ST em SP (Protocolo 14/06).',alerta:true},
-    {id:7,ncm:'02013000',desc:'Carne bovina resfriada — cortes nobres (picanha, patinho)',grupo:'Bovino',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE · 12% SC/RO',st:'Não usual',obs:'Lei 10.925/04. Wagyu importado: 4% interestadual.',alerta:false},
-    {id:8,ncm:'02023000',desc:'Carne bovina congelada s/ osso (Wagyu, hamburguer)',grupo:'Bovino',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE · 12% SC/RO',st:'Não usual',obs:'Lei 10.925/04. Wagyu importado: alíq. 4%.',alerta:false},
-    {id:9,ncm:'02022090',desc:'Carne bovina congelada c/ osso (costela, t-bone)',grupo:'Bovino',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE · 12% SC/RO',st:'Não usual',obs:'Lei 10.925/04.',alerta:false},
-    {id:10,ncm:'03053210',desc:'Filé de bacalhau seco (Gadus morhua)',grupo:'Peixe',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PE — ST em SP para saída',st:'ST em SP — verificar',obs:'Lei 10.925/04. SP tem ST para bacalhau. Importado: 4%.',alerta:true},
-    {id:11,ncm:'03056910',desc:'Bacalhau saithe seco/salgado',grupo:'Peixe',pis:'0%',cofins:'0%',ipi:'0%',icms:'Verificar por UF',st:'Verificar ST',obs:'Lei 10.925/04. Confirmar ST por estado.',alerta:true},
-    {id:12,ncm:'21069090',desc:'Pizza (preparações alimentícias diversas)',grupo:'Outros alimentos',pis:'1,65%',cofins:'7,60%',ipi:'0%',icms:'12% SP/PR/SC · 17% RO · 18% PE',st:'Verificar',obs:'NCM genérico — PIS/COFINS regime normal.',alerta:true},
-    {id:13,ncm:'22021000',desc:'Refrigerante (Coca-Cola lata)',grupo:'Outros alimentos',pis:'Monofásico',cofins:'Monofásico',ipi:'0-4%',icms:'ST — Convênio ICMS 11/91 todos estados',st:'ST — obrigatória todos estados',obs:'ST obrigatória. PIS/COFINS monofásico.',alerta:true},
-    {id:14,ncm:'02032900',desc:'Carne suína congelada s/ osso (lombo, panceta)',grupo:'Suíno',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE · 12% SC/RO',st:'Verificar',obs:'Lei 10.925/04.',alerta:false},
-    {id:15,ncm:'02032200',desc:'Carne suína congelada c/ osso (sobrepaleta)',grupo:'Suíno',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE · 12% SC/RO',st:'Verificar',obs:'Lei 10.925/04.',alerta:false},
-    {id:16,ncm:'02101200',desc:'Bacon, linguiça, toucinho (salgados/defumados)',grupo:'Suíno',pis:'0%',cofins:'0%',ipi:'0%',icms:'Verificar ST embutidos por UF',st:'ST — SP e PR (Protocolo 119/12)',obs:'Lei 10.925/04. ST em SP e PR.',alerta:true},
-    {id:18,ncm:'16010000',desc:'Linguiça / embutido (toscana, calabresa)',grupo:'Suíno',pis:'0%',cofins:'0%',ipi:'0%',icms:'Verificar ST por UF',st:'ST — SP e PR',obs:'Protocolo 119/12.',alerta:true},
+// ---- PATAGONIA DATA — só injetada uma vez, isolada ----
+const PAT={
+  id:PATAGONIA_ID,nome:'Patagonia',setor:'Alimentos — carnes, peixes, queijos, congelados',
+  estados:['SP','PR','SC','RO','PE'],regime:'Lucro Real',cnpj:'',
+  obs:'Foco em produtos alimentícios da Lei 10.925/04. Importa cordeiro, bacalhau e wagyu — alíq. interestadual 4% (Res. SF 13/12). Filiais em SP, PR, SC, RO e PE.',
+  ncms:[
+    {id:1,ncm:'20041000',desc:'Batata congelada (pré-frita)',grupo:'Batata',pis:'0%',cofins:'0%',ipi:'0%',icms:'12% SC/PR/SP · 17% RO · 18% PE',st:'Verificar protocolo',obs:'Lei 10.925/04. ST pode incidir em alguns estados.',alerta:false},
+    {id:2,ncm:'02044200',desc:'Cordeiro — cortes com osso (costela, carré, paleta, pernil)',grupo:'Cordeiro',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE · 12% SC/RO',st:'Não usual',obs:'Lei 10.925/04. Se importado: alíq. interestadual 4%.',alerta:false},
+    {id:3,ncm:'02044300',desc:'Cordeiro — cortes desossados (alcatra)',grupo:'Cordeiro',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE · 12% SC/RO',st:'Não usual',obs:'Lei 10.925/04.',alerta:false},
+    {id:4,ncm:'02043000',desc:'Carcaça inteira de cordeiro',grupo:'Cordeiro',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE · 12% SC/RO',st:'Não usual',obs:'Lei 10.925/04.',alerta:false},
+    {id:5,ncm:'03046290',desc:'Filé de peixe congelado (Pangasius)',grupo:'Peixe',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE — verificar SC/RO',st:'Verificar',obs:'Lei 10.925/04. Se importado: 4% interestadual.',alerta:false},
+    {id:6,ncm:'08111000',desc:'Morango congelado',grupo:'Outros alimentos',pis:'0%',cofins:'0%',ipi:'0%',icms:'Verificar isenção por UF',st:'Não usual',obs:'Frutas congeladas — verificar benefício ICMS por UF.',alerta:false},
+    {id:7,ncm:'04061010',desc:'Queijo mozzarella / mussarela',grupo:'Queijo',pis:'0%',cofins:'0%',ipi:'0%',icms:'12% SP/PR/SC · 17% RO · 18% PE. ST em SP.',st:'ST — SP obrigatória',obs:'Lei 10.925/04. ST em SP (Protocolo 14/06).',alerta:true},
+    {id:8,ncm:'02013000',desc:'Carne bovina resfriada (picanha, patinho, coxão)',grupo:'Bovino',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE · 12% SC/RO',st:'Não usual',obs:'Lei 10.925/04. Wagyu importado: 4% interestadual.',alerta:false},
+    {id:9,ncm:'02023000',desc:'Carne bovina congelada s/ osso (Wagyu, hamburguer)',grupo:'Bovino',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE · 12% SC/RO',st:'Não usual',obs:'Lei 10.925/04. Wagyu importado: alíq. 4%.',alerta:false},
+    {id:10,ncm:'02022090',desc:'Carne bovina congelada c/ osso (costela, t-bone)',grupo:'Bovino',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE · 12% SC/RO',st:'Não usual',obs:'Lei 10.925/04.',alerta:false},
+    {id:11,ncm:'03053210',desc:'Filé de bacalhau seco (Gadus morhua)',grupo:'Peixe',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PE — ST em SP na saída',st:'ST em SP — verificar',obs:'Lei 10.925/04. SP tem ST para bacalhau. Importado: 4%.',alerta:true},
+    {id:12,ncm:'03056910',desc:'Bacalhau saithe seco/salgado',grupo:'Peixe',pis:'0%',cofins:'0%',ipi:'0%',icms:'Verificar por UF',st:'Verificar ST',obs:'Lei 10.925/04. Confirmar ST por estado.',alerta:true},
+    {id:13,ncm:'21069090',desc:'Pizza (preparações alimentícias diversas)',grupo:'Outros alimentos',pis:'1,65%',cofins:'7,60%',ipi:'0%',icms:'12% SP/PR/SC · 17% RO · 18% PE',st:'Verificar',obs:'NCM genérico — PIS/COFINS regime normal.',alerta:true},
+    {id:14,ncm:'22021000',desc:'Refrigerante',grupo:'Outros alimentos',pis:'Monofásico',cofins:'Monofásico',ipi:'0-4%',icms:'ST — Conv. ICMS 11/91 todos estados',st:'ST obrigatória todos estados',obs:'ST obrigatória. PIS/COFINS monofásico.',alerta:true},
+    {id:15,ncm:'02032900',desc:'Carne suína congelada s/ osso (lombo, panceta)',grupo:'Suíno',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE · 12% SC/RO',st:'Verificar',obs:'Lei 10.925/04.',alerta:false},
+    {id:16,ncm:'02032200',desc:'Carne suína congelada c/ osso (sobrepaleta)',grupo:'Suíno',pis:'0%',cofins:'0%',ipi:'0%',icms:'Isento SP/PR/PE · 12% SC/RO',st:'Verificar',obs:'Lei 10.925/04.',alerta:false},
+    {id:17,ncm:'02101200',desc:'Bacon, linguiça, toucinho (defumados/salgados)',grupo:'Suíno',pis:'0%',cofins:'0%',ipi:'0%',icms:'Verificar ST embutidos por UF',st:'ST — SP e PR (Protocolo 119/12)',obs:'Lei 10.925/04. ST em SP e PR.',alerta:true},
+    {id:18,ncm:'16010000',desc:'Linguiça / embutido (toscana, calabresa)',grupo:'Suíno',pis:'0%',cofins:'0%',ipi:'0%',icms:'Verificar ST por UF',st:'ST — SP e PR (Protocolo 119/12)',obs:'Protocolo 119/12.',alerta:true},
     {id:19,ncm:'02071433',desc:'Coração de frango congelado',grupo:'Outros alimentos',pis:'0%',cofins:'0%',ipi:'0%',icms:'Verificar por UF',st:'Não usual',obs:'Lei 10.925/04 — aves.',alerta:false},
-    {id:21,ncm:'22019000',desc:'Água mineral sem gás',grupo:'Outros alimentos',pis:'Monofásico',cofins:'Monofásico',ipi:'0%',icms:'ST — Convênio 11/91 todos estados',st:'ST obrigatória todos estados',obs:'ST todos estados. PIS/COFINS monofásico.',alerta:true},
-    {id:22,ncm:'00000000',desc:'Gorjeta (serviço)',grupo:'Não alimentício',pis:'—',cofins:'—',ipi:'—',icms:'Não incide ICMS',st:'—',obs:'NCM inválido — gorjeta é serviço.',alerta:true},
-    {id:23,ncm:'27101259',desc:'Gasolina comum',grupo:'Não alimentício',pis:'Monofásico',cofins:'Monofásico',ipi:'Verificar TIPI',icms:'ST — monofásico combustíveis',st:'ST obrigatória todos estados',obs:'Combustíveis: ST e PIS/COFINS monofásico.',alerta:true},
-    {id:33,ncm:'38089411',desc:'Desinfetante / saneantes',grupo:'Não alimentício',pis:'1,65%',cofins:'7,60%',ipi:'0%',icms:'ST — SP e PR',st:'ST — SP e PR (Protocolo 104/12)',obs:'SP e PR: ST para saneantes.',alerta:true},
-    {id:55,ncm:'48181000',desc:'Papel higiênico',grupo:'Não alimentício',pis:'1,65%',cofins:'7,60%',ipi:'0%',icms:'ST por UF',st:'ST — SP e PR',obs:'ST em vários estados.',alerta:true},
-    {id:57,ncm:'84439933',desc:'Toner / cartucho de impressora',grupo:'Ativo/TI',pis:'1,65%',cofins:'7,60%',ipi:'0%',icms:'ST em SP',st:'ST — SP',obs:'SP tem ST para toners.',alerta:true},
-    {id:58,ncm:'94013900',desc:'Cadeira de escritório (ativo imobilizado)',grupo:'Ativo/TI',pis:'1,65%',cofins:'7,60%',ipi:'0%',icms:'12% interestadual — DIFAL na entrada',st:'Não usual',obs:'Ativo imobilizado — crédito 1/48. DIFAL se interestadual.',alerta:true},
-    {id:62,ncm:'84718000',desc:'Computador desktop (ativo imobilizado)',grupo:'Ativo/TI',pis:'1,65%',cofins:'7,60%',ipi:'0%',icms:'12% interestadual — DIFAL',st:'Não usual',obs:'Ativo imobilizado.',alerta:true},
-    {id:70,ncm:'87088000',desc:'Peça automotiva',grupo:'Veículo/Peça',pis:'1,65%',cofins:'7,60%',ipi:'Verificar TIPI',icms:'ST — Convênio 132/92',st:'ST — Convênio ICMS 132/92 todos estados',obs:'Peças veículos: ST obrigatória.',alerta:true},
-    {id:72,ncm:'27101932',desc:'Óleo lubrificante (MOPAR)',grupo:'Veículo/Peça',pis:'Monofásico',cofins:'Monofásico',ipi:'Verificar TIPI',icms:'ST — Convênio 110/07 todos estados',st:'ST obrigatória — lubrificantes',obs:'ST e PIS/COFINS monofásico todos estados.',alerta:true},
-    {id:82,ncm:'27111290',desc:'Pano de microfibra — NCM INCORRETO',grupo:'Não alimentício',pis:'1,65%',cofins:'7,60%',ipi:'0%',icms:'Verificar',st:'Não usual',obs:'⚠️ NCM incorreto — gás de petróleo. Corrigir para 6307.9000.',alerta:true},
-    {id:69,ncm:'87163900',desc:'Semirreboque frigorífico (ativo imobilizado)',grupo:'Veículo/Peça',pis:'1,65%',cofins:'7,60%',ipi:'0%',icms:'12% — DIFAL se interestadual',st:'Não usual',obs:'Ativo imobilizado — crédito 1/48.',alerta:true},
+    {id:20,ncm:'22019000',desc:'Água mineral sem gás',grupo:'Outros alimentos',pis:'Monofásico',cofins:'Monofásico',ipi:'0%',icms:'ST — Conv. 11/91 todos estados',st:'ST obrigatória todos estados',obs:'ST todos estados. PIS/COFINS monofásico.',alerta:true},
+    {id:21,ncm:'00000000',desc:'Gorjeta (serviço)',grupo:'Não alimentício',pis:'—',cofins:'—',ipi:'—',icms:'Não incide ICMS',st:'—',obs:'NCM inválido — gorjeta é serviço.',alerta:true},
+    {id:22,ncm:'27101259',desc:'Gasolina comum',grupo:'Não alimentício',pis:'Monofásico',cofins:'Monofásico',ipi:'Verificar TIPI',icms:'ST — monofásico combustíveis',st:'ST obrigatória todos estados',obs:'Combustíveis: ST e PIS/COFINS monofásico.',alerta:true},
+    {id:23,ncm:'38089411',desc:'Desinfetante / saneantes',grupo:'Não alimentício',pis:'1,65%',cofins:'7,60%',ipi:'0%',icms:'ST — SP e PR',st:'ST — SP e PR (Protocolo 104/12)',obs:'SP e PR: ST para saneantes.',alerta:true},
+    {id:24,ncm:'48181000',desc:'Papel higiênico',grupo:'Não alimentício',pis:'1,65%',cofins:'7,60%',ipi:'0%',icms:'ST por UF',st:'ST — SP e PR',obs:'ST em vários estados.',alerta:true},
+    {id:25,ncm:'84439933',desc:'Toner / cartucho de impressora',grupo:'Ativo/TI',pis:'1,65%',cofins:'7,60%',ipi:'0%',icms:'ST em SP',st:'ST — SP',obs:'SP tem ST para toners.',alerta:true},
+    {id:26,ncm:'94013900',desc:'Cadeira de escritório (ativo imobilizado)',grupo:'Ativo/TI',pis:'1,65%',cofins:'7,60%',ipi:'0%',icms:'12% interestadual — DIFAL na entrada',st:'Não usual',obs:'Ativo imobilizado — crédito 1/48. DIFAL se interestadual.',alerta:true},
+    {id:27,ncm:'84718000',desc:'Computador desktop (ativo imobilizado)',grupo:'Ativo/TI',pis:'1,65%',cofins:'7,60%',ipi:'0%',icms:'12% interestadual — DIFAL',st:'Não usual',obs:'Ativo imobilizado.',alerta:true},
+    {id:28,ncm:'87088000',desc:'Peça automotiva',grupo:'Veículo/Peça',pis:'1,65%',cofins:'7,60%',ipi:'Verificar TIPI',icms:'ST — Conv. 132/92',st:'ST — Conv. ICMS 132/92 todos estados',obs:'Peças veículos: ST obrigatória.',alerta:true},
+    {id:29,ncm:'27101932',desc:'Óleo lubrificante (MOPAR / sintético)',grupo:'Veículo/Peça',pis:'Monofásico',cofins:'Monofásico',ipi:'Verificar TIPI',icms:'ST — Conv. 110/07 todos estados',st:'ST obrigatória lubrificantes',obs:'ST e PIS/COFINS monofásico todos estados.',alerta:true},
+    {id:30,ncm:'27111290',desc:'Pano de microfibra — NCM INCORRETO',grupo:'Não alimentício',pis:'1,65%',cofins:'7,60%',ipi:'0%',icms:'Verificar',st:'Não usual',obs:'⚠️ NCM 27111290 = gás de petróleo. Corrigir para 6307.9000.',alerta:true},
+    {id:31,ncm:'87163900',desc:'Semirreboque frigorífico (ativo imobilizado)',grupo:'Veículo/Peça',pis:'1,65%',cofins:'7,60%',ipi:'0%',icms:'12% — DIFAL se interestadual',st:'Não usual',obs:'Ativo imobilizado — crédito 1/48.',alerta:true},
   ],
-  excludedIds: []
-};
-
-// Inject Patagonia if not in store
-if(!store[PATAGONIA_ID]){
-  store[PATAGONIA_ID] = PATAGONIA_DATA;
-  saveStore(store);
-}
-
-// ============================== INIT ==============================
-function init(){
-  rebuildSelector();
-  // Auto-select if only one or if previously selected
-  const ids = Object.keys(store);
-  if(ids.length === 1) loadCompany(ids[0]);
-}
-
-function rebuildSelector(){
-  const sel = document.getElementById('company-selector');
-  const prev = sel.value;
-  sel.innerHTML = '<option value="">— Selecione uma empresa —</option>';
-  Object.values(store).forEach(c=>{
-    const o = document.createElement('option');
-    o.value = c.id;
-    o.textContent = c.nome + (c.setor ? ` — ${c.setor}` : '');
-    sel.appendChild(o);
-  });
-  if(prev && store[prev]) sel.value = prev;
-}
-
-// ============================== COMPANY LOAD ==============================
-function loadCompany(id){
-  if(!id){ showEmpty(); return; }
-  const c = store[id];
-  if(!c){ showEmpty(); return; }
-  currentCompanyId = id;
-  excluded = new Set(c.excludedIds || []);
-  selected = new Set();
-  currentNcms = c.ncms || [];
-
-  // Header
-  document.getElementById('ch-nome').textContent = c.nome;
-  document.getElementById('ch-meta').innerHTML =
-    `<strong>Regime:</strong> ${c.regime} &nbsp;·&nbsp; <strong>Estados:</strong> ${(c.estados||[]).join(', ')} &nbsp;·&nbsp; <strong>Setor:</strong> ${c.setor||'—'}` +
-    (c.obs ? `<br>${c.obs}` : '');
-
-  document.getElementById('active-badge-text').textContent = c.nome;
-  document.getElementById('active-badge').style.display = 'inline-flex';
-  document.getElementById('company-selector').value = id;
-
-  // Build grupo filter
-  const grupos = [...new Set(currentNcms.map(r=>r.grupo))].filter(Boolean);
-  const fg = document.getElementById('filtro-grupo');
-  fg.innerHTML = '<option value="">Todos os grupos</option>';
-  grupos.forEach(g=>{ const o=document.createElement('option');o.value=g;o.textContent=g;fg.appendChild(o); });
-
-  // Render tabs
-  renderNcm();
-  renderIcms(c);
-  renderInterestadual(c);
-  renderDifal(c);
-  renderTransferencia(c);
-  renderImportacao(c);
-  renderST(c);
-
-  // Reset to first tab
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tab-ncm').classList.add('active');
-  document.querySelector('.tab-btn').classList.add('active');
-
-  document.getElementById('empty-state').style.display='none';
-  document.getElementById('company-content').style.display='block';
-}
-
-function showEmpty(){
-  currentCompanyId=null;
-  document.getElementById('active-badge').style.display='none';
-  document.getElementById('empty-state').style.display='flex';
-  document.getElementById('company-content').style.display='none';
-}
-
-// ============================== TAB NAV ==============================
-function showTab(id,btn){
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  if(btn) btn.classList.add('active');
-}
-
-// ============================== NCM TAB ==============================
-function badgeGrupo(g){
-  const m={'Cordeiro':'b-teal','Bovino':'b-coral','Suíno':'b-amber','Peixe':'b-blue','Batata':'b-green','Queijo':'b-purple','Outros alimentos':'b-green','Não alimentício':'b-gray','Ativo/TI':'b-blue','Veículo/Peça':'b-coral'};
-  return`<span class="badge ${m[g]||'b-gray'}">${g}</span>`;
-}
-function badgePisCofins(v){
-  if(v==='0%')return`<span class="badge b-green">0%</span>`;
-  if(v&&v.includes('Monofásico'))return`<span class="badge b-amber">Monofásico</span>`;
-  if(v==='—')return`<span class="badge b-gray">—</span>`;
-  return`<span class="badge b-gray">${v}</span>`;
-}
-function badgeST(v){
-  if(!v) return`<span class="badge b-gray">—</span>`;
-  if(v.includes('obrigatória')||v.startsWith('ST —'))return`<span class="badge b-red">${v}</span>`;
-  if(v.includes('Verificar'))return`<span class="badge b-amber">${v}</span>`;
-  return`<span class="badge b-gray">${v}</span>`;
-}
-
-function renderNcm(){
-  const busca=(document.getElementById('busca').value||'').toLowerCase();
-  const grupo=document.getElementById('filtro-grupo').value;
-  const alertaF=document.getElementById('filtro-alerta').value;
-  const exclF=document.getElementById('filtro-excluidos').value;
-  let rows=currentNcms.filter(r=>{
-    const txt=(r.ncm+r.desc+r.grupo+r.obs+r.st).toLowerCase();
-    if(busca&&!txt.includes(busca))return false;
-    if(grupo&&r.grupo!==grupo)return false;
-    if(alertaF==='ok'&&r.alerta)return false;
-    if(alertaF==='alerta'&&!r.alerta)return false;
-    if(exclF==='ativos'&&excluded.has(r.id))return false;
-    if(exclF==='excluidos'&&!excluded.has(r.id))return false;
-    return true;
-  });
-  visibleIds=rows.map(r=>r.id);
-  document.getElementById('count-label').textContent=`${rows.length} NCM(s) exibido(s) · ${excluded.size} excluído(s)`;
-  const body=rows.map(r=>{
-    const isExc=excluded.has(r.id),isSel=selected.has(r.id);
-    return`<tr class="${r.alerta&&!isExc?'alert-row':''} ${isExc?'excluded':''}" id="row-${r.id}">
-      <td style="text-align:center"><input type="checkbox" ${isSel?'checked':''} onchange="toggleSel(${r.id},this.checked)"></td>
-      <td class="ncm">${r.ncm}</td>
-      <td style="max-width:200px">${r.desc}</td>
-      <td>${badgeGrupo(r.grupo)}</td>
-      <td>${badgePisCofins(r.pis)}</td><td>${badgePisCofins(r.cofins)}</td>
-      <td><span class="badge b-gray">${r.ipi}</span></td>
-      <td style="font-size:11px;color:var(--color-text-secondary,#666);max-width:150px">${r.icms}</td>
-      <td>${badgeST(r.st)}</td>
-      <td style="font-size:11px;color:var(--color-text-secondary,#666);max-width:190px">${r.obs}</td>
-    </tr>`;
-  }).join('');
-  document.getElementById('tbody').innerHTML=body;
-  updateSelCount();
-  updateCards();
-}
-function toggleSel(id,val){if(val)selected.add(id);else selected.delete(id);updateSelCount();}
-function updateSelCount(){document.getElementById('sel-count').textContent=`${selected.size} selecionado(s)`;}
-function selectAll(){visibleIds.forEach(id=>selected.add(id));renderNcm();}
-function clearSel(){selected.clear();renderNcm();}
-function toggleAll(v){if(v)visibleIds.forEach(id=>selected.add(id));else selected.clear();renderNcm();}
-function excluirSelecionados(){selected.forEach(id=>excluded.add(id));selected.clear();persistExcluded();renderNcm();}
-function restaurarSelecionados(){selected.forEach(id=>excluded.delete(id));selected.clear();persistExcluded();renderNcm();}
-function persistExcluded(){if(!currentCompanyId)return;store[currentCompanyId].excludedIds=[...excluded];saveStore(store);}
-
-function updateCards(){
-  const ativos=currentNcms.filter(r=>!excluded.has(r.id));
-  const aliment=ativos.filter(r=>!['Não alimentício','Ativo/TI','Veículo/Peça'].includes(r.grupo)).length;
-  const alertas=ativos.filter(r=>r.alerta).length;
-  const unicos=[...new Set(ativos.map(r=>r.ncm))].length;
-  const stC=ativos.filter(r=>r.st&&(r.st.includes('obrigatória')||r.st.startsWith('ST —'))).length;
-  document.getElementById('summary-cards').innerHTML=`
-    <div class="card"><div class="card-label">NCMs únicos (ativos)</div><div class="card-val">${unicos}</div></div>
-    <div class="card"><div class="card-label">Alimentícios</div><div class="card-val">${aliment}</div><div class="card-sub">PIS/COFINS zero ou monofásico</div></div>
-    <div class="card"><div class="card-label">Alertas ativos</div><div class="card-val" style="color:#854F0B">${alertas}</div></div>
-    <div class="card"><div class="card-label">Com ST</div><div class="card-val" style="color:#993C1D">${stC}</div></div>
-    <div class="card"><div class="card-label">Excluídos</div><div class="card-val" style="color:#A32D2D">${excluded.size}</div></div>`;
-}
-
-// ============================== ICMS TAB ==============================
-function renderIcms(c){
-  const estados = c.estados || [];
-  document.getElementById('icms-desc').textContent = `Estados com filiais: ${estados.join(', ')}. Alíquotas internas vigentes — verificar sempre a legislação atualizada de cada UF.`;
-  const ALIQ = {
-    SP:{geral:'18%',carnes:'Isento (cesta básica)',peixes:'Isento (cesta básica)',queijo:'12%',batata:'12%',bebidas:'ST — Conv. 11/91',ativo:'DIFAL + crédito 1/48'},
-    PR:{geral:'19%',carnes:'Isento (cesta básica)',peixes:'Isento/12%',queijo:'12%',batata:'12%',bebidas:'ST — Conv. 11/91',ativo:'DIFAL + crédito 1/48'},
-    SC:{geral:'17%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST — Conv. 11/91',ativo:'DIFAL + crédito 1/48'},
-    RO:{geral:'17,5%',carnes:'12%',peixes:'12%',queijo:'17%',batata:'17%',bebidas:'ST — Conv. 11/91',ativo:'DIFAL + crédito 1/48'},
-    PE:{geral:'18%',carnes:'Isento (cesta básica)',peixes:'Isento (cesta básica)',queijo:'18%',batata:'18%',bebidas:'ST — Conv. 11/91',ativo:'DIFAL + crédito 1/48'},
-    MG:{geral:'18%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST',ativo:'DIFAL + crédito 1/48'},
-    RJ:{geral:'20%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST',ativo:'DIFAL + crédito 1/48'},
-    RS:{geral:'17%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST',ativo:'DIFAL + crédito 1/48'},
-    GO:{geral:'17%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST',ativo:'DIFAL + crédito 1/48'},
-    MT:{geral:'17%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST',ativo:'DIFAL + crédito 1/48'},
-    BA:{geral:'19%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST',ativo:'DIFAL + crédito 1/48'},
-    CE:{geral:'18%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST',ativo:'DIFAL + crédito 1/48'},
-    MA:{geral:'18%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST',ativo:'DIFAL + crédito 1/48'},
-    PA:{geral:'17%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST',ativo:'DIFAL + crédito 1/48'},
-    AM:{geral:'18%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST',ativo:'DIFAL + crédito 1/48'},
-  };
-  const filialUfs = estados.filter(u=>ALIQ[u]);
-  if(!filialUfs.length){document.getElementById('icms-content').innerHTML='<div class="info-box warn">Nenhum estado cadastrado com dados disponíveis.</div>';return;}
-  let html = '<div class="grid-2">';
-  filialUfs.forEach(uf=>{
-    const a = ALIQ[uf]||{};
-    html+=`<div class="sub-section">
-      <div class="section-title" style="font-size:12px">🏭 ${uf}</div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Produto / Situação</th><th>Alíq. Interna</th></tr></thead>
-        <tbody>
-          <tr><td>Carnes bovinas/suínas/ovinas</td><td><span class="badge ${a.carnes&&a.carnes.includes('Isento')?'b-teal':'b-amber'}">${a.carnes||'—'}</span></td></tr>
-          <tr><td>Peixes</td><td><span class="badge ${a.peixes&&a.peixes.includes('Isento')?'b-teal':'b-amber'}">${a.peixes||'—'}</span></td></tr>
-          <tr><td>Queijos</td><td><span class="badge b-amber">${a.queijo||'—'}</span></td></tr>
-          <tr><td>Batata congelada</td><td><span class="badge b-amber">${a.batata||'—'}</span></td></tr>
-          <tr><td>Bebidas</td><td><span class="badge b-red">${a.bebidas||'—'}</span></td></tr>
-          <tr><td>Ativo imobilizado</td><td><span class="badge b-blue">${a.ativo||'—'}</span></td></tr>
-          <tr><td>Uso e consumo / geral</td><td><span class="badge b-gray">${a.geral||'—'}</span></td></tr>
-        </tbody>
-      </table></div>
-    </div>`;
-  });
-  html+='</div>';
-  html+='<div class="info-box warn"><strong>⚠️ Atenção:</strong> Alíquotas sujeitas a alterações. Validar sempre no SEFAZ de cada UF antes de parametrizar o sistema.</div>';
-  document.getElementById('icms-content').innerHTML=html;
-}
-
-// ============================== INTERESTADUAL TAB ==============================
-function getRegiao(uf){
-  const sul=['PR','SC','RS'];const sudeste=['SP','MG','RJ','ES'];
-  if(sul.includes(uf))return'Sul';if(sudeste.includes(uf))return'Sudeste';return'OutraRegiao';
-}
-function aliqInter(orig,dest){
-  const r1=getRegiao(orig),r2=getRegiao(dest);
-  if(orig===dest)return'same';
-  const sulSe=['Sul','Sudeste'];
-  if(sulSe.includes(r1)&&sulSe.includes(r2))return'12';
-  if(sulSe.includes(r1)&&!sulSe.includes(r2))return'7';
-  return'12';
-}
-function cellClass(a){return a==='same'?'cell-same':a==='7'?'cell-7':a==='12'?'cell-12':'cell-12';}
-function cellLabel(a,o,d){return a==='same'?'—':a+'%';}
-
-function renderInterestadual(c){
-  const estados = c.estados||[];
-  const destinos = ['SP','PR','SC','RO','PE','MG','RJ','RS','GO','MT','PA','AM','BA','CE','MA'];
-  let html = `<div class="info-box"><strong>Regra geral:</strong> Sul/Sudeste → Norte/Nordeste/CO/ES = <strong>7%</strong> &nbsp;·&nbsp; Sul/Sudeste → Sul/Sudeste = <strong>12%</strong> &nbsp;·&nbsp; Qualquer estado → produto importado = <strong>4%</strong> (Res. SF 13/2012)</div>`;
-  if(!estados.length){html+='<div class="info-box warn">Nenhum estado de origem cadastrado.</div>';document.getElementById('interestadual-content').innerHTML=html;return;}
-  html+=`<div class="sub-section"><div class="section-title" style="font-size:12px">Matriz — saídas dos estados da empresa (produtos nacionais)</div><div class="table-wrap"><table class="matrix-table"><thead><tr><th style="text-align:left">Origem → Destino</th>`;
-  destinos.forEach(d=>{html+=`<th>${d}</th>`;});
-  html+=`</tr></thead><tbody>`;
-  estados.filter(o=>destinos.includes(o)||!destinos.includes(o)).forEach(o=>{
-    html+=`<tr><td class="uf-label">🏭 ${o}</td>`;
-    destinos.forEach(d=>{
-      const a=aliqInter(o,d);
-      html+=`<td class="${cellClass(a)}">${cellLabel(a,o,d)}</td>`;
-    });
-    html+=`</tr>`;
-  });
-  html+=`</tbody></table></div></div>`;
-  html+=`<div class="sub-section"><div class="section-title" style="font-size:12px">Produtos importados — alíq. 4% (Res. SF 13/2012)</div>
-    <div class="info-box warn">Mercadorias importadas ou com conteúdo de importação &gt; 40% têm alíquota interestadual de <strong>4%</strong> em qualquer corredor. Verificar FCI (Ficha de Conteúdo de Importação).</div>
-    <div class="table-wrap"><table><thead><tr><th>Produto</th><th>NCM</th><th>Alíq. interestadual</th><th>FCI obrigatória?</th></tr></thead><tbody>
-      <tr><td>Cordeiro neozelandês/australiano</td><td class="ncm">02044200</td><td><span class="badge b-red">4%</span></td><td>Sim</td></tr>
-      <tr><td>Bacalhau Gadus morhua</td><td class="ncm">03053210</td><td><span class="badge b-red">4%</span></td><td>Sim</td></tr>
-      <tr><td>Wagyu importado</td><td class="ncm">02023000</td><td><span class="badge b-red">4%</span></td><td>Sim</td></tr>
-      <tr><td>Salmão norueguês</td><td class="ncm">03021400</td><td><span class="badge b-red">4%</span></td><td>Sim</td></tr>
-      <tr><td>Carnes nacionais</td><td class="ncm">02013000</td><td><span class="badge b-blue">7% ou 12%</span></td><td>Não</td></tr>
-    </tbody></table></div></div>`;
-  document.getElementById('interestadual-content').innerHTML=html;
-}
-
-// ============================== DIFAL TAB ==============================
-function aliqInterna(uf){return{SP:18,PR:19,SC:17,RO:17.5,PE:18,MG:18,RJ:20,RS:17,GO:17,MT:17,BA:19,CE:18,MA:18,PA:17,AM:18}[uf]||18;}
-function renderDifal(c){
-  const estados=c.estados||[];
-  let html=`<div class="grid-2"><div>
-    <div class="info-box"><strong>DIFAL B2C (EC 87/2015 + LC 190/2022):</strong><br>Nas vendas para consumidor final não contribuinte de outro estado, o DIFAL é a diferença entre a alíq. interna do destino e a alíq. interestadual. A partir de 2024, 100% ao estado de destino.<br><br><strong>Fórmula:</strong> DIFAL = (BC × alíq. interna destino) − (BC × alíq. interestadual)</div>`;
-  if(estados.length){
-    const origem=estados[0];
-    const destinos=['PR','SC','RO','PE','MG','RJ','RS','GO','BA','CE'].filter(d=>d!==origem);
-    html+=`<div class="sub-section"><div class="section-title" style="font-size:12px">DIFAL B2C — saídas de ${origem} para consumidor final</div><div class="table-wrap"><table><thead><tr><th>Destino</th><th>Alíq. interna destino</th><th>Alíq. interestad.</th><th>DIFAL</th></tr></thead><tbody>`;
-    destinos.forEach(d=>{
-      const ai=aliqInterna(d),inter=aliqInter(origem,d)==='7'?7:12;
-      const difal=ai-inter;
-      html+=`<tr><td>${d}</td><td>${ai}%</td><td>${inter}%</td><td><span class="badge ${difal>=10?'b-coral':difal>=6?'b-amber':'b-green'}">${difal}%</span></td></tr>`;
-    });
-    html+=`</tbody></table></div></div>`;
-  }
-  html+=`</div><div>
-    <div class="sub-section"><div class="section-title" style="font-size:12px">DIFAL na entrada — ativo/uso e consumo</div>
-    <div class="info-box">Quando a empresa adquire <strong>ativo imobilizado</strong> ou <strong>material de uso e consumo</strong> de outro estado, deve recolher DIFAL para o seu estado.<br><br>Exemplo: Filial SP compra computador de MG → DIFAL = 18% − 12% = <strong>6% para SP</strong></div>
-    <div class="table-wrap"><table><thead><tr><th>Filial destinatária</th><th>Alíq. interna</th><th>Se origem Sul/SE (12%)</th><th>Se origem N/NE/CO (7%)</th></tr></thead><tbody>`;
-  estados.forEach(uf=>{
-    const ai=aliqInterna(uf);
-    const d1=ai-12,d2=ai-7;
-    html+=`<tr><td>${uf}</td><td>${ai}%</td><td><span class="badge ${d1>=8?'b-coral':d1>=5?'b-amber':'b-green'}">${d1}% DIFAL</span></td><td><span class="badge ${d2>=10?'b-coral':d2>=6?'b-amber':'b-green'}">${d2}% DIFAL</span></td></tr>`;
-  });
-  html+=`</tbody></table></div></div>
-    <div class="info-box warn" style="margin-top:8px"><strong>⚠️ Ativo imobilizado:</strong> Crédito de ICMS apropriado em 1/48 por mês (art. 20 §5º LC 87/96). Verificar se o estado destino permite crédito do DIFAL sobre o ativo.</div>
-    <div class="info-box danger" style="margin-top:8px"><strong>🔴 Produto isento no destino:</strong> Se o produto tem isenção de ICMS na UF de destino (ex.: carne bovina em SP), não há DIFAL a recolher.</div>
-  </div></div>`;
-  document.getElementById('difal-content').innerHTML=html;
-}
-
-// ============================== TRANSFERÊNCIA TAB ==============================
-function renderTransferencia(c){
-  const estados=c.estados||[];
-  let html=`<div class="info-box danger"><strong>🔴 ADC 49 / Convênio ICMS 109/2024:</strong> O STF declarou que transferência entre estabelecimentos do mesmo titular <strong>não é fato gerador do ICMS</strong>. Porém, via LC 204/2023, o contribuinte pode optar pelo destaque do ICMS para transferência do crédito ao estabelecimento destino.</div>
-  <div class="grid-2"><div>
-    <div class="sub-section"><div class="section-title" style="font-size:12px">Corredores da empresa</div>
-    <div class="table-wrap"><table><thead><tr><th>Corredor</th><th>ICMS na NF</th><th>Crédito</th><th>CFOP</th></tr></thead><tbody>`;
-  const pares=[];
-  estados.forEach((o,i)=>estados.forEach((d,j)=>{if(i<j)pares.push([o,d]);}));
-  if(!pares.length) html+=`<tr><td colspan="4" style="text-align:center;color:var(--color-text-secondary,#666)">Menos de 2 estados cadastrados.</td></tr>`;
-  pares.forEach(([o,d])=>{
-    html+=`<tr><td>${o} → ${d}</td><td><span class="badge b-amber">Opcional</span></td><td>Transferível ao destino</td><td class="ncm">6.152 / 6.153</td></tr>`;
-    html+=`<tr><td>${d} → ${o}</td><td><span class="badge b-amber">Opcional</span></td><td>Transferível ao destino</td><td class="ncm">6.152 / 6.153</td></tr>`;
-  });
-  html+=`</tbody></table></div></div></div>
-  <div>
-    <div class="sub-section"><div class="section-title" style="font-size:12px">CFOPs aplicáveis</div>
-    <div class="table-wrap"><table><thead><tr><th>CFOP</th><th>Descrição</th></tr></thead><tbody>
-      <tr><td class="ncm">5.152</td><td>Transf. prod. fabricação própria — intraestadual</td></tr>
-      <tr><td class="ncm">5.153</td><td>Transf. mercadoria adquirida — intraestadual</td></tr>
-      <tr><td class="ncm">6.152</td><td>Transf. prod. fabricação própria — interestadual</td></tr>
-      <tr><td class="ncm">6.153</td><td>Transf. mercadoria adquirida — interestadual</td></tr>
-    </tbody></table></div></div>
-    <div class="info-box warn" style="margin-top:8px"><strong>PIS/COFINS:</strong> Transferências não geram receita — <strong>não há PIS/COFINS</strong>. O crédito permanece no estabelecimento que realizou a aquisição.</div>
-    <div class="info-box" style="margin-top:8px"><strong>Parametrização:</strong> Recomenda-se optar pelo destaque do ICMS para manutenção do crédito. Confirmar com contabilidade.</div>
-  </div></div>`;
-  document.getElementById('transferencia-content').innerHTML=html;
-}
-
-// ============================== IMPORTAÇÃO TAB ==============================
-function renderImportacao(c){
-  const estados=c.estados||[];
-  const ICMS_IMP={SP:{carnes:'Isento',peixes:'Isento',queijo:'12%',outros:'12%'},PR:{carnes:'Isento',peixes:'Isento/12%',queijo:'12%',outros:'12%'},SC:{carnes:'12%',peixes:'12%',queijo:'12%',outros:'12%'},RO:{carnes:'12%',peixes:'12%',queijo:'17%',outros:'17%'},PE:{carnes:'Isento',peixes:'Isento',queijo:'18%',outros:'18%'}};
-  let html=`<div class="info-box"><strong>Tributos na importação:</strong> II + IPI + PIS-Import. + COFINS-Import. + ICMS-Import. + AFRMM (frete marítimo) + Taxa SISCOMEX</div>
-  <div class="grid-2"><div>
-    <div class="sub-section"><div class="section-title" style="font-size:12px">Produtos típicos — alíquotas federais</div>
-    <div class="table-wrap"><table><thead><tr><th>Produto</th><th>NCM</th><th>II</th><th>IPI</th><th>PIS-Imp</th><th>COFINS-Imp</th></tr></thead><tbody>
-      <tr><td>Cordeiro (cortes)</td><td class="ncm">02044200</td><td>10%</td><td>0%</td><td>2,10%</td><td>9,65%</td></tr>
-      <tr><td>Bacalhau seco</td><td class="ncm">03053210</td><td>10%</td><td>0%</td><td>2,10%</td><td>9,65%</td></tr>
-      <tr><td>Wagyu / bovino</td><td class="ncm">02023000</td><td>10%</td><td>0%</td><td>2,10%</td><td>9,65%</td></tr>
-      <tr><td>Filé de peixe</td><td class="ncm">03046290</td><td>10%</td><td>0%</td><td>2,10%</td><td>9,65%</td></tr>
-      <tr><td>Queijo mozzarella</td><td class="ncm">04061010</td><td>28%</td><td>0%</td><td>2,10%</td><td>9,65%</td></tr>
-    </tbody></table></div>
-    <div style="font-size:11px;color:var(--color-text-secondary,#666);margin-top:4px">ICMS import. calculado por dentro sobre (VA + II + IPI + PIS + COFINS + desp. aduaneiras). Alíq. = alíq. interna do estado importador.</div>
-    </div></div>
-  <div>
-    <div class="sub-section"><div class="section-title" style="font-size:12px">ICMS na importação por filial</div>
-    <div class="table-wrap"><table><thead><tr><th>Filial</th><th>Carnes/Peixes</th><th>Queijo</th><th>Outros</th></tr></thead><tbody>`;
-  estados.forEach(uf=>{
-    const d=ICMS_IMP[uf]||{carnes:'Verificar',peixes:'Verificar',queijo:'Verificar',outros:'Verificar'};
-    const bc=d.carnes&&d.carnes.includes('Isento')?'b-teal':'b-amber';
-    html+=`<tr><td>${uf}</td><td><span class="badge ${bc}">${d.carnes}</span></td><td><span class="badge b-amber">${d.queijo}</span></td><td><span class="badge b-gray">${d.outros}</span></td></tr>`;
-  });
-  html+=`</tbody></table></div></div>
-    <div class="sub-section"><div class="section-title" style="font-size:12px">CFOPs de importação</div>
-    <div class="table-wrap"><table><thead><tr><th>CFOP</th><th>Descrição</th></tr></thead><tbody>
-      <tr><td class="ncm">3.101</td><td>Compra p/ industrialização — importação direta</td></tr>
-      <tr><td class="ncm">3.102</td><td>Compra p/ comercialização — importação direta</td></tr>
-      <tr><td class="ncm">3.556</td><td>Uso e consumo — importação</td></tr>
-      <tr><td class="ncm">3.551</td><td>Ativo imobilizado — importação</td></tr>
-    </tbody></table></div></div>
-  </div></div>`;
-  document.getElementById('importacao-content').innerHTML=html;
-}
-
-// ============================== ST TAB ==============================
-function renderST(c){
-  const estados=c.estados||[];
-  const ST_MAP=[
-    {prod:'Refrigerantes e bebidas',ncm:'22021000',status:{SP:'ST',PR:'ST',SC:'ST',RO:'ST',PE:'ST',MG:'ST',RJ:'ST',RS:'ST',GO:'ST',MT:'ST',BA:'ST',CE:'ST'},base:'Convênio ICMS 11/91 — todos'},
+  // dados exclusivos Patagonia — NÃO copiados para novas empresas
+  stMap:[
+    {prod:'Refrigerantes e bebidas',ncm:'22021000',status:{SP:'ST',PR:'ST',SC:'ST',RO:'ST',PE:'ST'},base:'Convênio ICMS 11/91'},
     {prod:'Água mineral',ncm:'22019000',status:{SP:'ST',PR:'ST',SC:'ST',RO:'ST',PE:'ST'},base:'Convênio ICMS 11/91'},
     {prod:'Queijos',ncm:'04061010',status:{SP:'ST',PR:'Ver',SC:'Ver',RO:'Ver',PE:'Ver'},base:'Protocolo ICMS 14/06 (SP)'},
     {prod:'Bacalhau',ncm:'03053210',status:{SP:'ST',PR:'N',SC:'N',RO:'N',PE:'N'},base:'Portaria CAT SP'},
@@ -735,83 +421,433 @@ function renderST(c){
     {prod:'Lubrificantes',ncm:'27101932',status:{SP:'ST',PR:'ST',SC:'ST',RO:'ST',PE:'ST'},base:'Convênio ICMS 110/07'},
     {prod:'Peças automotivas',ncm:'87088000',status:{SP:'ST',PR:'ST',SC:'ST',RO:'ST',PE:'ST'},base:'Convênio ICMS 132/92'},
     {prod:'Carnes bovinas/suínas',ncm:'02013000',status:{SP:'N',PR:'N',SC:'N',RO:'N',PE:'N'},base:'Sem ST nacional'},
-    {prod:'Batata congelada',ncm:'20041000',status:{SP:'Ver',PR:'Ver',SC:'N',RO:'N',PE:'N'},base:'Verificar protocolos SP/PR'},
-  ];
-  let html=`<div class="info-box warn"><strong>⚠️ Atenção:</strong> Como revendedora, a empresa pode ser <strong>substituída tributária</strong> — verificar se os fornecedores já destacaram o ICMS-ST na NF de entrada antes de recalcular nas saídas.</div>
-  <div class="table-wrap"><table><thead><tr><th>Produto</th><th>NCM</th>`;
-  const cols = estados.length ? estados : ['SP','PR','SC','RO','PE'];
-  cols.forEach(u=>{html+=`<th>${u}</th>`;});
-  html+=`<th>Base legal</th></tr></thead><tbody>`;
-  ST_MAP.forEach(row=>{
-    html+=`<tr><td>${row.prod}</td><td class="ncm">${row.ncm}</td>`;
-    cols.forEach(u=>{
-      const s=row.status[u]||'Ver';
-      const cls=s==='ST'?'b-red':s==='Ver'?'b-amber':'b-gray';
-      const label=s==='N'?'Não usual':s==='Ver'?'Verificar':s;
-      html+=`<td><span class="badge ${cls}">${label}</span></td>`;
-    });
-    html+=`<td style="font-size:11px;color:var(--color-text-secondary,#666)">${row.base}</td></tr>`;
+    {prod:'Batata congelada',ncm:'20041000',status:{SP:'Ver',PR:'Ver',SC:'N',RO:'N',PE:'N'},base:'Verificar SP/PR'},
+  ],
+  importados:[
+    {prod:'Cordeiro neozelandês/australiano',ncm:'02044200',aliq:'4%',fci:'Sim'},
+    {prod:'Bacalhau Gadus morhua',ncm:'03053210',aliq:'4%',fci:'Sim'},
+    {prod:'Wagyu importado',ncm:'02023000',aliq:'4%',fci:'Sim'},
+    {prod:'Salmão norueguês',ncm:'03021400',aliq:'4%',fci:'Sim'},
+    {prod:'Carnes nacionais (bovino BR)',ncm:'02013000',aliq:'7% ou 12%',fci:'Não'},
+  ],
+  excludedIds:[],nextId:100
+};
+
+if(!store[PATAGONIA_ID]){store[PATAGONIA_ID]=JSON.parse(JSON.stringify(PAT));saveStore(store);}
+
+// ---- HELPERS ----
+function getRegiao(u){if(['PR','SC','RS'].includes(u))return'Sul';if(['SP','MG','RJ','ES'].includes(u))return'Sudeste';return'Outro';}
+function aliqInter(o,d){if(o===d)return'same';const ss=['Sul','Sudeste'];if(ss.includes(getRegiao(o))&&ss.includes(getRegiao(d)))return'12';if(ss.includes(getRegiao(o)))return'7';return'12';}
+function aliqInt(u){return{SP:18,PR:19,SC:17,RO:17.5,PE:18,MG:18,RJ:20,RS:17,GO:17,MT:17,BA:19,CE:18,MA:18,PA:17,AM:18}[u]||18;}
+function nid(c){c.nextId=(c.nextId||100)+1;return c.nextId-1;}
+
+// ---- INIT ----
+function init(){rebuildSelector();const ids=Object.keys(store);if(ids.length===1)loadCompany(ids[0]);}
+function rebuildSelector(){
+  const sel=document.getElementById('company-selector'),prev=sel.value;
+  sel.innerHTML='<option value="">— Selecione —</option>';
+  Object.values(store).forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.nome+(c.setor?` — ${c.setor}`:'');sel.appendChild(o);});
+  if(prev&&store[prev])sel.value=prev;
+}
+
+// ---- LOAD COMPANY ----
+function loadCompany(id){
+  if(!id){showEmpty();return;}
+  const c=store[id];if(!c){showEmpty();return;}
+  currentId=id;excluded=new Set(c.excludedIds||[]);selected=new Set();currentNcms=c.ncms||[];
+  document.getElementById('ch-nome').textContent=c.nome;
+  document.getElementById('ch-meta').innerHTML=
+    `<strong>Regime:</strong> ${c.regime} &nbsp;·&nbsp; <strong>Estados:</strong> ${(c.estados||[]).join(', ')||'—'} &nbsp;·&nbsp; <strong>Setor:</strong> ${c.setor||'—'}`+
+    (c.cnpj?` &nbsp;·&nbsp; <strong>CNPJ:</strong> ${c.cnpj}`:'')+
+    (c.obs?`<br>${c.obs}`:'');
+  document.getElementById('active-badge-text').textContent=c.nome;
+  document.getElementById('active-badge').style.display='inline-flex';
+  document.getElementById('company-selector').value=id;
+  rebuildGrupoFilter();
+  renderNcm();renderIcms(c);renderInterestadual(c);renderDifal(c);renderTransferencia(c);renderImportacao(c);renderST(c);
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-ncm').classList.add('active');
+  document.querySelector('.tab-btn').classList.add('active');
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('company-content').style.display='block';
+}
+function showEmpty(){currentId=null;document.getElementById('active-badge').style.display='none';document.getElementById('empty-state').style.display='flex';document.getElementById('company-content').style.display='none';}
+function showTab(id,btn){document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');if(btn)btn.classList.add('active');}
+function rebuildGrupoFilter(){
+  const grupos=[...new Set(currentNcms.map(r=>r.grupo))].filter(Boolean).sort();
+  const fg=document.getElementById('filtro-grupo');
+  fg.innerHTML='<option value="">Todos os grupos</option>';
+  grupos.forEach(g=>{const o=document.createElement('option');o.value=g;o.textContent=g;fg.appendChild(o);});
+}
+
+// ---- NCM TAB ----
+function bP(v){if(v==='0%')return`<span class="badge b-green">0%</span>`;if(v&&v.includes('Monofásico'))return`<span class="badge b-amber">Monofásico</span>`;if(v==='—')return`<span class="badge b-gray">—</span>`;return`<span class="badge b-gray">${v||'—'}</span>`;}
+function bS(v){if(!v||v==='—')return`<span class="badge b-gray">—</span>`;const vl=v.toLowerCase();if(vl.includes('obrigatória')||v.startsWith('ST —')||v.startsWith('ST ob'))return`<span class="badge b-red">${v}</span>`;if(vl.includes('verificar')||vl.includes('ver'))return`<span class="badge b-amber">${v}</span>`;return`<span class="badge b-gray">${v}</span>`;}
+function bG(g){const m={Cordeiro:'b-teal',Bovino:'b-coral',Suíno:'b-amber',Peixe:'b-blue',Batata:'b-green',Queijo:'b-purple','Outros alimentos':'b-green','Não alimentício':'b-gray','Ativo/TI':'b-blue','Veículo/Peça':'b-coral'};return`<span class="badge ${m[g]||'b-gray'}">${g||'—'}</span>`;}
+
+function renderNcm(){
+  const busca=(document.getElementById('busca').value||'').toLowerCase();
+  const grupo=document.getElementById('filtro-grupo').value;
+  const alertaF=document.getElementById('filtro-alerta').value;
+  const exclF=document.getElementById('filtro-excluidos').value;
+  let rows=currentNcms.filter(r=>{
+    if(busca&&!(r.ncm+r.desc+r.grupo+r.obs+r.st).toLowerCase().includes(busca))return false;
+    if(grupo&&r.grupo!==grupo)return false;
+    if(alertaF==='ok'&&r.alerta)return false;
+    if(alertaF==='alerta'&&!r.alerta)return false;
+    if(exclF==='ativos'&&excluded.has(r.id))return false;
+    if(exclF==='excluidos'&&!excluded.has(r.id))return false;
+    return true;
   });
-  html+=`</tbody></table></div>
-  <div class="sub-section" style="margin-top:12px"><div class="section-title" style="font-size:12px">Fórmula ICMS-ST</div>
+  visibleIds=rows.map(r=>r.id);
+  document.getElementById('count-label').textContent=`${rows.length} NCM(s) exibido(s) · ${excluded.size} excluído(s)`;
+  document.getElementById('tbody').innerHTML=rows.map(r=>{
+    const isExc=excluded.has(r.id),isSel=selected.has(r.id);
+    return`<tr class="${r.alerta&&!isExc?'alert-row':''} ${isExc?'excluded':''}" id="row-${r.id}">
+      <td style="text-align:center"><input type="checkbox" ${isSel?'checked':''} onchange="toggleSel(${r.id},this.checked)"></td>
+      <td class="ncm-code">${r.ncm}</td><td style="max-width:200px">${r.desc}</td>
+      <td>${bG(r.grupo)}</td><td>${bP(r.pis)}</td><td>${bP(r.cofins)}</td>
+      <td><span class="badge b-gray">${r.ipi||'—'}</span></td>
+      <td style="font-size:11px;color:var(--color-text-secondary,#666);max-width:130px">${r.icms||'—'}</td>
+      <td>${bS(r.st)}</td>
+      <td style="font-size:11px;color:var(--color-text-secondary,#666);max-width:170px">${r.obs||''}</td>
+      <td><button class="btn btn-sm" style="padding:3px 7px;font-size:11px" onclick="openEditItem(${r.id})">✏️</button></td>
+    </tr>`;
+  }).join('');
+  updateSelCount();updateCards();
+}
+function toggleSel(id,v){if(v)selected.add(id);else selected.delete(id);updateSelCount();}
+function updateSelCount(){document.getElementById('sel-count').textContent=`${selected.size} selecionado(s)`;}
+function selectAll(){visibleIds.forEach(id=>selected.add(id));renderNcm();}
+function clearSel(){selected.clear();renderNcm();}
+function toggleAll(v){if(v)visibleIds.forEach(id=>selected.add(id));else selected.clear();renderNcm();}
+function excluirSelecionados(){selected.forEach(id=>excluded.add(id));selected.clear();persist();renderNcm();}
+function restaurarSelecionados(){selected.forEach(id=>excluded.delete(id));selected.clear();persist();renderNcm();}
+function persist(){if(!currentId)return;store[currentId].excludedIds=[...excluded];saveStore(store);}
+function updateCards(){
+  const a=currentNcms.filter(r=>!excluded.has(r.id));
+  const alim=a.filter(r=>!['Não alimentício','Ativo/TI','Veículo/Peça'].includes(r.grupo)).length;
+  const al=a.filter(r=>r.alerta).length;
+  const un=[...new Set(a.map(r=>r.ncm))].length;
+  const st=a.filter(r=>r.st&&(r.st.includes('obrigatória')||r.st.startsWith('ST —')||r.st.startsWith('ST ob'))).length;
+  document.getElementById('summary-cards').innerHTML=`
+    <div class="card"><div class="card-label">NCMs únicos</div><div class="card-val">${un}</div></div>
+    <div class="card"><div class="card-label">Alimentícios</div><div class="card-val">${alim}</div><div class="card-sub">PIS/COFINS 0% ou monofásico</div></div>
+    <div class="card"><div class="card-label">Alertas</div><div class="card-val" style="color:#854F0B">${al}</div></div>
+    <div class="card"><div class="card-label">Com ST</div><div class="card-val" style="color:#993C1D">${st}</div></div>
+    <div class="card"><div class="card-label">Excluídos</div><div class="card-val" style="color:#A32D2D">${excluded.size}</div></div>`;
+}
+
+// ---- ICMS TAB ----
+function renderIcms(c){
+  const estados=c.estados||[];
+  document.getElementById('icms-desc').textContent=`Estados com filiais: ${estados.join(', ')||'—'}. Validar sempre na legislação de cada UF.`;
+  const R={SP:{geral:'18%',carnes:'Isento (cesta básica)',peixes:'Isento (cesta básica)',queijo:'12%',batata:'12%',bebidas:'ST Conv. 11/91'},PR:{geral:'19%',carnes:'Isento (cesta básica)',peixes:'Isento / 12%',queijo:'12%',batata:'12%',bebidas:'ST Conv. 11/91'},SC:{geral:'17%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST Conv. 11/91'},RO:{geral:'17,5%',carnes:'12%',peixes:'12%',queijo:'17%',batata:'17%',bebidas:'ST Conv. 11/91'},PE:{geral:'18%',carnes:'Isento (cesta básica)',peixes:'Isento (cesta básica)',queijo:'18%',batata:'18%',bebidas:'ST Conv. 11/91'},MG:{geral:'18%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST'},RJ:{geral:'20%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST'},RS:{geral:'17%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST'},GO:{geral:'17%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST'},MT:{geral:'17%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST'},BA:{geral:'19%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST'},CE:{geral:'18%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST'},MA:{geral:'18%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST'},PA:{geral:'17%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST'},AM:{geral:'18%',carnes:'12%',peixes:'12%',queijo:'12%',batata:'12%',bebidas:'ST'}};
+  if(!estados.length){document.getElementById('icms-content').innerHTML='<div class="info-box warn">Nenhum estado cadastrado para esta empresa.</div>';return;}
+  let html='<div class="grid-2">';
+  estados.forEach(uf=>{
+    const a=R[uf];
+    if(!a){html+=`<div class="sub-section"><div class="section-title" style="font-size:12px">🏭 ${uf}</div><div class="info-box warn">Dados não disponíveis para ${uf}. Consulte o SEFAZ.</div></div>`;return;}
+    const ci=a.carnes.includes('Isento'),pi=a.peixes.includes('Isento');
+    html+=`<div class="sub-section"><div class="section-title" style="font-size:12px">🏭 ${uf}</div>
+    <div class="table-wrap"><table><thead><tr><th>Produto / Situação</th><th>Alíq. Interna</th></tr></thead><tbody>
+      <tr><td>Carnes bovinas, suínas, ovinas</td><td><span class="badge ${ci?'b-teal':'b-amber'}">${a.carnes}</span></td></tr>
+      <tr><td>Peixes</td><td><span class="badge ${pi?'b-teal':'b-amber'}">${a.peixes}</span></td></tr>
+      <tr><td>Queijos</td><td><span class="badge b-amber">${a.queijo}</span></td></tr>
+      <tr><td>Batata congelada</td><td><span class="badge b-amber">${a.batata}</span></td></tr>
+      <tr><td>Bebidas</td><td><span class="badge b-red">${a.bebidas}</span></td></tr>
+      <tr><td>Ativo imobilizado</td><td><span class="badge b-blue">DIFAL + crédito 1/48</span></td></tr>
+      <tr><td>Uso e consumo / geral</td><td><span class="badge b-gray">${a.geral}</span></td></tr>
+    </tbody></table></div></div>`;
+  });
+  html+='</div><div class="info-box warn"><strong>⚠️ Atenção:</strong> Alíquotas sujeitas a alterações. Validar no SEFAZ de cada UF antes de parametrizar.</div>';
+  document.getElementById('icms-content').innerHTML=html;
+}
+
+// ---- INTERESTADUAL TAB ----
+function renderInterestadual(c){
+  const estados=c.estados||[];
+  const dests=['SP','PR','SC','RO','PE','MG','RJ','RS','GO','MT','PA','AM','BA','CE','MA'];
+  let html=`<div class="info-box"><strong>Regra geral:</strong> Sul/Sudeste → Norte/Nordeste/CO/ES = <strong>7%</strong> &nbsp;·&nbsp; Sul/Sudeste → Sul/Sudeste = <strong>12%</strong> &nbsp;·&nbsp; Produto importado = <strong>4%</strong> (Res. SF 13/2012)</div>`;
+  if(!estados.length){html+='<div class="info-box warn">Nenhum estado de origem cadastrado.</div>';document.getElementById('interestadual-content').innerHTML=html;return;}
+  html+=`<div class="sub-section"><div class="section-title" style="font-size:12px">Matriz — saídas dos estados desta empresa</div><div class="table-wrap"><table class="matrix-table"><thead><tr><th style="text-align:left">Origem → Destino</th>`;
+  dests.forEach(d=>{html+=`<th>${d}</th>`;});
+  html+=`</tr></thead><tbody>`;
+  estados.forEach(o=>{
+    html+=`<tr><td class="uf-label">🏭 ${o}</td>`;
+    dests.forEach(d=>{const a=aliqInter(o,d);html+=`<td class="${a==='same'?'cell-same':a==='7'?'cell-7':'cell-12'}">${a==='same'?'—':a+'%'}</td>`;});
+    html+=`</tr>`;
+  });
+  html+=`</tbody></table></div></div>`;
+  // Importados: APENAS se a empresa tiver importados cadastrados
+  const imp=c.importados||[];
+  if(imp.length){
+    html+=`<div class="sub-section"><div class="section-title" style="font-size:12px">Produtos importados — alíq. 4% (Res. SF 13/2012)</div>
+    <div class="info-box warn">Produtos importados ou com conteúdo de importação &gt; 40% têm alíquota interestadual de <strong>4%</strong>. Verificar FCI.</div>
+    <div class="table-wrap"><table><thead><tr><th>Produto</th><th>NCM</th><th>Alíq. interestadual</th><th>FCI</th></tr></thead><tbody>`;
+    imp.forEach(i=>{html+=`<tr><td>${i.prod}</td><td class="ncm-code">${i.ncm}</td><td><span class="badge ${i.aliq==='4%'?'b-red':'b-blue'}">${i.aliq}</span></td><td>${i.fci}</td></tr>`;});
+    html+=`</tbody></table></div></div>`;
+  }
+  document.getElementById('interestadual-content').innerHTML=html;
+}
+
+// ---- DIFAL TAB ----
+function renderDifal(c){
+  const estados=c.estados||[];
+  let html=`<div class="grid-2"><div>
+    <div class="info-box"><strong>DIFAL B2C (EC 87/2015 + LC 190/2022):</strong><br>Diferença entre alíq. interna do destino e alíq. interestadual nas vendas a consumidor final não contribuinte de outro estado. A partir de 2024: 100% ao estado destino.<br><br><strong>DIFAL</strong> = BC × (alíq. interna destino − alíq. interestadual)</div>`;
+  if(estados.length){
+    const orig=estados[0];
+    const dst=['PR','SC','RO','PE','MG','RJ','RS','GO','BA','CE','MA','PA','AM'].filter(d=>d!==orig).slice(0,10);
+    html+=`<div class="sub-section"><div class="section-title" style="font-size:12px">DIFAL B2C — saídas de ${orig}</div>
+    <div class="table-wrap"><table><thead><tr><th>Destino</th><th>Alíq. interna</th><th>Alíq. interestadual</th><th>DIFAL</th></tr></thead><tbody>`;
+    dst.forEach(d=>{const ai=aliqInt(d),ir=aliqInter(orig,d)==='7'?7:12,dif=+(ai-ir).toFixed(1);html+=`<tr><td>${d}</td><td>${ai}%</td><td>${ir}%</td><td><span class="badge ${dif>=10?'b-coral':dif>=6?'b-amber':'b-green'}">${dif}%</span></td></tr>`;});
+    html+=`</tbody></table></div></div>`;
+  }
+  html+=`</div><div>
+    <div class="sub-section"><div class="section-title" style="font-size:12px">DIFAL na entrada — ativo / uso e consumo</div>
+    <div class="info-box">Quando a empresa adquire ativo imobilizado ou uso e consumo de outro estado.<br><strong>DIFAL</strong> = alíq. interna − alíq. interestadual</div>
+    <div class="table-wrap"><table><thead><tr><th>Filial</th><th>Alíq. interna</th><th>Origem Sul/SE (12%)</th><th>Origem N/NE/CO (7%)</th></tr></thead><tbody>`;
+  if(!estados.length){html+=`<tr><td colspan="4" style="text-align:center;color:var(--color-text-secondary,#666)">Nenhum estado cadastrado.</td></tr>`;}
+  estados.forEach(u=>{const ai=aliqInt(u),d1=+(ai-12).toFixed(1),d2=+(ai-7).toFixed(1);html+=`<tr><td>${u}</td><td>${ai}%</td><td><span class="badge ${d1>=8?'b-coral':d1>=5?'b-amber':'b-green'}">${d1}% DIFAL</span></td><td><span class="badge ${d2>=10?'b-coral':d2>=6?'b-amber':'b-green'}">${d2}% DIFAL</span></td></tr>`;});
+  html+=`</tbody></table></div></div>
+    <div class="info-box warn" style="margin-top:8px"><strong>⚠️ Ativo imobilizado:</strong> Crédito ICMS em 1/48 por mês (art. 20 §5º LC 87/96).</div>
+    <div class="info-box danger" style="margin-top:8px"><strong>🔴 Produto isento no destino:</strong> Sem DIFAL a recolher.</div>
+  </div></div>`;
+  document.getElementById('difal-content').innerHTML=html;
+}
+
+// ---- TRANSFERÊNCIA TAB ----
+function renderTransferencia(c){
+  const estados=c.estados||[];
+  let html=`<div class="info-box danger"><strong>🔴 ADC 49 / Convênio ICMS 109/2024:</strong> Transferência entre estabelecimentos do mesmo titular <strong>não é fato gerador do ICMS</strong>. Via LC 204/2023, o contribuinte pode optar pelo destaque para transferir crédito ao destino.</div>
+  <div class="grid-2"><div><div class="sub-section"><div class="section-title" style="font-size:12px">Corredores desta empresa</div>
+  <div class="table-wrap"><table><thead><tr><th>Corredor</th><th>ICMS na NF</th><th>CFOP</th></tr></thead><tbody>`;
+  const pares=[];estados.forEach((o,i)=>estados.forEach((d,j)=>{if(i<j)pares.push([o,d]);}));
+  if(!pares.length){html+=`<tr><td colspan="3" style="text-align:center;color:var(--color-text-secondary,#666)">Menos de 2 estados cadastrados.</td></tr>`;}
+  else pares.forEach(([o,d])=>{html+=`<tr><td>${o} ↔ ${d}</td><td><span class="badge b-amber">Opcional</span></td><td class="ncm-code">6.152 / 6.153</td></tr>`;});
+  html+=`</tbody></table></div></div></div>
+  <div><div class="sub-section"><div class="section-title" style="font-size:12px">CFOPs</div>
+  <div class="table-wrap"><table><thead><tr><th>CFOP</th><th>Descrição</th></tr></thead><tbody>
+    <tr><td class="ncm-code">5.152</td><td>Transf. fabricação própria — intraestadual</td></tr>
+    <tr><td class="ncm-code">5.153</td><td>Transf. mercadoria adquirida — intraestadual</td></tr>
+    <tr><td class="ncm-code">6.152</td><td>Transf. fabricação própria — interestadual</td></tr>
+    <tr><td class="ncm-code">6.153</td><td>Transf. mercadoria adquirida — interestadual</td></tr>
+  </tbody></table></div></div>
+  <div class="info-box warn" style="margin-top:8px"><strong>PIS/COFINS:</strong> Transferências não geram receita — sem incidência.</div>
+  <div class="info-box" style="margin-top:8px"><strong>Recomendação:</strong> Optar pelo destaque para manutenção do crédito. Confirmar com contabilidade.</div>
+  </div></div>`;
+  document.getElementById('transferencia-content').innerHTML=html;
+}
+
+// ---- IMPORTAÇÃO TAB ----
+function renderImportacao(c){
+  const estados=c.estados||[];
+  const imp=c.importados||[]; // APENAS dados desta empresa
+  const IMP={SP:{carnes:'Isento',peixes:'Isento',queijo:'12%',outros:'12%'},PR:{carnes:'Isento',peixes:'Isento / 12%',queijo:'12%',outros:'12%'},SC:{carnes:'12%',peixes:'12%',queijo:'12%',outros:'12%'},RO:{carnes:'12%',peixes:'12%',queijo:'17%',outros:'17%'},PE:{carnes:'Isento',peixes:'Isento',queijo:'18%',outros:'18%'}};
+  let html=`<div class="info-box"><strong>Tributos:</strong> II + IPI + PIS-Import. + COFINS-Import. + ICMS-Import. + AFRMM + Taxa SISCOMEX</div>
+  <div class="grid-2"><div>`;
+  if(imp.length){
+    html+=`<div class="sub-section"><div class="section-title" style="font-size:12px">Produtos importados cadastrados</div>
+    <div class="table-wrap"><table><thead><tr><th>Produto</th><th>NCM</th><th>Alíq. interestadual</th><th>FCI</th></tr></thead><tbody>`;
+    imp.forEach(i=>{html+=`<tr><td>${i.prod}</td><td class="ncm-code">${i.ncm}</td><td><span class="badge ${i.aliq==='4%'?'b-red':'b-blue'}">${i.aliq}</span></td><td>${i.fci}</td></tr>`;});
+    html+=`</tbody></table></div></div>`;
+  }else{
+    html+=`<div class="info-box">Nenhum produto importado cadastrado para esta empresa.</div>`;
+  }
+  html+=`</div><div>
+    <div class="sub-section"><div class="section-title" style="font-size:12px">ICMS na importação por filial</div>
+    <div class="table-wrap"><table><thead><tr><th>Filial</th><th>Carnes / Peixes</th><th>Queijo</th><th>Outros</th></tr></thead><tbody>`;
+  if(!estados.length){html+=`<tr><td colspan="4" style="text-align:center;color:var(--color-text-secondary,#666)">Nenhum estado cadastrado.</td></tr>`;}
+  estados.forEach(u=>{const d=IMP[u]||{carnes:'Verificar',peixes:'Verificar',queijo:'Verificar',outros:'Verificar'};const ci=d.carnes.includes('Isento');html+=`<tr><td>${u}</td><td><span class="badge ${ci?'b-teal':'b-amber'}">${d.carnes}</span></td><td><span class="badge b-amber">${d.queijo}</span></td><td><span class="badge b-gray">${d.outros}</span></td></tr>`;});
+  html+=`</tbody></table></div></div>
+    <div class="sub-section" style="margin-top:12px"><div class="section-title" style="font-size:12px">CFOPs de importação</div>
+    <div class="table-wrap"><table><thead><tr><th>CFOP</th><th>Descrição</th></tr></thead><tbody>
+      <tr><td class="ncm-code">3.101</td><td>Compra p/ industrialização — importação direta</td></tr>
+      <tr><td class="ncm-code">3.102</td><td>Compra p/ comercialização — importação direta</td></tr>
+      <tr><td class="ncm-code">3.556</td><td>Uso e consumo — importação</td></tr>
+      <tr><td class="ncm-code">3.551</td><td>Ativo imobilizado — importação</td></tr>
+    </tbody></table></div></div>
+  </div></div>`;
+  document.getElementById('importacao-content').innerHTML=html;
+}
+
+// ---- ST TAB ----
+function renderST(c){
+  const estados=c.estados||[];
+  const stMap=c.stMap||null; // APENAS dados desta empresa
+  let html=`<div class="info-box warn"><strong>⚠️ Atenção:</strong> Como revendedora, a empresa pode ser <strong>substituída tributária</strong> — verificar se fornecedores já destacaram ST na NF de entrada.</div>`;
+  if(stMap&&stMap.length&&estados.length){
+    html+=`<div class="table-wrap"><table><thead><tr><th>Produto</th><th>NCM</th>`;
+    estados.forEach(u=>{html+=`<th>${u}</th>`;});
+    html+=`<th>Base legal</th></tr></thead><tbody>`;
+    stMap.forEach(row=>{
+      html+=`<tr><td>${row.prod}</td><td class="ncm-code">${row.ncm}</td>`;
+      estados.forEach(u=>{const s=row.status[u]||'Ver';const cls=s==='ST'?'b-red':s==='Ver'?'b-amber':'b-gray';html+=`<td><span class="badge ${cls}">${s==='N'?'Não usual':s==='Ver'?'Verificar':s}</span></td>`;});
+      html+=`<td style="font-size:11px;color:var(--color-text-secondary,#666)">${row.base}</td></tr>`;
+    });
+    html+=`</tbody></table></div>`;
+  }else{
+    html+=`<div class="info-box">Mapa de ST não configurado para esta empresa. O mapa é específico por setor e empresa. Abaixo os convênios mais comuns.</div>
+    <div class="table-wrap"><table><thead><tr><th>Convênio / Protocolo</th><th>Produtos</th><th>Abrangência</th></tr></thead><tbody>
+      <tr><td class="ncm-code">Conv. ICMS 11/91</td><td>Bebidas</td><td>Todos os estados</td></tr>
+      <tr><td class="ncm-code">Conv. ICMS 110/07</td><td>Combustíveis e lubrificantes</td><td>Todos os estados</td></tr>
+      <tr><td class="ncm-code">Conv. ICMS 132/92</td><td>Peças de veículos</td><td>Todos os estados</td></tr>
+      <tr><td class="ncm-code">Prot. ICMS 104/12</td><td>Saneantes</td><td>SP, PR e outros</td></tr>
+      <tr><td class="ncm-code">Prot. ICMS 119/12</td><td>Linguiça / embutidos</td><td>SP, PR</td></tr>
+      <tr><td class="ncm-code">Prot. ICMS 14/06</td><td>Queijos, papel higiênico</td><td>SP e signatários</td></tr>
+    </tbody></table></div>`;
+  }
+  html+=`<div class="sub-section" style="margin-top:12px"><div class="section-title" style="font-size:12px">Fórmula ICMS-ST</div>
   <div class="info-box"><strong>Base ST</strong> = (Valor + frete + seguro + outras despesas + IPI) × (1 + MVA%)<br>
-  <strong>ICMS-ST</strong> = (Base ST × alíq. interna destino) − ICMS próprio da operação<br><br>
-  <strong>MVA</strong> = Margem de Valor Agregado — obtida na legislação de cada convênio/protocolo por produto e estado.</div></div>`;
+  <strong>ICMS-ST</strong> = (Base ST × alíq. interna destino) − ICMS próprio<br>
+  <strong>MVA</strong> = definida por convênio/protocolo por produto e estado.</div></div>`;
   document.getElementById('st-content').innerHTML=html;
 }
 
-// ============================== MODAL / CRUD ==============================
-function openModal(mode){
-  modalMode=mode;
-  const c=mode==='edit'&&currentCompanyId?store[currentCompanyId]:null;
-  document.getElementById('modal-title').textContent=mode==='edit'?'Editar empresa':'Nova empresa';
+// ---- MODALS ----
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-backdrop').forEach(b=>{b.addEventListener('click',e=>{if(e.target===b)b.classList.remove('open');});});
+
+function openCompanyModal(mode){
+  companyModalMode=mode;
+  const c=mode==='edit'&&currentId?store[currentId]:null;
+  document.getElementById('mc-title').textContent=mode==='edit'?'Editar empresa':'Nova empresa';
   document.getElementById('f-nome').value=c?c.nome:'';
   document.getElementById('f-setor').value=c?c.setor:'';
   document.getElementById('f-estados').value=c?(c.estados||[]).join(', '):'';
   document.getElementById('f-regime').value=c?c.regime:'Lucro Real';
+  document.getElementById('f-cnpj').value=c?c.cnpj||'':'';
   document.getElementById('f-obs').value=c?c.obs:'';
-  document.getElementById('modal-backdrop').classList.add('open');
+  openModal('modal-company');
 }
-function closeModal(){document.getElementById('modal-backdrop').classList.remove('open');}
-
 function saveCompany(){
   const nome=(document.getElementById('f-nome').value||'').trim();
   if(!nome){alert('Informe o nome da empresa.');return;}
   const estados=document.getElementById('f-estados').value.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
-  const id=modalMode==='edit'&&currentCompanyId?currentCompanyId:nome.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'')+'_'+(Date.now()%10000);
-  const existing=store[id]||{};
+  const id=companyModalMode==='edit'&&currentId?currentId:nome.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'')+'_'+(Date.now()%100000);
+  const ex=store[id]||{};
   store[id]={
-    ...existing,
-    id,
-    nome,
-    setor:document.getElementById('f-setor').value,
-    estados,
-    regime:document.getElementById('f-regime').value,
+    ...ex,id,nome,setor:document.getElementById('f-setor').value,estados,
+    regime:document.getElementById('f-regime').value,cnpj:document.getElementById('f-cnpj').value,
     obs:document.getElementById('f-obs').value,
-    ncms:existing.ncms||[],
-    excludedIds:existing.excludedIds||[]
+    ncms:ex.ncms||[],          // NCMs isolados desta empresa
+    stMap:ex.stMap||null,      // ST isolado desta empresa (null para novas)
+    importados:ex.importados||[], // Importados isolados (vazio para novas)
+    excludedIds:ex.excludedIds||[],nextId:ex.nextId||100
   };
-  saveStore(store);
-  closeModal();
-  rebuildSelector();
-  loadCompany(id);
+  saveStore(store);closeModal('modal-company');rebuildSelector();loadCompany(id);
 }
-
 function deleteCompany(){
-  if(!currentCompanyId)return;
-  const c=store[currentCompanyId];
-  if(c&&c.id===PATAGONIA_ID){alert('A empresa Patagonia é o dado de referência e não pode ser excluída. Você pode editar os dados dela.');return;}
-  if(!confirm(`Excluir a empresa "${c?.nome}"? Esta ação não pode ser desfeita.`))return;
-  delete store[currentCompanyId];
-  saveStore(store);
-  rebuildSelector();
-  showEmpty();
-  document.getElementById('company-selector').value='';
+  if(!currentId)return;
+  const c=store[currentId];
+  if(c&&c.id===PATAGONIA_ID){alert('A Patagonia é o dado de referência e não pode ser excluída.');return;}
+  if(!confirm(`Excluir "${c?.nome}"? Esta ação não pode ser desfeita.`))return;
+  delete store[currentId];saveStore(store);rebuildSelector();showEmpty();document.getElementById('company-selector').value='';
 }
 
-document.getElementById('modal-backdrop').addEventListener('click',function(e){if(e.target===this)closeModal();});
+// ---- ITEM MODAL ----
+function openAddItemModal(){
+  document.getElementById('mai-title').textContent='Adicionar item';
+  document.getElementById('ai-edit-id').value='';
+  ['ai-ncm','ai-desc','ai-grupo','ai-pis','ai-cofins','ai-ipi','ai-icms','ai-st','ai-obs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ai-alerta').checked=false;
+  openModal('modal-add-item');
+}
+function openEditItem(id){
+  const item=currentNcms.find(r=>r.id===id);if(!item)return;
+  document.getElementById('mai-title').textContent='Editar item';
+  document.getElementById('ai-edit-id').value=id;
+  document.getElementById('ai-ncm').value=item.ncm||'';
+  document.getElementById('ai-desc').value=item.desc||'';
+  document.getElementById('ai-grupo').value=item.grupo||'';
+  document.getElementById('ai-pis').value=item.pis||'';
+  document.getElementById('ai-cofins').value=item.cofins||'';
+  document.getElementById('ai-ipi').value=item.ipi||'';
+  document.getElementById('ai-icms').value=item.icms||'';
+  document.getElementById('ai-st').value=item.st||'';
+  document.getElementById('ai-obs').value=item.obs||'';
+  document.getElementById('ai-alerta').checked=!!item.alerta;
+  openModal('modal-add-item');
+}
+function saveItem(){
+  if(!currentId)return;
+  const ncm=(document.getElementById('ai-ncm').value||'').trim();
+  const desc=(document.getElementById('ai-desc').value||'').trim();
+  if(!ncm||!desc){alert('NCM e Descrição são obrigatórios.');return;}
+  const c=store[currentId];
+  const eid=document.getElementById('ai-edit-id').value;
+  const item={id:eid?parseInt(eid):nid(c),ncm,desc,grupo:document.getElementById('ai-grupo').value.trim(),pis:document.getElementById('ai-pis').value.trim(),cofins:document.getElementById('ai-cofins').value.trim(),ipi:document.getElementById('ai-ipi').value.trim(),icms:document.getElementById('ai-icms').value.trim(),st:document.getElementById('ai-st').value.trim(),obs:document.getElementById('ai-obs').value.trim(),alerta:document.getElementById('ai-alerta').checked};
+  if(eid){const idx=c.ncms.findIndex(r=>r.id===parseInt(eid));if(idx>=0)c.ncms[idx]=item;else c.ncms.push(item);}
+  else c.ncms.push(item);
+  saveStore(store);currentNcms=c.ncms;closeModal('modal-add-item');rebuildGrupoFilter();renderNcm();
+}
 
-// ============================== START ==============================
+// ---- IMPORT ----
+function openImportModal(){
+  pendingImport=[];
+  ['csv-preview','json-preview','manual-preview'].forEach(id=>document.getElementById(id).innerHTML='');
+  document.getElementById('json-input').value='';document.getElementById('manual-input').value='';
+  document.getElementById('btn-confirm-import').style.display='none';
+  document.getElementById('file-input').value='';
+  openModal('modal-import');
+}
+function showImportTab(id,btn){document.querySelectorAll('.modal-tab-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.modal-tab').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');if(btn)btn.classList.add('active');}
+function dragOver(e){e.preventDefault();document.getElementById('drop-zone').classList.add('drag-over');}
+function dragLeave(){document.getElementById('drop-zone').classList.remove('drag-over');}
+function dropFile(e){e.preventDefault();dragLeave();const f=e.dataTransfer.files[0];if(f)processFile(f);}
+function handleFileSelect(e){const f=e.target.files[0];if(f)processFile(f);}
+function processFile(f){
+  const r=new FileReader();
+  r.onload=ev=>parseCsv(ev.target.result);
+  r.readAsText(f,'UTF-8');
+}
+function norm(obj){
+  const av=(obj.alerta||obj.alert||'').toString().toLowerCase();
+  return{ncm:(obj.ncm||'').toString().replace(/\D/g,''),desc:obj.desc||obj.descricao||obj.description||obj.produto||'',grupo:obj.grupo||obj.group||obj.categoria||'',pis:obj.pis||'',cofins:obj.cofins||'',ipi:obj.ipi||'',icms:obj.icms||'',st:obj.st||'',obs:obj.obs||obj.observacao||'',alerta:['sim','true','1','s','yes'].includes(av)};
+}
+function parseCsv(text){
+  const lines=text.trim().split(/\r?\n/);if(!lines.length){document.getElementById('csv-preview').innerHTML='<div class="info-box danger">Arquivo vazio.</div>';return;}
+  const sep=lines[0].includes(';')?';':',';
+  const hdrs=lines[0].split(sep).map(h=>h.trim().toLowerCase().replace(/[^a-záéíóúâêîôûãõç]/g,''));
+  const rows=[];
+  for(let i=1;i<lines.length;i++){const v=lines[i].split(sep);if(v.every(x=>!x.trim()))continue;const o={};hdrs.forEach((h,j)=>{o[h]=(v[j]||'').trim();});rows.push(norm(o));}
+  if(!rows.length){document.getElementById('csv-preview').innerHTML='<div class="info-box danger">Nenhuma linha encontrada.</div>';return;}
+  pendingImport=rows;showPreview(rows,'csv-preview');
+}
+function importJson(){
+  try{const arr=JSON.parse(document.getElementById('json-input').value.trim());if(!Array.isArray(arr)){document.getElementById('json-preview').innerHTML='<div class="info-box danger">Deve ser um array JSON.</div>';return;}pendingImport=arr.map(norm);showPreview(pendingImport,'json-preview');}
+  catch(e){document.getElementById('json-preview').innerHTML=`<div class="info-box danger">JSON inválido: ${e.message}</div>`;}
+}
+function importManual(){
+  const lines=document.getElementById('manual-input').value.trim().split(/\r?\n/).filter(l=>l.trim());
+  const rows=lines.map(l=>{const p=l.split(';');return norm({ncm:p[0],desc:p[1],grupo:p[2],pis:p[3],cofins:p[4],ipi:p[5],icms:p[6],st:p[7],obs:p[8],alerta:p[9]});});
+  if(!rows.length){document.getElementById('manual-preview').innerHTML='<div class="info-box warn">Nenhuma linha válida.</div>';return;}
+  pendingImport=rows;showPreview(rows,'manual-preview');
+}
+function showPreview(rows,targetId){
+  const ok=rows.filter(r=>r.ncm&&r.desc).length,bad=rows.length-ok;
+  let html=`<div style="margin:10px 0;font-size:12px"><strong>${ok} item(ns)</strong> prontos${bad?` · <span style="color:#A32D2D">${bad} sem NCM/descrição (ignorados)</span>`:''}</div>
+  <div class="table-wrap"><table><thead><tr><th>NCM</th><th>Descrição</th><th>Grupo</th><th>PIS</th><th>COFINS</th><th>Alerta</th></tr></thead><tbody>`;
+  rows.slice(0,10).forEach(r=>{html+=`<tr style="${!r.ncm||!r.desc?'opacity:.4':''}"><td class="ncm-code">${r.ncm||'—'}</td><td>${r.desc||'—'}</td><td>${r.grupo||'—'}</td><td>${r.pis||'—'}</td><td>${r.cofins||'—'}</td><td>${r.alerta?'✅':''}</td></tr>`;});
+  if(rows.length>10)html+=`<tr><td colspan="6" style="text-align:center;color:var(--color-text-secondary,#666)">... e mais ${rows.length-10}</td></tr>`;
+  html+=`</tbody></table></div>`;
+  document.getElementById(targetId).innerHTML=html;
+  document.getElementById('btn-confirm-import').style.display='inline-flex';
+}
+function confirmImport(){
+  if(!currentId||!pendingImport.length)return;
+  const c=store[currentId];
+  const valid=pendingImport.filter(r=>r.ncm&&r.desc);
+  let added=0,skipped=0;
+  valid.forEach(r=>{if(c.ncms.find(x=>x.ncm===r.ncm&&x.desc===r.desc)){skipped++;return;}c.ncms.push({...r,id:nid(c)});added++;});
+  saveStore(store);currentNcms=c.ncms;closeModal('modal-import');pendingImport=[];
+  rebuildGrupoFilter();renderNcm();
+  alert(`✅ ${added} item(ns) importado(s)${skipped?`, ${skipped} duplicata(s) ignorada(s)`:''}.`);
+}
+
 init();
 </script>
 </body>
