@@ -155,6 +155,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
     <button class="nav-btn" onclick="abrirBase('legislacao')">📚 Legislação</button>
     <button class="nav-btn" onclick="abrirBase('comercial')">🎯 Comercial</button>
     <button class="nav-btn" onclick="abrirBase('clientes')">👥 Clientes</button>
+    <button class="nav-btn" onclick="abrirBase('ferramentas')">🛠️ Ferramentas</button>
   </div>
   <div class="topbar-right">
     <div class="user-pill">
@@ -354,6 +355,30 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
       </div>
     </div>
 
+
+    <!-- FERRAMENTAS -->
+    <div class="base-card" style="--bc-color:#4f8ef7" onclick="abrirBase('ferramentas')">
+      <div class="bc-activity" style="background:#4f8ef7"></div>
+      <div class="bc-top">
+        <div class="bc-icon-wrap" style="--bc-color:#4f8ef7">🛠️</div>
+        <div class="bc-header">
+          <span class="bc-num">07</span>
+          <span class="bc-arrow" style="color:#4f8ef7">→</span>
+        </div>
+        <div class="bc-nome">Ferramentas</div>
+        <div class="bc-desc">Todas as ferramentas do escritório organizadas por categoria — fiscal, gestão e produtividade.</div>
+      </div>
+      <div class="bc-itens">
+        <div class="bc-item"><div class="bc-item-dot" style="background:#4f8ef7"></div>EFD PIS/COFINS — apuração Lucro Real<span class="bc-item-tag bg-blue">Fiscal</span></div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#4f8ef7"></div>Adicionar suas próprias ferramentas HTML</div>
+        <div class="bc-item"><div class="bc-item-dot" style="background:#4f8ef7"></div>Organizado por categoria</div>
+      </div>
+      <div class="bc-footer">
+        <div class="bc-status"><div class="bc-status-dot" style="background:#4f8ef7"></div>1 ferramenta cadastrada</div>
+        <div class="bc-action" style="color:#4f8ef7">Abrir →</div>
+      </div>
+    </div>
+
   </div>
 
   <!-- ACESSO RÁPIDO -->
@@ -449,9 +474,10 @@ const ARQUIVOS={
   conhecimento: BASE+'gclik_conhecimento.html',
   recuperacao: BASE+'recuperacao_tributaria.html',
   efd: BASE+'efd_pis_cofins.html',
-  legislacao: BASE+'organograma_detalhado_jcr.html',
-  comercial: BASE+'organograma_processo_comercial_jcr.html',
-  clientes: BASE+'jcr_analisador_multiteses.html',
+  legislacao: BASE+'legislacao_reforma.html',
+  comercial: BASE+'comercial.html',
+  clientes: BASE+'clientes.html',
+  ferramentas: BASE+'ferramentas.html',
 };
 function abrirBase(id){ window.open(ARQUIVOS[id]||'#','_blank'); }
 function abrirArquivo(arq){ window.open(BASE+arq,'_blank'); }

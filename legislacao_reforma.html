@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JCR — Legislação & Reforma Tributária</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14;--surface:#13161e;--surface2:#1a1e2a;--surface3:#222739;
+  --border:#2a2f42;--border2:#363d55;
+  --accent:#4f8ef7;--accent-soft:rgba(79,142,247,0.12);
+  --green:#2dd4a0;--green-soft:rgba(45,212,160,0.12);
+  --yellow:#f5c842;--yellow-soft:rgba(245,200,66,0.12);
+  --red:#f25c6e;--red-soft:rgba(242,92,110,0.12);
+  --orange:#f2924a;--orange-soft:rgba(242,146,74,0.12);
+  --purple:#a78bfa;--purple-soft:rgba(167,139,250,0.12);
+  --text:#e8eaf0;--text2:#8b92a8;--text3:#5d6480;
+  --radius:14px;--radius-sm:8px;
+  --font-display:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;--font-mono:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--surface)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+.topbar{display:flex;align-items:center;gap:12px;background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:60px;position:sticky;top:0;z-index:50}
+.topbar-logo{font-family:var(--font-display);font-weight:800;font-size:22px;color:var(--accent);cursor:pointer}
+.nav-sep{color:var(--border2);font-size:18px}
+.nav-back{background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;font-family:var(--font-body);padding:6px 10px;border-radius:var(--radius-sm);transition:all .15s}
+.nav-back:hover{background:var(--surface2);color:var(--text2)}
+.nav-current{font-size:13px;color:var(--text2);font-weight:500}
+
+.hero{background:var(--surface);border-bottom:1px solid var(--border);padding:28px 32px}
+.hero-inner{max-width:1100px;margin:0 auto}
+.hero-eye{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--purple);margin-bottom:.5rem;display:flex;align-items:center;gap:8px}
+.hero-eye::before{content:'';width:16px;height:1px;background:var(--purple)}
+.hero-title{font-family:var(--font-display);font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:var(--text);line-height:1.1;margin-bottom:.4rem}
+.hero-title em{color:var(--purple);font-style:normal}
+.hero-sub{font-size:13px;color:var(--text3);line-height:1.7;max-width:600px}
+
+.page{max-width:1100px;margin:0 auto;padding:28px 32px}
+
+.sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ABAS */
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px;width:fit-content;margin-bottom:24px;flex-wrap:wrap}
+.tab{padding:8px 18px;border-radius:6px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;background:none;border:none;font-family:var(--font-body);transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--text);background:var(--surface2)}
+.tab.active{background:var(--purple);color:#fff}
+
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* CARDS */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-bottom:24px}
+.leg-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .15s}
+.leg-card:hover{border-color:var(--border2)}
+.leg-card-head{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px}
+.leg-card-icon{width:38px;height:38px;border-radius:9px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.leg-card-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px}
+.leg-card-sub{font-size:11px;color:var(--text3);line-height:1.5}
+.leg-card-body{padding:14px 18px}
+.leg-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);line-height:1.5}
+.leg-item:last-child{border-bottom:none}
+.leg-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.leg-item-info{flex:1}
+.leg-item-tag{margin-left:auto;font-size:10px;font-weight:700;padding:1px 7px;border-radius:4px;flex-shrink:0;margin-left:8px}
+.leg-add-btn{width:100%;padding:10px;border:1px dashed var(--border2);border-radius:8px;background:none;color:var(--text3);font-size:12px;cursor:pointer;font-family:var(--font-body);margin-top:10px;transition:all .15s}
+.leg-add-btn:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-soft)}
+
+/* CRONOGRAMA */
+.cronograma{display:flex;flex-direction:column;gap:0;margin-bottom:24px}
+.cron-item{display:flex;gap:16px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--border)}
+.cron-item:last-child{border-bottom:none}
+.cron-ano{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--purple);width:60px;flex-shrink:0;margin-top:2px}
+.cron-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.cron-info{flex:1}
+.cron-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.cron-desc{font-size:12px;color:var(--text3);line-height:1.6}
+.cron-badges{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;white-space:nowrap}
+.bg-purple{background:var(--purple-soft);color:var(--purple)}
+.bg-blue{background:var(--accent-soft);color:var(--accent)}
+.bg-green{background:var(--green-soft);color:var(--green)}
+.bg-yellow{background:var(--yellow-soft);color:var(--yellow)}
+.bg-orange{background:var(--orange-soft);color:var(--orange)}
+.bg-red{background:var(--red-soft);color:var(--red)}
+.bg-gray{background:rgba(93,100,128,.15);color:var(--text3)}
+
+/* EM CONSTRUÇÃO */
+.em-construcao{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2.5rem;text-align:center;color:var(--text3)}
+.ec-icon{font-size:36px;margin-bottom:.75rem;opacity:.4}
+.ec-title{font-size:14px;font-weight:600;color:var(--text2);margin-bottom:.5rem}
+.ec-sub{font-size:12px;line-height:1.6}
+.ec-btn{display:inline-block;margin-top:1rem;padding:8px 20px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font-body);transition:all .15s}
+.ec-btn:hover{border-color:var(--purple);color:var(--purple)}
+
+@media(max-width:700px){.page{padding:20px 16px}.hero{padding:20px 16px}.tabs{gap:3px}.tab{padding:6px 12px;font-size:12px}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo" onclick="window.location.href='index.html'">JCR</div>
+  <span class="nav-sep">›</span>
+  <button class="nav-back" onclick="window.location.href='index.html'">← Hub</button>
+  <span class="nav-sep">›</span>
+  <span class="nav-current">📚 Legislação & Reforma</span>
+</div>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eye">Base de Referência</div>
+    <div class="hero-title">Legislação & <em>Reforma Tributária</em></div>
+    <div class="hero-sub">Reforma Tributária IBS/CBS, teses consolidadas STF/STJ, benefícios fiscais estaduais e legislação por tema. Adicione suas anotações e mantenha a base sempre atualizada.</div>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('reforma')">🏛️ Reforma Tributária</button>
+    <button class="tab" onclick="showTab('teses')">⚖️ Teses STF/STJ</button>
+    <button class="tab" onclick="showTab('beneficios')">🏷️ Benefícios Estaduais</button>
+    <button class="tab" onclick="showTab('legislacao')">📋 Legislação por Tema</button>
+    <button class="tab" onclick="showTab('atualizacoes')">🔔 Atualizações</button>
+  </div>
+
+  <!-- ABA: REFORMA TRIBUTÁRIA -->
+  <div class="tab-content active" id="tab-reforma">
+
+    <div class="sec-label">Cronograma de implementação</div>
+    <div class="cronograma">
+      <div class="cron-item">
+        <div class="cron-ano">2024</div>
+        <div class="cron-dot" style="background:var(--green)"></div>
+        <div class="cron-info">
+          <div class="cron-title">Aprovação da PEC 45/2023 — Emenda Constitucional 132</div>
+          <div class="cron-desc">Aprovada em dezembro/2023. Institui o IBS (Imposto sobre Bens e Serviços), CBS (Contribuição sobre Bens e Serviços) e IS (Imposto Seletivo). Base: valor adicionado, não-cumulativo.</div>
+          <div class="cron-badges"><span class="badge bg-green">Concluído</span><span class="badge bg-gray">EC 132/2023</span></div>
+        </div>
+      </div>
+      <div class="cron-item">
+        <div class="cron-ano">2025</div>
+        <div class="cron-dot" style="background:var(--green)"></div>
+        <div class="cron-info">
+          <div class="cron-title">Lei Complementar — regulamentação do IBS e CBS</div>
+          <div class="cron-desc">LC 214/2025 aprovada. Regulamenta alíquotas, regimes diferenciados, cashback, Zona Franca de Manaus e regras de transição. Adicione suas anotações aqui.</div>
+          <div class="cron-badges"><span class="badge bg-green">Concluído</span><span class="badge bg-gray">LC 214/2025</span></div>
+        </div>
+      </div>
+      <div class="cron-item">
+        <div class="cron-ano">2026</div>
+        <div class="cron-dot" style="background:var(--yellow)"></div>
+        <div class="cron-info">
+          <div class="cron-title">Início do período de teste — CBS 0,9% e IBS 0,1%</div>
+          <div class="cron-desc">Cobrança simbólica para testar sistemas. PIS e COFINS ainda vigentes com abatimento. Empresas já devem adaptar ERP e processos fiscais.</div>
+          <div class="cron-badges"><span class="badge bg-yellow">Em curso</span><span class="badge bg-orange">Urgente</span></div>
+        </div>
+      </div>
+      <div class="cron-item">
+        <div class="cron-ano">2027</div>
+        <div class="cron-dot" style="background:var(--text3)"></div>
+        <div class="cron-info">
+          <div class="cron-title">Extinção do PIS e COFINS — CBS plena</div>
+          <div class="cron-desc">CBS começa a valer integralmente. IPI reduzido (exceto ZFM). Início da transição do ICMS e ISS para o IBS.</div>
+          <div class="cron-badges"><span class="badge bg-gray">Aguardando</span></div>
+        </div>
+      </div>
+      <div class="cron-item">
+        <div class="cron-ano">2029–33</div>
+        <div class="cron-dot" style="background:var(--text3)"></div>
+        <div class="cron-info">
+          <div class="cron-title">Transição gradual ICMS e ISS → IBS</div>
+          <div class="cron-desc">Redução progressiva de ICMS e ISS em 1/5 por ano. IBS vai aumentando proporcionalmente até 2033, quando ICMS e ISS são extintos.</div>
+          <div class="cron-badges"><span class="badge bg-gray">Futuro</span></div>
+        </div>
+      </div>
+      <div class="cron-item">
+        <div class="cron-ano">2033</div>
+        <div class="cron-dot" style="background:var(--purple)"></div>
+        <div class="cron-info">
+          <div class="cron-title">Reforma completamente implementada</div>
+          <div class="cron-desc">Extinção definitiva de PIS, COFINS, IPI, ICMS e ISS. Vigência plena do IBS, CBS e IS. Novo sistema tributário brasileiro.</div>
+          <div class="cron-badges"><span class="badge bg-purple">Meta final</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-label">Novos tributos — resumo</div>
+    <div class="cards-grid">
+      <div class="leg-card">
+        <div class="leg-card-head">
+          <div class="leg-card-icon">🏛️</div>
+          <div><div class="leg-card-title">IBS — Imposto sobre Bens e Serviços</div><div class="leg-card-sub">Substitui ICMS e ISS — competência estadual e municipal</div></div>
+        </div>
+        <div class="leg-card-body">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--purple)"></div><div class="leg-item-info">Base: valor adicionado — não-cumulativo</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--purple)"></div><div class="leg-item-info">Alíquota: definida por LC — ainda em regulamentação</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--purple)"></div><div class="leg-item-info">Gestão compartilhada — Comitê Gestor do IBS</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--purple)"></div><div class="leg-item-info">Incide no destino — não na origem</div></div>
+          <button class="leg-add-btn" onclick="adicionarNota(this, 'IBS')">+ Adicionar anotação</button>
+        </div>
+      </div>
+      <div class="leg-card">
+        <div class="leg-card-head">
+          <div class="leg-card-icon">💼</div>
+          <div><div class="leg-card-title">CBS — Contribuição sobre Bens e Serviços</div><div class="leg-card-sub">Substitui PIS e COFINS — competência federal</div></div>
+        </div>
+        <div class="leg-card-body">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div><div class="leg-item-info">Base: valor adicionado — não-cumulativo</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div><div class="leg-item-info">Início 2026: alíquota de 0,9% (teste)</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div><div class="leg-item-info">Plena a partir de 2027 — fim do PIS/COFINS</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div><div class="leg-item-info">Mesmas regras do IBS — sistema dual</div></div>
+          <button class="leg-add-btn" onclick="adicionarNota(this, 'CBS')">+ Adicionar anotação</button>
+        </div>
+      </div>
+      <div class="leg-card">
+        <div class="leg-card-head">
+          <div class="leg-card-icon">⚡</div>
+          <div><div class="leg-card-title">IS — Imposto Seletivo</div><div class="leg-card-sub">Substitui parte do IPI — bens prejudiciais à saúde/meio ambiente</div></div>
+        </div>
+        <div class="leg-card-body">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--orange)"></div><div class="leg-item-info">Incide sobre: cigarros, bebidas alcoólicas, veículos, minérios</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--orange)"></div><div class="leg-item-info">Alíquotas diferenciadas por produto</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--orange)"></div><div class="leg-item-info">Não recuperável como crédito</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--orange)"></div><div class="leg-item-info">Competência federal</div></div>
+          <button class="leg-add-btn" onclick="adicionarNota(this, 'IS')">+ Adicionar anotação</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ABA: TESES STF/STJ -->
+  <div class="tab-content" id="tab-teses">
+    <div class="cards-grid">
+      <div class="leg-card">
+        <div class="leg-card-head">
+          <div class="leg-card-icon">⚖️</div>
+          <div><div class="leg-card-title">RE 574.706/PR — Tese do Século</div><div class="leg-card-sub">ICMS fora da base de cálculo do PIS/COFINS</div></div>
+        </div>
+        <div class="leg-card-body">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div><div class="leg-item-info">STF — Plenário — julgado em 15/03/2017</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div><div class="leg-item-info">Modulação: efeitos a partir de 15/03/2017 (ADM) | antes apenas JUD</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div><div class="leg-item-info">ICMS a excluir: o destacado na NF, não o recolhido</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div><div class="leg-item-info">Prazo: 5 anos — PER/DCOMP para períodos pós modulação</div></div>
+          <button class="leg-add-btn" onclick="adicionarNota(this, 'RE 574.706')">+ Adicionar anotação</button>
+        </div>
+      </div>
+      <div class="leg-card">
+        <div class="leg-card-head">
+          <div class="leg-card-icon">⚖️</div>
+          <div><div class="leg-card-title">STJ Tema 1.125 — ICMS-ST</div><div class="leg-card-sub">ICMS-ST fora da base de cálculo do PIS/COFINS</div></div>
+        </div>
+        <div class="leg-card-body">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div><div class="leg-item-info">REsp 1.896.678 e 1.958.265 — julgados em 2022</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div><div class="leg-item-info">ICMS-ST destacado na NF de saída</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div><div class="leg-item-info">Aplicável tanto ADM quanto JUD</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div><div class="leg-item-info">Tese em consolidação — verificar jurisprudência atual</div></div>
+          <button class="leg-add-btn" onclick="adicionarNota(this, 'STJ Tema 1.125')">+ Adicionar anotação</button>
+        </div>
+      </div>
+      <div class="leg-card">
+        <div class="leg-card-head">
+          <div class="leg-card-icon">⚖️</div>
+          <div><div class="leg-card-title">LC 192/2022 — GLP e Diesel</div><div class="leg-card-sub">Alíquota zero PIS/COFINS para combustíveis</div></div>
+        </div>
+        <div class="leg-card-body">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--yellow)"></div><div class="leg-item-info">Vigência: março/2022</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--yellow)"></div><div class="leg-item-info">GLP (gás de cozinha), diesel e biodiesel</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--yellow)"></div><div class="leg-item-info">Aplicável a distribuidores e varejistas</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--yellow)"></div><div class="leg-item-info">Verificar NCM — ADM via PER/DCOMP</div></div>
+          <button class="leg-add-btn" onclick="adicionarNota(this, 'LC 192/2022')">+ Adicionar anotação</button>
+        </div>
+      </div>
+      <div class="leg-card" style="border-style:dashed">
+        <div class="leg-card-head">
+          <div class="leg-card-icon">➕</div>
+          <div><div class="leg-card-title">Adicionar nova tese</div><div class="leg-card-sub">Clique para registrar uma nova decisão STF/STJ</div></div>
+        </div>
+        <div class="leg-card-body">
+          <button class="leg-add-btn" onclick="adicionarTese()">+ Nova tese / decisão</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA: BENEFÍCIOS ESTADUAIS -->
+  <div class="tab-content" id="tab-beneficios">
+    <div class="cards-grid">
+      <div class="leg-card">
+        <div class="leg-card-head">
+          <div class="leg-card-icon">🏔️</div>
+          <div><div class="leg-card-title">Santa Catarina — SC</div><div class="leg-card-sub">Benefícios fiscais e regimes especiais ICMS</div></div>
+        </div>
+        <div class="leg-card-body">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div><div class="leg-item-info">Adicione aqui os benefícios fiscais de SC que você domina</div></div>
+          <button class="leg-add-btn" onclick="adicionarNota(this, 'SC')">+ Adicionar benefício SC</button>
+        </div>
+      </div>
+      <div class="leg-card">
+        <div class="leg-card-head">
+          <div class="leg-card-icon">🌿</div>
+          <div><div class="leg-card-title">Rondônia — RO</div><div class="leg-card-sub">Benefícios fiscais e regimes especiais ICMS</div></div>
+        </div>
+        <div class="leg-card-body">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div><div class="leg-item-info">Adicione aqui os benefícios fiscais de RO que você domina</div></div>
+          <button class="leg-add-btn" onclick="adicionarNota(this, 'RO')">+ Adicionar benefício RO</button>
+        </div>
+      </div>
+      <div class="leg-card">
+        <div class="leg-card-head">
+          <div class="leg-card-icon">🌾</div>
+          <div><div class="leg-card-title">Goiás — GO</div><div class="leg-card-sub">Benefícios fiscais e regimes especiais ICMS</div></div>
+        </div>
+        <div class="leg-card-body">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--orange)"></div><div class="leg-item-info">Adicione aqui os benefícios fiscais de GO que você domina</div></div>
+          <button class="leg-add-btn" onclick="adicionarNota(this, 'GO')">+ Adicionar benefício GO</button>
+        </div>
+      </div>
+      <div class="leg-card" style="border-style:dashed">
+        <div class="leg-card-head">
+          <div class="leg-card-icon">➕</div>
+          <div><div class="leg-card-title">Adicionar outro estado</div><div class="leg-card-sub">Expanda para outros estados da carteira</div></div>
+        </div>
+        <div class="leg-card-body">
+          <button class="leg-add-btn" onclick="adicionarEstado()">+ Novo estado</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA: LEGISLAÇÃO POR TEMA -->
+  <div class="tab-content" id="tab-legislacao">
+    <div class="cards-grid">
+      <div class="leg-card">
+        <div class="leg-card-head">
+          <div class="leg-card-icon">📄</div>
+          <div><div class="leg-card-title">PIS / COFINS</div><div class="leg-card-sub">Leis, decretos e INs principais</div></div>
+        </div>
+        <div class="leg-card-body">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div><div class="leg-item-info">Lei 10.637/2002 — PIS não-cumulativo (Lucro Real)</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div><div class="leg-item-info">Lei 10.833/2003 — COFINS não-cumulativa (Lucro Real)</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div><div class="leg-item-info">Lei 9.718/1998 — PIS/COFINS cumulativo (Lucro Presumido)</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div><div class="leg-item-info">Lei 10.147/2000 — Tributação monofásica</div></div>
+          <button class="leg-add-btn" onclick="adicionarNota(this, 'PIS/COFINS')">+ Adicionar</button>
+        </div>
+      </div>
+      <div class="leg-card">
+        <div class="leg-card-head">
+          <div class="leg-card-icon">📄</div>
+          <div><div class="leg-card-title">Simples Nacional</div><div class="leg-card-sub">Legislação base do SN</div></div>
+        </div>
+        <div class="leg-card-body">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div><div class="leg-item-info">LC 123/2006 — Lei Geral do Simples Nacional</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div><div class="leg-item-info">CGSN 140/2018 — Regulamento do Simples Nacional</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div><div class="leg-item-info">Resolução CGSN 94/2011 — PGDAS-D</div></div>
+          <button class="leg-add-btn" onclick="adicionarNota(this, 'SN')">+ Adicionar</button>
+        </div>
+      </div>
+      <div class="leg-card">
+        <div class="leg-card-head">
+          <div class="leg-card-icon">📄</div>
+          <div><div class="leg-card-title">IRPJ / CSLL</div><div class="leg-card-sub">Tributação da renda pessoa jurídica</div></div>
+        </div>
+        <div class="leg-card-body">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--yellow)"></div><div class="leg-item-info">Decreto 9.580/2018 — RIR (Regulamento do IR)</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--yellow)"></div><div class="leg-item-info">Lei 9.249/1995 — CSLL e Lucro Presumido</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--yellow)"></div><div class="leg-item-info">IN RFB 1.700/2017 — ECF obrigatoriedade</div></div>
+          <button class="leg-add-btn" onclick="adicionarNota(this, 'IRPJ/CSLL')">+ Adicionar</button>
+        </div>
+      </div>
+      <div class="leg-card">
+        <div class="leg-card-head">
+          <div class="leg-card-icon">📄</div>
+          <div><div class="leg-card-title">ICMS</div><div class="leg-card-sub">Legislação federal e referências estaduais</div></div>
+        </div>
+        <div class="leg-card-body">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--orange)"></div><div class="leg-item-info">LC 87/1996 — Lei Kandir (ICMS federal)</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--orange)"></div><div class="leg-item-info">LC 190/2022 — DIFAL ICMS (EC 87/2015)</div></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--orange)"></div><div class="leg-item-info">LC 192/2022 — alíquota zero combustíveis</div></div>
+          <button class="leg-add-btn" onclick="adicionarNota(this, 'ICMS')">+ Adicionar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA: ATUALIZAÇÕES -->
+  <div class="tab-content" id="tab-atualizacoes">
+    <div class="em-construcao">
+      <div class="ec-icon">🔔</div>
+      <div class="ec-title">Base de atualizações</div>
+      <div class="ec-sub">Adicione aqui as novidades da Receita Federal, SEFAZ, novas Instruções Normativas e decisões recentes que impactam a carteira de clientes.</div>
+      <button class="ec-btn" onclick="adicionarAtualizacao()">+ Adicionar primeira atualização</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showTab(id){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function adicionarNota(btn, tema){
+  const nota = prompt(`Adicionar anotação sobre ${tema}:`);
+  if(!nota||!nota.trim()) return;
+  const item = document.createElement('div');
+  item.className = 'leg-item';
+  item.innerHTML = `<div class="leg-dot" style="background:var(--purple)"></div><div class="leg-item-info">${nota.trim()}</div>`;
+  btn.parentElement.insertBefore(item, btn);
+  salvar();
+}
+
+function adicionarTese(){
+  const nome = prompt('Nome da tese ou decisão:');
+  if(!nome||!nome.trim()) return;
+  const fund = prompt('Fundamento legal (ex: REsp 1.234.567):') || '';
+  const desc = prompt('Descrição resumida:') || '';
+  alert('Funcionalidade de nova tese em desenvolvimento. Use o botão "+ Adicionar anotação" em uma tese existente por enquanto.');
+}
+
+function adicionarEstado(){
+  const estado = prompt('Sigla do estado (ex: SP, MG, RS):');
+  if(!estado||!estado.trim()) return;
+  alert(`Estado ${estado.toUpperCase()} será adicionado. Funcionalidade em desenvolvimento.`);
+}
+
+function adicionarAtualizacao(){
+  const txt = prompt('Descreva a atualização legislativa:');
+  if(!txt||!txt.trim()) return;
+  const area = document.getElementById('tab-atualizacoes');
+  const ec = area.querySelector('.em-construcao');
+  const item = document.createElement('div');
+  item.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;gap:10px';
+  item.innerHTML = `<div style="color:var(--purple);font-size:16px;flex-shrink:0">🔔</div><div style="flex:1"><div style="font-size:13px;color:var(--text)">${txt}</div><div style="font-size:11px;color:var(--text3);margin-top:4px">${new Date().toLocaleDateString('pt-BR')}</div></div>`;
+  area.insertBefore(item, ec);
+}
+
+function salvar(){
+  // Futuramente integrar com Supabase
+  console.log('Dados salvos localmente');
+}
+</script>
+</body>
+</html>

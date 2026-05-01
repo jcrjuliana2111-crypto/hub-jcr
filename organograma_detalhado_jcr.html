@@ -170,6 +170,7 @@ footer p { font-size: 12px; color: rgba(255,255,255,0.3); letter-spacing: 0.08em
 
   <div class="org-row">
     <div class="dept shared" onclick="openModal('financeiro')"><div class="dept-name">Financeiro</div><div class="dept-sub">Faturamento, fluxo, contas</div></div>
+    <div class="dept shared" onclick="openModal('controladoria')"><div class="dept-name">Controladoria</div><div class="dept-sub">Orçamento, KPIs, gestão de resultados</div></div>
     <div class="dept shared" onclick="openModal('atendimento')"><div class="dept-name">Atendimento</div><div class="dept-sub">Recepção, CRM, agenda</div></div>
     <div class="dept shared" onclick="openModal('rh')"><div class="dept-name">RH Interno</div><div class="dept-sub">Equipe, treinamento</div></div>
   </div>
@@ -308,6 +309,38 @@ const data = {
   },
   rh: {
     eyebrow: 'Gestão interna', color: '#3D5070',
+    title: 'Controladoria',
+    sections: [
+      { title: 'Responsável', items: ['Juliana — supervisão estratégica e financeira'] },
+      { title: 'Atividades', items: [
+        'Elaboração e acompanhamento do orçamento anual do escritório',
+        'Controle de custos operacionais e rentabilidade por cliente',
+        'Dashboard de KPIs — receita, margem, inadimplência, crescimento',
+        'Análise de rentabilidade por serviço (fiscal, recuperação, consultoria)',
+        'Fluxo de caixa projetado — 3 e 6 meses à frente',
+        'Relatório mensal de resultados para os sócios',
+        'Precificação estratégica dos serviços',
+        'Análise de viabilidade de novos contratos e clientes',
+        'Controle de honorários — realizado vs. planejado',
+        'Indicadores de eficiência da equipe (horas x faturamento)'
+      ]},
+      { title: 'Ferramentas', items: [
+        'Planilha de orçamento e forecast (Google Sheets ou Excel)',
+        'Dashboard de KPIs — Power BI ou Google Looker Studio',
+        'Sistema de gestão JCR — módulo honorários e clientes',
+        'Relatório mensal em PDF para reunião de sócios'
+      ]},
+      { title: 'KPIs monitorados', items: [
+        'Receita mensal recorrente (MRR)',
+        'Taxa de inadimplência da carteira',
+        'Margem operacional do escritório',
+        'Custo por cliente atendido',
+        'Ticket médio por tipo de serviço',
+        'Taxa de crescimento da carteira (mensal e acumulado)'
+      ]}
+    ]
+  },
+  rh: {
     title: 'RH Interno',
     sections: [
       { title: 'Responsável', items: ['Compartilhado — Juliana e Sócio Contábil'] },

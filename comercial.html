@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JCR — Comercial</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14;--surface:#13161e;--surface2:#1a1e2a;--surface3:#222739;
+  --border:#2a2f42;--border2:#363d55;
+  --accent:#4f8ef7;--accent-soft:rgba(79,142,247,0.12);
+  --green:#2dd4a0;--green-soft:rgba(45,212,160,0.12);
+  --yellow:#f5c842;--yellow-soft:rgba(245,200,66,0.12);
+  --red:#f25c6e;--red-soft:rgba(242,92,110,0.12);
+  --orange:#f2924a;--orange-soft:rgba(242,146,74,0.12);
+  --purple:#a78bfa;--purple-soft:rgba(167,139,250,0.12);
+  --text:#e8eaf0;--text2:#8b92a8;--text3:#5d6480;
+  --radius:14px;--radius-sm:8px;
+  --font-display:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;--font-mono:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--surface)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+.topbar{display:flex;align-items:center;gap:12px;background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:60px;position:sticky;top:0;z-index:50}
+.topbar-logo{font-family:var(--font-display);font-weight:800;font-size:22px;color:var(--accent);cursor:pointer}
+.nav-sep{color:var(--border2);font-size:18px}
+.nav-back{background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;font-family:var(--font-body);padding:6px 10px;border-radius:var(--radius-sm);transition:all .15s}
+.nav-back:hover{background:var(--surface2);color:var(--text2)}
+.nav-current{font-size:13px;color:var(--text2);font-weight:500}
+
+.hero{background:var(--surface);border-bottom:1px solid var(--border);padding:28px 32px}
+.hero-inner{max-width:1100px;margin:0 auto}
+.hero-eye{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--yellow);margin-bottom:.5rem;display:flex;align-items:center;gap:8px}
+.hero-eye::before{content:'';width:16px;height:1px;background:var(--yellow)}
+.hero-title{font-family:var(--font-display);font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:var(--text);line-height:1.1;margin-bottom:.4rem}
+.hero-title em{color:var(--yellow);font-style:normal}
+.hero-sub{font-size:13px;color:var(--text3);line-height:1.7;max-width:600px}
+
+.page{max-width:1100px;margin:0 auto;padding:28px 32px}
+.sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px;width:fit-content;margin-bottom:24px;flex-wrap:wrap}
+.tab{padding:8px 18px;border-radius:6px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;background:none;border:none;font-family:var(--font-body);transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--text);background:var(--surface2)}
+.tab.active{background:var(--yellow);color:#1a1500}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* FUNIL */
+.funil{display:flex;flex-direction:column;gap:10px;margin-bottom:24px;max-width:700px}
+.funil-step{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.funil-head{padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.funil-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.funil-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text);flex:1}
+.funil-icon{font-size:18px}
+.funil-body{padding:0 18px 14px;border-top:1px solid var(--border)}
+.funil-items{display:flex;flex-direction:column;gap:5px;margin-top:10px}
+.funil-item{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--text2);line-height:1.5}
+.funil-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px}
+
+/* SCRIPTS */
+.script-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden}
+.script-head{padding:14px 18px;background:var(--surface2);border-bottom:1px solid var(--border);font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.script-msgs{padding:14px 18px;display:flex;flex-direction:column;gap:8px}
+.msg-bubble{background:var(--surface2);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--text2);line-height:1.6;border-left:2px solid var(--yellow);position:relative}
+.msg-num{font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-bottom:4px}
+.msg-copy{position:absolute;top:8px;right:10px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;transition:color .15s}
+.msg-copy:hover{color:var(--yellow)}
+
+/* PRECIFICAÇÃO */
+.preco-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:24px}
+.preco-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;border-top:3px solid var(--yellow)}
+.preco-tipo{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+.preco-nome{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
+.preco-val{font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--yellow);margin-bottom:8px}
+.preco-desc{font-size:12px;color:var(--text3);line-height:1.5}
+
+/* QUALIFICAÇÃO */
+.qual-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qual-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+.qual-title{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.qual-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2)}
+.qual-item:last-child{border-bottom:none}
+.qual-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600}
+.bg-yellow{background:var(--yellow-soft);color:var(--yellow)}
+.bg-green{background:var(--green-soft);color:var(--green)}
+.bg-red{background:var(--red-soft);color:var(--red)}
+.bg-gray{background:rgba(93,100,128,.15);color:var(--text3)}
+
+@media(max-width:700px){.page{padding:20px 16px}.hero{padding:20px 16px}.qual-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo" onclick="window.location.href='index.html'">JCR</div>
+  <span class="nav-sep">›</span>
+  <button class="nav-back" onclick="window.location.href='index.html'">← Hub</button>
+  <span class="nav-sep">›</span>
+  <span class="nav-current">🎯 Comercial</span>
+</div>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eye">Captação & Crescimento</div>
+    <div class="hero-title">Base <em>Comercial</em></div>
+    <div class="hero-sub">Funil de captação, scripts de WhatsApp, qualificação de prospects e precificação dos serviços. Tudo em um lugar para fechar mais contratos.</div>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('funil')">🎯 Funil</button>
+    <button class="tab" onclick="showTab('scripts')">💬 Scripts WhatsApp</button>
+    <button class="tab" onclick="showTab('qualificacao')">✅ Qualificação</button>
+    <button class="tab" onclick="showTab('precificacao')">💰 Precificação</button>
+  </div>
+
+  <!-- FUNIL -->
+  <div class="tab-content active" id="tab-funil">
+    <div class="funil">
+      <div class="funil-step">
+        <div class="funil-head">
+          <div class="funil-num" style="background:var(--accent-soft);color:var(--accent)">1</div>
+          <div class="funil-title">Atração</div>
+          <div class="funil-icon">📢</div>
+        </div>
+        <div class="funil-body">
+          <div class="funil-items">
+            <div class="funil-item"><div class="funil-dot" style="background:var(--accent)"></div>Indicação de clientes da carteira do sócio</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--accent)"></div>Diagnóstico gratuito — oferta de entrada</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--accent)"></div>Instagram e site JCR — conteúdo técnico</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--accent)"></div>Parceiros estratégicos — advogados, contadores</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--accent)"></div>Prospecção ativa — lista PGFN e devedores fiscais</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="funil-step">
+        <div class="funil-head">
+          <div class="funil-num" style="background:var(--yellow-soft);color:var(--yellow)">2</div>
+          <div class="funil-title">Qualificação</div>
+          <div class="funil-icon">🔍</div>
+        </div>
+        <div class="funil-body">
+          <div class="funil-items">
+            <div class="funil-item"><div class="funil-dot" style="background:var(--yellow)"></div>Identificar regime tributário e porte</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--yellow)"></div>Mapear dor principal — fiscal, passivo, recuperação</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--yellow)"></div>Verificar potencial de recuperação tributária</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--yellow)"></div>Confirmar capacidade de pagamento</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="funil-step">
+        <div class="funil-head">
+          <div class="funil-num" style="background:var(--orange-soft);color:var(--orange)">3</div>
+          <div class="funil-title">Proposta</div>
+          <div class="funil-icon">📋</div>
+        </div>
+        <div class="funil-body">
+          <div class="funil-items">
+            <div class="funil-item"><div class="funil-dot" style="background:var(--orange)"></div>Apresentar diagnóstico com potencial identificado</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--orange)"></div>Proposta personalizada — mensalidade + êxito</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--orange)"></div>Comparativo com situação atual do cliente</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--orange)"></div>Prazo de resposta: máximo 48h</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="funil-step">
+        <div class="funil-head">
+          <div class="funil-num" style="background:var(--green-soft);color:var(--green)">4</div>
+          <div class="funil-title">Fechamento</div>
+          <div class="funil-icon">🤝</div>
+        </div>
+        <div class="funil-body">
+          <div class="funil-items">
+            <div class="funil-item"><div class="funil-dot" style="background:var(--green)"></div>Contrato de prestação de serviços assinado</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--green)"></div>Definir modelo: mensalidade fixa, êxito ou misto</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--green)"></div>Coleta de documentos e acessos necessários</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--green)"></div>Cadastro no sistema JCR</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="funil-step">
+        <div class="funil-head">
+          <div class="funil-num" style="background:var(--purple-soft);color:var(--purple)">5</div>
+          <div class="funil-title">Onboarding</div>
+          <div class="funil-icon">🚀</div>
+        </div>
+        <div class="funil-body">
+          <div class="funil-items">
+            <div class="funil-item"><div class="funil-dot" style="background:var(--purple)"></div>Reunião de alinhamento — expectativas e entregas</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--purple)"></div>Levantamento completo da situação fiscal</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--purple)"></div>Definir responsabilidades e prazos</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--purple)"></div>Primeira entrega em até 30 dias</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="funil-step">
+        <div class="funil-head">
+          <div class="funil-num" style="background:var(--red-soft);color:var(--red)">6</div>
+          <div class="funil-title">Fidelização</div>
+          <div class="funil-icon">❤️</div>
+        </div>
+        <div class="funil-body">
+          <div class="funil-items">
+            <div class="funil-item"><div class="funil-dot" style="background:var(--red)"></div>Relatório mensal de resultados para o cliente</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--red)"></div>Identificar novas oportunidades proativamente</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--red)"></div>Reunião trimestral de acompanhamento</div>
+            <div class="funil-item"><div class="funil-dot" style="background:var(--red)"></div>Pedir indicações — mínimo 1 por cliente por ano</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS WHATSAPP -->
+  <div class="tab-content" id="tab-scripts">
+
+    <div class="script-card">
+      <div class="script-head">💬 Cenário 1 — Instagram ou site</div>
+      <div class="script-msgs">
+        <div class="msg-bubble"><div class="msg-num">Mensagem 1</div>Olá, [nome]! Me conta — você tem empresa aberta ou está pensando em abrir?<button class="msg-copy" onclick="copiar(this)" title="Copiar">📋</button></div>
+        <div class="msg-bubble"><div class="msg-num">Mensagem 2</div>Qual o regime tributário atual? Simples Nacional, Lucro Presumido ou Lucro Real?<button class="msg-copy" onclick="copiar(this)" title="Copiar">📋</button></div>
+        <div class="msg-bubble"><div class="msg-num">Mensagem 3</div>O que te motivou a buscar assessoria agora? Alguma situação específica ou é uma revisão geral?<button class="msg-copy" onclick="copiar(this)" title="Copiar">📋</button></div>
+        <div class="msg-bubble"><div class="msg-num">Mensagem 4</div>Posso fazer um diagnóstico rápido — sem custo. Você teria 20 minutos essa semana para conversarmos?<button class="msg-copy" onclick="copiar(this)" title="Copiar">📋</button></div>
+      </div>
+    </div>
+
+    <div class="script-card">
+      <div class="script-head">💬 Cenário 2 — Indicação</div>
+      <div class="script-msgs">
+        <div class="msg-bubble"><div class="msg-num">Mensagem 1</div>Olá, [nome]! O [fulano] me falou de você. Qual a principal dificuldade na parte fiscal da empresa agora?<button class="msg-copy" onclick="copiar(this)" title="Copiar">📋</button></div>
+        <div class="msg-bubble" style="border-color:var(--green)"><div class="msg-num" style="color:var(--green)">Dica</div>Indicação já tem confiança — vá direto ao problema. Não apresente a empresa, apresente a solução.</div>
+      </div>
+    </div>
+
+    <div class="script-card">
+      <div class="script-head">💬 Cenário 3 — Prospecção ativa</div>
+      <div class="script-msgs">
+        <div class="msg-bubble"><div class="msg-num">Mensagem 1</div>Olá, [nome]. Sou a Juliana, consultora tributária. Empresas do seu segmento frequentemente têm créditos tributários não aproveitados. Toparia uma análise gratuita de 20 minutos?<button class="msg-copy" onclick="copiar(this)" title="Copiar">📋</button></div>
+      </div>
+    </div>
+
+    <div class="script-card">
+      <div class="script-head">📌 Regras de ouro</div>
+      <div class="script-msgs">
+        <div class="msg-bubble" style="border-color:var(--yellow)">Uma pergunta por vez — mensagem longa assusta</div>
+        <div class="msg-bubble" style="border-color:var(--yellow)">Responder em até 2h em horário comercial</div>
+        <div class="msg-bubble" style="border-color:var(--yellow)">Nunca mandar preço antes de qualificar</div>
+        <div class="msg-bubble" style="border-color:var(--yellow)">Sem áudio — use texto. Sem figurinhas no início</div>
+        <div class="msg-bubble" style="border-color:var(--yellow)">Sempre fechar com próximo passo claro</div>
+        <div class="msg-bubble" style="border-color:var(--yellow)">Usar o nome da pessoa sempre</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- QUALIFICAÇÃO -->
+  <div class="tab-content" id="tab-qualificacao">
+    <div class="qual-grid">
+      <div class="qual-card">
+        <div class="qual-title">✅ Sinais de prospect qualificado</div>
+        <div class="qual-item"><div class="qual-dot" style="background:var(--green)"></div>Responde rápido e com detalhes</div>
+        <div class="qual-item"><div class="qual-dot" style="background:var(--green)"></div>Menciona valores e prazos espontaneamente</div>
+        <div class="qual-item"><div class="qual-dot" style="background:var(--green)"></div>Tem problema ativo com Receita Federal ou SEFAZ</div>
+        <div class="qual-item"><div class="qual-dot" style="background:var(--green)"></div>Está trocando de contador ou assessoria</div>
+        <div class="qual-item"><div class="qual-dot" style="background:var(--green)"></div>Regime Lucro Presumido ou Real — maior potencial</div>
+        <div class="qual-item"><div class="qual-dot" style="background:var(--green)"></div>Pergunta sobre recuperação tributária</div>
+        <div class="qual-item"><div class="qual-dot" style="background:var(--green)"></div>Empresa com faturamento acima de R$ 500k/ano</div>
+      </div>
+      <div class="qual-card">
+        <div class="qual-title">⚠️ Sinais de atenção</div>
+        <div class="qual-item"><div class="qual-dot" style="background:var(--yellow)"></div>Foca demais em preço antes de entender o serviço</div>
+        <div class="qual-item"><div class="qual-dot" style="background:var(--yellow)"></div>Não sabe o regime tributário da própria empresa</div>
+        <div class="qual-item"><div class="qual-dot" style="background:var(--yellow)"></div>Já trocou de contador mais de 2x em 3 anos</div>
+        <div class="qual-item"><div class="qual-dot" style="background:var(--yellow)"></div>Demora mais de 3 dias para responder</div>
+        <div class="qual-item"><div class="qual-dot" style="background:var(--yellow)"></div>Quer tudo urgente mas não tem documentos prontos</div>
+        <div class="qual-item"><div class="qual-dot" style="background:var(--red)"></div>Empresa com passivo fiscal muito alto sem interesse em regularizar</div>
+        <div class="qual-item"><div class="qual-dot" style="background:var(--red)"></div>Propõe pagamento em permuta ou informal</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRECIFICAÇÃO -->
+  <div class="tab-content" id="tab-precificacao">
+    <div class="preco-grid">
+      <div class="preco-card">
+        <div class="preco-tipo">Mensalidade fixa</div>
+        <div class="preco-nome">Assessoria Fiscal Básica</div>
+        <div class="preco-val">A definir</div>
+        <div class="preco-desc">Obrigações acessórias mensais, apuração de tributos, SPED. Adicione aqui sua tabela de preços.</div>
+      </div>
+      <div class="preco-card">
+        <div class="preco-tipo">Honorário de êxito</div>
+        <div class="preco-nome">Recuperação Tributária</div>
+        <div class="preco-val">10% a 20%</div>
+        <div class="preco-desc">Percentual sobre o valor efetivamente recuperado ou compensado. Sem recuperação = sem custo para o cliente.</div>
+      </div>
+      <div class="preco-card">
+        <div class="preco-tipo">Projeto fechado</div>
+        <div class="preco-nome">Diagnóstico Tributário</div>
+        <div class="preco-val">A definir</div>
+        <div class="preco-desc">Análise completa da situação fiscal dos últimos 5 anos. Entrega de relatório com oportunidades mapeadas.</div>
+      </div>
+      <div class="preco-card">
+        <div class="preco-tipo">Modelo misto</div>
+        <div class="preco-nome">Consultoria + Êxito</div>
+        <div class="preco-val">A definir</div>
+        <div class="preco-desc">Mensalidade reduzida + percentual de êxito sobre recuperações. Ideal para clientes maiores.</div>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--yellow);border-radius:var(--radius);padding:14px 18px;font-size:12px;color:var(--text3);line-height:1.7">
+      💡 <strong style="color:var(--yellow)">Dica:</strong> Nunca dê preço sem fazer o diagnóstico antes. O valor percebido é muito maior quando o cliente já viu o potencial de recuperação. Apresente primeiro o quanto ele pode recuperar, depois o custo do serviço.
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showTab(id){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function copiar(btn){
+  const txt = btn.parentElement.textContent.replace('📋','').replace(/^Mensagem \d+/,'').trim();
+  navigator.clipboard.writeText(txt).then(()=>{
+    btn.textContent='✓';
+    setTimeout(()=>btn.textContent='📋',2000);
+  });
+}
+</script>
+</body>
+</html>

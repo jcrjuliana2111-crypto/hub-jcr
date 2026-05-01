@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JCR — Ferramentas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14;--surface:#13161e;--surface2:#1a1e2a;--surface3:#222739;
+  --border:#2a2f42;--border2:#363d55;
+  --accent:#4f8ef7;--accent-soft:rgba(79,142,247,0.12);
+  --green:#2dd4a0;--green-soft:rgba(45,212,160,0.12);
+  --yellow:#f5c842;--yellow-soft:rgba(245,200,66,0.12);
+  --red:#f25c6e;--red-soft:rgba(242,92,110,0.12);
+  --orange:#f2924a;--orange-soft:rgba(242,146,74,0.12);
+  --purple:#a78bfa;--purple-soft:rgba(167,139,250,0.12);
+  --teal:#2dd4a0;
+  --text:#e8eaf0;--text2:#8b92a8;--text3:#5d6480;
+  --radius:14px;--radius-sm:8px;
+  --font-display:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;--font-mono:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--surface)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;gap:12px;background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:60px;position:sticky;top:0;z-index:50}
+.topbar-logo{font-family:var(--font-display);font-weight:800;font-size:22px;color:var(--accent);cursor:pointer}
+.nav-sep{color:var(--border2);font-size:18px}
+.nav-back{background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;font-family:var(--font-body);padding:6px 10px;border-radius:var(--radius-sm);transition:all .15s}
+.nav-back:hover{background:var(--surface2);color:var(--text2)}
+.nav-current{font-size:13px;color:var(--text2);font-weight:500}
+
+/* HERO */
+.hero{background:var(--surface);border-bottom:1px solid var(--border);padding:28px 32px}
+.hero-inner{max-width:1100px;margin:0 auto}
+.hero-eye{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem;display:flex;align-items:center;gap:8px}
+.hero-eye::before{content:'';width:16px;height:1px;background:var(--accent)}
+.hero-title{font-family:var(--font-display);font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:var(--text);line-height:1.1;margin-bottom:.4rem}
+.hero-title em{color:var(--accent);font-style:normal}
+.hero-sub{font-size:13px;color:var(--text3);line-height:1.7;max-width:600px}
+
+/* PAGE */
+.page{max-width:1100px;margin:0 auto;padding:28px 32px}
+
+/* FILTRO BUSCA */
+.filtros{display:flex;gap:10px;margin-bottom:28px;flex-wrap:wrap;align-items:center}
+.search{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 14px;outline:none;min-width:260px;transition:border-color .2s}
+.search:focus{border-color:var(--accent)}
+.search::placeholder{color:var(--text3)}
+.fsel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-family:var(--font-body);font-size:13px;padding:9px 14px;outline:none;cursor:pointer}
+.fcount{font-size:12px;color:var(--text3);margin-left:auto}
+
+/* CATEGORIA */
+.categoria{margin-bottom:36px}
+.cat-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.cat-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.cat-nome{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text)}
+.cat-count{font-size:11px;color:var(--text3);margin-left:2px}
+.cat-line{flex:1;height:1px;background:var(--border)}
+
+/* CARDS */
+.ferr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.ferr-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;transition:all .2s;position:relative}
+.ferr-card:hover{border-color:var(--fc-color,var(--accent));transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.35)}
+.ferr-card:hover .fc-arrow{opacity:1;transform:translateX(0)}
+.fc-bar{position:absolute;top:0;left:0;right:0;height:3px}
+.fc-top{padding:18px 18px 0}
+.fc-icon-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.fc-icon{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--surface2);border:1px solid var(--border);position:relative;flex-shrink:0}
+.fc-icon::after{content:'';position:absolute;inset:0;border-radius:11px;background:var(--fc-color,var(--accent));opacity:.08}
+.fc-tags{display:flex;gap:5px;flex-wrap:wrap}
+.fc-arrow{font-size:14px;color:var(--fc-color,var(--accent));opacity:0;transform:translateX(-4px);transition:all .2s}
+.fc-nome{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text);margin-bottom:5px;line-height:1.25}
+.fc-sub{font-size:11px;color:var(--text3);margin-bottom:10px;font-family:var(--font-mono)}
+.fc-desc{font-size:12px;color:var(--text3);line-height:1.7;margin-bottom:14px}
+.fc-items{display:flex;flex-direction:column;gap:4px;padding:0 18px;margin-bottom:14px;flex:1}
+.fc-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)}
+.fc-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.fc-footer{padding:14px 18px;border-top:1px solid var(--border);background:var(--surface2);margin-top:auto}
+.fc-btn{width:100%;padding:11px;border-radius:9px;border:none;font-family:var(--font-display);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.fc-btn:hover{opacity:.88;transform:translateY(-1px)}
+
+/* ADICIONAR CARD */
+.add-card{background:var(--surface);border:1.5px dashed var(--border2);border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;cursor:pointer;transition:all .2s;min-height:200px}
+.add-card:hover{border-color:var(--accent);background:var(--accent-soft)}
+.add-icon{font-size:28px;opacity:.4;margin-bottom:.5rem}
+.add-txt{font-size:13px;color:var(--text3)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;white-space:nowrap}
+.bg-blue{background:var(--accent-soft);color:var(--accent)}
+.bg-green{background:var(--green-soft);color:var(--green)}
+.bg-orange{background:var(--orange-soft);color:var(--orange)}
+.bg-yellow{background:var(--yellow-soft);color:var(--yellow)}
+.bg-purple{background:var(--purple-soft);color:var(--purple)}
+.bg-red{background:var(--red-soft);color:var(--red)}
+.bg-gray{background:rgba(93,100,128,.15);color:var(--text3)}
+
+/* MODAL ADICIONAR */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:18px;width:480px;max-width:95vw}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text)}
+.modal-close{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:4px}
+.modal-body{padding:20px 22px}
+.mfield{margin-bottom:12px}
+.mfield label{display:block;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.mfield input,.mfield select,.mfield textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;transition:border-color .2s}
+.mfield input:focus,.mfield select:focus,.mfield textarea:focus{border-color:var(--accent)}
+.mfield textarea{resize:vertical;min-height:70px}
+.mfield-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.btn-salvar{padding:9px 22px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)}
+.btn-cancel{padding:9px 16px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:var(--font-body)}
+
+/* EMPTY */
+.empty-cat{background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius);padding:2rem;text-align:center;color:var(--text3);font-size:12px;display:none}
+
+@media(max-width:700px){.page{padding:20px 16px}.hero{padding:20px 16px}.ferr-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo" onclick="window.location.href='index.html'">JCR</div>
+  <span class="nav-sep">›</span>
+  <button class="nav-back" onclick="window.location.href='index.html'">← Hub</button>
+  <span class="nav-sep">›</span>
+  <span class="nav-current">🛠️ Ferramentas</span>
+</div>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eye">Base de Ferramentas</div>
+    <div class="hero-title">Ferramentas <em>JCR</em></div>
+    <div class="hero-sub">Todas as ferramentas do escritório organizadas por categoria. Clique em qualquer card para abrir direto.</div>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="filtros">
+    <input class="search" type="text" id="search" placeholder="🔍 Buscar ferramenta..." oninput="filtrar()">
+    <select class="fsel" id="f-cat" onchange="filtrar()">
+      <option value="">Todas as categorias</option>
+      <option value="fiscal">Fiscal & Tributário</option>
+      <option value="gestao">Gestão</option>
+      <option value="produtividade">Produtividade</option>
+    </select>
+    <span class="fcount" id="fcount"></span>
+  </div>
+
+  <div id="area-ferramentas"></div>
+
+</div>
+
+<!-- MODAL ADICIONAR -->
+<div class="modal-overlay" id="modalOverlay" onclick="fecharModal(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">➕ Adicionar ferramenta</div>
+      <button class="modal-close" onclick="fecharModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="mfield"><label>Nome da ferramenta</label><input type="text" id="m-nome" placeholder="Ex: Calculadora de DIFAL"></div>
+      <div class="mfield"><label>Arquivo HTML (nome do arquivo)</label><input type="text" id="m-arquivo" placeholder="Ex: calculadora_difal.html"></div>
+      <div class="mfield-row">
+        <div class="mfield"><label>Categoria</label>
+          <select id="m-cat">
+            <option value="fiscal">Fiscal & Tributário</option>
+            <option value="gestao">Gestão</option>
+            <option value="produtividade">Produtividade</option>
+          </select>
+        </div>
+        <div class="mfield"><label>Ícone (emoji)</label><input type="text" id="m-icon" placeholder="Ex: 📊" maxlength="2"></div>
+      </div>
+      <div class="mfield"><label>Subtítulo</label><input type="text" id="m-sub" placeholder="Ex: Lucro Real — entradas e saídas"></div>
+      <div class="mfield"><label>Descrição</label><textarea id="m-desc" placeholder="O que essa ferramenta faz?"></textarea></div>
+      <div class="mfield"><label>Itens / funcionalidades (um por linha)</label><textarea id="m-itens" placeholder="Upload de arquivo&#10;Cálculo automático&#10;Exporta relatório"></textarea></div>
+      <div class="mfield-row">
+        <div class="mfield"><label>Cor do card (hex)</label><input type="text" id="m-cor" placeholder="#4f8ef7"></div>
+        <div class="mfield"><label>Tag (badge)</label><input type="text" id="m-tag" placeholder="Ex: ADM, Novo, Lucro Real"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvarFerramenta()">✓ Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DADOS BASE — ferramentas padrão
+// ═══════════════════════════════════════════════════════
+const FERRAMENTAS_DEFAULT = [
+  {
+    id: 'efd_pis_cofins',
+    nome: 'EFD Contribuições — Apuração PIS/COFINS',
+    arquivo: 'efd_pis_cofins.html',
+    categoria: 'fiscal',
+    icon: '📑',
+    sub: 'Lucro Real — débitos, créditos e retenções',
+    desc: 'Importa o arquivo EFD Contribuições e organiza a apuração completa de PIS/COFINS — débitos por receita, créditos por tipo e retenções na fonte.',
+    itens: ['Upload do arquivo EFD .txt', 'Apuração final PIS/COFINS', 'Débitos — receitas e saídas por CST', 'Créditos por tipo e CST', 'Retenções na fonte'],
+    cor: '#4f8ef7',
+    tag: 'ADM',
+    tagCor: 'bg-blue',
+    padrao: true
+  }
+];
+
+const CATEGORIAS = {
+  fiscal: { nome: 'Fiscal & Tributário', icon: '⚖️', cor: '#4f8ef7' },
+  gestao: { nome: 'Gestão', icon: '📊', cor: '#2dd4a0' },
+  produtividade: { nome: 'Produtividade', icon: '⚡', cor: '#f5c842' },
+};
+
+// ═══════════════════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════════════════
+let ferramentas = carregarFerramentas();
+let filtradas = [...ferramentas];
+
+function carregarFerramentas() {
+  const extras = JSON.parse(localStorage.getItem('jcr_ferramentas_extras') || '[]');
+  // Merge: padrão + extras (sem duplicar por id)
+  const ids = new Set(FERRAMENTAS_DEFAULT.map(f=>f.id));
+  const todas = [...FERRAMENTAS_DEFAULT, ...extras.filter(e=>!ids.has(e.id))];
+  return todas;
+}
+
+function salvarExtras() {
+  const extras = ferramentas.filter(f=>!f.padrao);
+  localStorage.setItem('jcr_ferramentas_extras', JSON.stringify(extras));
+}
+
+// ═══════════════════════════════════════════════════════
+// FILTRAR
+// ═══════════════════════════════════════════════════════
+function filtrar() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const cat = document.getElementById('f-cat').value;
+  filtradas = ferramentas.filter(f =>
+    (!q || f.nome.toLowerCase().includes(q) || f.desc.toLowerCase().includes(q))
+    && (!cat || f.categoria === cat)
+  );
+  render();
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════
+function render() {
+  const area = document.getElementById('area-ferramentas');
+  document.getElementById('fcount').textContent = filtradas.length + ' ferramenta(s)';
+
+  // Agrupar por categoria
+  const porCat = {};
+  Object.keys(CATEGORIAS).forEach(c => { porCat[c] = []; });
+  filtradas.forEach(f => {
+    if (!porCat[f.categoria]) porCat[f.categoria] = [];
+    porCat[f.categoria].push(f);
+  });
+
+  let html = '';
+  Object.entries(CATEGORIAS).forEach(([catId, catInfo]) => {
+    const lista = porCat[catId] || [];
+    html += `
+      <div class="categoria" id="cat-${catId}">
+        <div class="cat-header">
+          <div class="cat-icon" style="background:${catInfo.cor}22;color:${catInfo.cor}">${catInfo.icon}</div>
+          <div class="cat-nome">${catInfo.nome} <span class="cat-count">(${lista.length})</span></div>
+          <div class="cat-line"></div>
+        </div>
+        <div class="ferr-grid">
+          ${lista.map(f => cardHTML(f)).join('')}
+          <div class="add-card" onclick="abrirModal('${catId}')">
+            <div class="add-icon">➕</div>
+            <div class="add-txt">Adicionar ferramenta</div>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  area.innerHTML = html;
+}
+
+function cardHTML(f) {
+  const cor = f.cor || '#4f8ef7';
+  const itens = (f.itens || []).map(i =>
+    `<div class="fc-item"><div class="fc-dot" style="background:${cor}"></div>${i}</div>`
+  ).join('');
+  const tag = f.tag ? `<span class="badge ${f.tagCor||'bg-blue'}">${f.tag}</span>` : '';
+
+  return `
+    <div class="ferr-card" style="--fc-color:${cor}">
+      <div class="fc-bar" style="background:${cor}"></div>
+      <div class="fc-top">
+        <div class="fc-icon-row">
+          <div class="fc-icon" style="--fc-color:${cor}">${f.icon || '🔧'}</div>
+          <div class="fc-tags">${tag}</div>
+          <div class="fc-arrow">→</div>
+        </div>
+        <div class="fc-nome">${f.nome}</div>
+        <div class="fc-sub">${f.sub || ''}</div>
+        <div class="fc-desc">${f.desc || ''}</div>
+      </div>
+      <div class="fc-items">${itens}</div>
+      <div class="fc-footer">
+        <button class="fc-btn" style="background:${cor};color:${corTexto(cor)}"
+          onclick="window.open('${f.arquivo}','_blank')">
+          Abrir ${f.nome.split('—')[0].trim()} →
+        </button>
+        ${!f.padrao ? `<button onclick="remover('${f.id}')" style="width:100%;margin-top:6px;padding:6px;border-radius:7px;border:1px solid var(--border);background:none;color:var(--text3);font-size:11px;cursor:pointer;font-family:var(--font-body)">🗑️ Remover</button>` : ''}
+      </div>
+    </div>`;
+}
+
+function corTexto(hex) {
+  // Escolhe texto branco ou escuro baseado na cor
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+  return lum > 0.55 ? '#1a1a1a' : '#ffffff';
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAL ADICIONAR
+// ═══════════════════════════════════════════════════════
+function abrirModal(cat) {
+  limparModal();
+  if (cat) document.getElementById('m-cat').value = cat;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function fecharModal(e) {
+  if (e && e.target !== document.getElementById('modalOverlay')) return;
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function limparModal() {
+  ['m-nome','m-arquivo','m-sub','m-desc','m-itens','m-tag'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('m-icon').value = '🔧';
+  document.getElementById('m-cor').value = '#4f8ef7';
+  document.getElementById('m-cat').selectedIndex = 0;
+}
+
+function salvarFerramenta() {
+  const nome = document.getElementById('m-nome').value.trim();
+  const arquivo = document.getElementById('m-arquivo').value.trim();
+  if (!nome) { alert('Informe o nome da ferramenta.'); return; }
+  if (!arquivo) { alert('Informe o nome do arquivo HTML.'); return; }
+
+  const itensRaw = document.getElementById('m-itens').value.trim();
+  const itens = itensRaw ? itensRaw.split('\n').map(i=>i.trim()).filter(i=>i) : [];
+  const tag = document.getElementById('m-tag').value.trim();
+  const cor = document.getElementById('m-cor').value.trim() || '#4f8ef7';
+
+  const nova = {
+    id: 'ferr_' + Date.now(),
+    nome,
+    arquivo,
+    categoria: document.getElementById('m-cat').value,
+    icon: document.getElementById('m-icon').value.trim() || '🔧',
+    sub: document.getElementById('m-sub').value.trim(),
+    desc: document.getElementById('m-desc').value.trim(),
+    itens,
+    cor,
+    tag,
+    tagCor: 'bg-blue',
+    padrao: false
+  };
+
+  ferramentas.push(nova);
+  filtradas = [...ferramentas];
+  salvarExtras();
+  document.getElementById('modalOverlay').classList.remove('open');
+  filtrar();
+}
+
+function remover(id) {
+  if (!confirm('Remover esta ferramenta?')) return;
+  ferramentas = ferramentas.filter(f => f.id !== id);
+  filtradas = filtradas.filter(f => f.id !== id);
+  salvarExtras();
+  render();
+}
+
+// ── INIT ──
+filtrar();
+</script>
+</body>
+</html>

@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JCR — Clientes</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14;--surface:#13161e;--surface2:#1a1e2a;--surface3:#222739;
+  --border:#2a2f42;--border2:#363d55;
+  --accent:#4f8ef7;--accent-soft:rgba(79,142,247,0.12);
+  --green:#2dd4a0;--green-soft:rgba(45,212,160,0.12);
+  --yellow:#f5c842;--yellow-soft:rgba(245,200,66,0.12);
+  --red:#f25c6e;--red-soft:rgba(242,92,110,0.12);
+  --orange:#f2924a;--orange-soft:rgba(242,146,74,0.12);
+  --purple:#a78bfa;--purple-soft:rgba(167,139,250,0.12);
+  --text:#e8eaf0;--text2:#8b92a8;--text3:#5d6480;
+  --radius:14px;--radius-sm:8px;
+  --font-display:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;--font-mono:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--surface)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+.topbar{display:flex;align-items:center;gap:12px;background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:60px;position:sticky;top:0;z-index:50}
+.topbar-logo{font-family:var(--font-display);font-weight:800;font-size:22px;color:var(--accent);cursor:pointer}
+.nav-sep{color:var(--border2);font-size:18px}
+.nav-back{background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;font-family:var(--font-body);padding:6px 10px;border-radius:var(--radius-sm);transition:all .15s}
+.nav-back:hover{background:var(--surface2);color:var(--text2)}
+.nav-current{font-size:13px;color:var(--text2);font-weight:500}
+
+.hero{background:var(--surface);border-bottom:1px solid var(--border);padding:28px 32px}
+.hero-inner{max-width:1100px;margin:0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:2rem;flex-wrap:wrap}
+.hero-eye{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--red);margin-bottom:.5rem;display:flex;align-items:center;gap:8px}
+.hero-eye::before{content:'';width:16px;height:1px;background:var(--red)}
+.hero-title{font-family:var(--font-display);font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:var(--text);line-height:1.1;margin-bottom:.4rem}
+.hero-title em{color:var(--red);font-style:normal}
+.hero-sub{font-size:13px;color:var(--text3);line-height:1.7;max-width:500px}
+
+.page{max-width:1100px;margin:0 auto;padding:28px 32px}
+.sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* STATS */
+.stats-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px}
+.hstat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;border-top:2px solid var(--hs-color,var(--red));flex:1;min-width:120px}
+.hstat-val{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text)}
+.hstat-label{font-size:10px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+
+/* FILTROS */
+.filtros{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.search{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 14px;outline:none;min-width:220px;transition:border-color .2s}
+.search:focus{border-color:var(--red)}
+.search::placeholder{color:var(--text3)}
+.fsel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-family:var(--font-body);font-size:13px;padding:9px 14px;outline:none;cursor:pointer}
+.btn-novo{padding:9px 20px;border-radius:var(--radius-sm);background:var(--red);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);margin-left:auto}
+.btn-novo:hover{opacity:.88}
+
+/* GRID CLIENTES */
+.clientes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:28px}
+.cli-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .15s}
+.cli-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.cli-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px}
+.cli-avatar{width:36px;height:36px;border-radius:9px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--red);flex-shrink:0;border:1px solid var(--border);font-family:var(--font-display)}
+.cli-info{flex:1;min-width:0}
+.cli-nome{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cli-cnpj{font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-top:2px}
+.cli-badges{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.cli-body{padding:12px 16px;display:flex;flex-direction:column;gap:6px}
+.cli-row{display:flex;align-items:center;justify-content:space-between;font-size:11px}
+.cli-row-label{color:var(--text3)}
+.cli-row-val{color:var(--text2);font-weight:500}
+.cli-row-val.pos{color:var(--green);font-weight:700}
+.cli-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:6px}
+.cli-btn{flex:1;padding:6px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text3);font-size:11px;cursor:pointer;font-family:var(--font-body);transition:all .15s;text-align:center}
+.cli-btn:hover{background:var(--surface2);color:var(--text);border-color:var(--red)}
+
+/* ESTADO VAZIO */
+.empty{text-align:center;padding:4rem 2rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.empty-icon{font-size:40px;opacity:.3;margin-bottom:.75rem}
+.empty-title{font-size:14px;font-weight:600;color:var(--text2);margin-bottom:.5rem}
+.empty-sub{font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:1.25rem}
+.empty-btn{padding:10px 24px;border-radius:8px;background:var(--red);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)}
+
+/* DRAWER CLIENTE */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:90;pointer-events:none;transition:background .3s}
+.drawer-overlay.open{background:rgba(0,0,0,.6);pointer-events:all}
+.drawer{position:fixed;top:60px;right:0;bottom:0;width:480px;background:var(--surface);border-left:1px solid var(--border);z-index:100;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
+.drawer.open{transform:translateX(0)}
+.drawer-head{padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.drawer-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text)}
+.drawer-close{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer}
+.drawer-body{flex:1;overflow-y:auto;padding:18px 20px}
+.drawer-sec{margin-bottom:20px}
+.drawer-sec-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:10px}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.field input,.field select,.field textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-body);font-size:13px;padding:9px 12px;outline:none;transition:border-color .2s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--red)}
+.field textarea{resize:vertical;min-height:70px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.drawer-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--surface2);flex-shrink:0}
+.btn-save{flex:1;padding:11px;border-radius:9px;border:none;background:var(--red);color:#fff;font-family:var(--font-display);font-size:14px;font-weight:700;cursor:pointer}
+.btn-cancel{padding:11px 20px;border-radius:9px;border:1px solid var(--border);background:none;color:var(--text2);font-family:var(--font-body);font-size:13px;cursor:pointer}
+
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;white-space:nowrap}
+.bg-green{background:var(--green-soft);color:var(--green)}
+.bg-yellow{background:var(--yellow-soft);color:var(--yellow)}
+.bg-blue{background:var(--accent-soft);color:var(--accent)}
+.bg-orange{background:var(--orange-soft);color:var(--orange)}
+.bg-red{background:var(--red-soft);color:var(--red)}
+.bg-purple{background:var(--purple-soft);color:var(--purple)}
+.bg-gray{background:rgba(93,100,128,.15);color:var(--text3)}
+
+@media(max-width:700px){.page{padding:20px 16px}.hero{padding:20px 16px}.drawer{width:100vw}.stats-row{gap:8px}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo" onclick="window.location.href='index.html'">JCR</div>
+  <span class="nav-sep">›</span>
+  <button class="nav-back" onclick="window.location.href='index.html'">← Hub</button>
+  <span class="nav-sep">›</span>
+  <span class="nav-current">👥 Clientes</span>
+</div>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-eye">Gestão de Carteira</div>
+      <div class="hero-title">Base de <em>Clientes</em></div>
+      <div class="hero-sub">Ficha completa por cliente com oportunidades identificadas, passivo fiscal, histórico de análises e status de ações ADM e JUD.</div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="stats-row">
+    <div class="hstat" style="--hs-color:var(--red)"><div class="hstat-val" id="st-total">0</div><div class="hstat-label">Total de clientes</div></div>
+    <div class="hstat" style="--hs-color:var(--green)"><div class="hstat-val" id="st-ativos">0</div><div class="hstat-label">Ativos</div></div>
+    <div class="hstat" style="--hs-color:var(--orange)"><div class="hstat-val" id="st-recuperacao">0</div><div class="hstat-label">Em recuperação</div></div>
+    <div class="hstat" style="--hs-color:var(--yellow)"><div class="hstat-val" id="st-potencial">R$ 0</div><div class="hstat-label">Potencial mapeado</div></div>
+  </div>
+
+  <div class="filtros">
+    <input class="search" type="text" id="search" placeholder="🔍 Buscar por nome ou CNPJ..." oninput="filtrar()">
+    <select class="fsel" id="f-regime" onchange="filtrar()">
+      <option value="">Todos os regimes</option>
+      <option>Simples Nacional</option>
+      <option>Lucro Presumido</option>
+      <option>Lucro Real</option>
+    </select>
+    <select class="fsel" id="f-status" onchange="filtrar()">
+      <option value="">Todos os status</option>
+      <option>Ativo</option>
+      <option>Em negociação</option>
+      <option>Inativo</option>
+    </select>
+    <button class="btn-novo" onclick="novoCliente()">+ Novo cliente</button>
+  </div>
+
+  <div id="clientes-area"></div>
+
+</div>
+
+<!-- DRAWER -->
+<div class="drawer-overlay" id="overlay" onclick="fecharDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div class="drawer-title" id="drawer-title">Novo Cliente</div>
+    <button class="drawer-close" onclick="fecharDrawer()">✕</button>
+  </div>
+  <div class="drawer-body">
+
+    <div class="drawer-sec">
+      <div class="drawer-sec-title">Identificação</div>
+      <div class="field"><label>Nome / Razão Social</label><input type="text" id="f-nome" placeholder="Nome da empresa"></div>
+      <div class="field-row">
+        <div class="field"><label>CNPJ</label><input type="text" id="f-cnpj" placeholder="00.000.000/0001-00"></div>
+        <div class="field"><label>Regime Tributário</label>
+          <select id="f-regime-cli">
+            <option>Simples Nacional</option>
+            <option>Lucro Presumido</option>
+            <option>Lucro Real</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Segmento / CNAE</label><input type="text" id="f-segmento" placeholder="Ex: Comércio varejista"></div>
+        <div class="field"><label>Status</label>
+          <select id="f-status-cli">
+            <option>Ativo</option>
+            <option>Em negociação</option>
+            <option>Inativo</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Responsável de contato</label><input type="text" id="f-contato" placeholder="Nome e WhatsApp"></div>
+    </div>
+
+    <div class="drawer-sec">
+      <div class="drawer-sec-title">Financeiro</div>
+      <div class="field-row">
+        <div class="field"><label>Faturamento anual (R$)</label><input type="text" id="f-faturamento" placeholder="Ex: 1.200.000"></div>
+        <div class="field"><label>Honorário mensal (R$)</label><input type="text" id="f-honorario" placeholder="Ex: 2.500"></div>
+      </div>
+      <div class="field"><label>Modelo de contrato</label>
+        <select id="f-modelo">
+          <option>Mensalidade fixa</option>
+          <option>Honorário de êxito</option>
+          <option>Misto (mensal + êxito)</option>
+          <option>Projeto fechado</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="drawer-sec">
+      <div class="drawer-sec-title">Oportunidades identificadas</div>
+      <div class="field"><label>Potencial de recuperação (R$)</label><input type="text" id="f-potencial" placeholder="Ex: 85.000"></div>
+      <div class="field"><label>Teses identificadas</label><input type="text" id="f-teses" placeholder="Ex: ICMS PIS/COFINS, ICMS-ST"></div>
+      <div class="field"><label>Status das ações</label>
+        <select id="f-acoes">
+          <option>Não iniciado</option>
+          <option>Em análise</option>
+          <option>ADM — aguardando documentos</option>
+          <option>ADM — PER/DCOMP transmitido</option>
+          <option>JUD — em andamento</option>
+          <option>Concluído</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="drawer-sec">
+      <div class="drawer-sec-title">Passivo Fiscal</div>
+      <div class="field-row">
+        <div class="field"><label>Valor do passivo (R$)</label><input type="text" id="f-passivo" placeholder="Ex: 45.000"></div>
+        <div class="field"><label>Situação</label>
+          <select id="f-passivo-sit">
+            <option>Sem passivo</option>
+            <option>Em aberto</option>
+            <option>Parcelado — PGFN</option>
+            <option>Parcelado — Refis</option>
+            <option>Em discussão judicial</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-sec">
+      <div class="drawer-sec-title">Observações</div>
+      <div class="field"><textarea id="f-obs" placeholder="Histórico, particularidades, próximos passos..."></textarea></div>
+    </div>
+
+  </div>
+  <div class="drawer-foot">
+    <button class="btn-cancel" onclick="fecharDrawer()">Cancelar</button>
+    <button class="btn-save" onclick="salvarCliente()">✓ Salvar cliente</button>
+  </div>
+</div>
+
+<script>
+// ── ESTADO ──────────────────────────────────────────────
+let clientes = JSON.parse(localStorage.getItem('jcr_clientes_hub') || '[]');
+let clienteAtual = null;
+let filtrados = [...clientes];
+
+// ── RENDER ──────────────────────────────────────────────
+function render() {
+  const area = document.getElementById('clientes-area');
+  calcStats();
+
+  if (filtrados.length === 0) {
+    area.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">👥</div>
+        <div class="empty-title">${clientes.length === 0 ? 'Nenhum cliente cadastrado' : 'Nenhum resultado'}</div>
+        <div class="empty-sub">${clientes.length === 0 ? 'Comece cadastrando os clientes da carteira do sócio contábil. Cada ficha centraliza oportunidades, passivo e ações em um lugar.' : 'Tente outros filtros.'}</div>
+        ${clientes.length === 0 ? '<button class="empty-btn" onclick="novoCliente()">+ Cadastrar primeiro cliente</button>' : ''}
+      </div>`;
+    return;
+  }
+
+  area.innerHTML = `<div class="clientes-grid">${filtrados.map(cli => cardHTML(cli)).join('')}</div>`;
+}
+
+function cardHTML(cli) {
+  const ini = (cli.nome || '?').slice(0, 2).toUpperCase();
+  const regimeBadge = {
+    'Simples Nacional': 'bg-green',
+    'Lucro Presumido': 'bg-yellow',
+    'Lucro Real': 'bg-orange'
+  }[cli.regime] || 'bg-gray';
+  const statusBadge = {
+    'Ativo': 'bg-green',
+    'Em negociação': 'bg-yellow',
+    'Inativo': 'bg-gray'
+  }[cli.status] || 'bg-gray';
+  const acoesBadge = {
+    'ADM — PER/DCOMP transmitido': 'bg-blue',
+    'JUD — em andamento': 'bg-red',
+    'Concluído': 'bg-green',
+    'Em análise': 'bg-yellow'
+  }[cli.acoes] || 'bg-gray';
+
+  return `
+    <div class="cli-card" onclick="abrirCliente('${cli.id}')">
+      <div class="cli-head">
+        <div class="cli-avatar">${ini}</div>
+        <div class="cli-info">
+          <div class="cli-nome">${cli.nome || '—'}</div>
+          <div class="cli-cnpj">${cli.cnpj || '—'}</div>
+          <div class="cli-badges">
+            <span class="badge ${regimeBadge}">${cli.regime || '—'}</span>
+            <span class="badge ${statusBadge}">${cli.status || '—'}</span>
+          </div>
+        </div>
+      </div>
+      <div class="cli-body">
+        <div class="cli-row"><span class="cli-row-label">Honorário mensal</span><span class="cli-row-val">${cli.honorario ? 'R$ '+Number(cli.honorario.replace(/\D/g,'')).toLocaleString('pt-BR') : '—'}</span></div>
+        <div class="cli-row"><span class="cli-row-label">Potencial recuperação</span><span class="cli-row-val pos">${cli.potencial ? 'R$ '+Number(cli.potencial.replace(/\D/g,'')).toLocaleString('pt-BR') : '—'}</span></div>
+        <div class="cli-row"><span class="cli-row-label">Ações</span><span class="badge ${acoesBadge}" style="font-size:10px">${cli.acoes || 'Não iniciado'}</span></div>
+      </div>
+      <div class="cli-footer">
+        <button class="cli-btn" onclick="event.stopPropagation();abrirCliente('${cli.id}')">✏️ Editar</button>
+        <button class="cli-btn" onclick="event.stopPropagation();analisarCliente('${cli.id}')">⚖️ Analisar</button>
+        <button class="cli-btn" onclick="event.stopPropagation();excluirCliente('${cli.id}')">🗑️</button>
+      </div>
+    </div>`;
+}
+
+function calcStats() {
+  document.getElementById('st-total').textContent = clientes.length;
+  document.getElementById('st-ativos').textContent = clientes.filter(c=>c.status==='Ativo').length;
+  document.getElementById('st-recuperacao').textContent = clientes.filter(c=>c.acoes&&c.acoes!=='Não iniciado'&&c.acoes!=='Concluído').length;
+  const pot = clientes.reduce((a,c)=>a+(c.potencial?Number(c.potencial.replace(/\D/g,''))||0:0),0);
+  document.getElementById('st-potencial').textContent = pot > 0 ? 'R$ '+pot.toLocaleString('pt-BR') : 'R$ 0';
+}
+
+// ── FILTRAR ──────────────────────────────────────────────
+function filtrar() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const reg = document.getElementById('f-regime').value;
+  const st = document.getElementById('f-status').value;
+  filtrados = clientes.filter(c => {
+    return (!q || (c.nome||'').toLowerCase().includes(q) || (c.cnpj||'').includes(q))
+      && (!reg || c.regime === reg)
+      && (!st || c.status === st);
+  });
+  render();
+}
+
+// ── NOVO CLIENTE ──────────────────────────────────────────
+function novoCliente() {
+  clienteAtual = null;
+  document.getElementById('drawer-title').textContent = 'Novo Cliente';
+  limparForm();
+  abrirDrawer();
+}
+
+function abrirCliente(id) {
+  clienteAtual = clientes.find(c => c.id === id);
+  if (!clienteAtual) return;
+  document.getElementById('drawer-title').textContent = clienteAtual.nome || 'Cliente';
+  preencherForm(clienteAtual);
+  abrirDrawer();
+}
+
+function abrirDrawer() {
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function fecharDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function limparForm() {
+  ['f-nome','f-cnpj','f-segmento','f-contato','f-faturamento','f-honorario','f-potencial','f-teses','f-passivo','f-obs'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
+  ['f-regime-cli','f-status-cli','f-modelo','f-acoes','f-passivo-sit'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.selectedIndex=0;
+  });
+}
+
+function preencherForm(c) {
+  const m = {
+    'f-nome':c.nome,'f-cnpj':c.cnpj,'f-segmento':c.segmento,'f-contato':c.contato,
+    'f-faturamento':c.faturamento,'f-honorario':c.honorario,'f-potencial':c.potencial,
+    'f-teses':c.teses,'f-passivo':c.passivo,'f-obs':c.obs
+  };
+  Object.entries(m).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.value=val||'';});
+  const selMap = {
+    'f-regime-cli':c.regime,'f-status-cli':c.status,'f-modelo':c.modelo,
+    'f-acoes':c.acoes,'f-passivo-sit':c.passivoSit
+  };
+  Object.entries(selMap).forEach(([id,val])=>{
+    const el=document.getElementById(id);
+    if(el&&val){for(let o of el.options){if(o.value===val){o.selected=true;break;}}}
+  });
+}
+
+function salvarCliente() {
+  const nome = document.getElementById('f-nome').value.trim();
+  if (!nome) { alert('Informe o nome do cliente.'); return; }
+
+  const dados = {
+    id: clienteAtual?.id || 'cli_'+Date.now(),
+    nome, cnpj: document.getElementById('f-cnpj').value.trim(),
+    regime: document.getElementById('f-regime-cli').value,
+    status: document.getElementById('f-status-cli').value,
+    segmento: document.getElementById('f-segmento').value.trim(),
+    contato: document.getElementById('f-contato').value.trim(),
+    faturamento: document.getElementById('f-faturamento').value.trim(),
+    honorario: document.getElementById('f-honorario').value.trim(),
+    modelo: document.getElementById('f-modelo').value,
+    potencial: document.getElementById('f-potencial').value.trim(),
+    teses: document.getElementById('f-teses').value.trim(),
+    acoes: document.getElementById('f-acoes').value,
+    passivo: document.getElementById('f-passivo').value.trim(),
+    passivoSit: document.getElementById('f-passivo-sit').value,
+    obs: document.getElementById('f-obs').value.trim(),
+    atualizado: new Date().toLocaleDateString('pt-BR')
+  };
+
+  if (clienteAtual) {
+    const idx = clientes.findIndex(c=>c.id===clienteAtual.id);
+    if (idx>=0) clientes[idx]=dados;
+  } else {
+    clientes.unshift(dados);
+  }
+
+  salvar();
+  fecharDrawer();
+  filtrar();
+}
+
+function excluirCliente(id) {
+  if (!confirm('Excluir este cliente?')) return;
+  clientes = clientes.filter(c=>c.id!==id);
+  filtrados = filtrados.filter(c=>c.id!==id);
+  salvar();
+  render();
+}
+
+function analisarCliente(id) {
+  window.open('jcr_analisador_multiteses.html', '_blank');
+}
+
+function salvar() {
+  localStorage.setItem('jcr_clientes_hub', JSON.stringify(clientes));
+  filtrados = [...clientes];
+}
+
+render();
+</script>
+</body>
+</html>
