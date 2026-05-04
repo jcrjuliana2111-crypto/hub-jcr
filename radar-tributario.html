@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Radar Tributário</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0a0f1a;
+    color: #e2e8f0;
+    font-family: Georgia, 'Times New Roman', serif;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  #header {
+    background: linear-gradient(135deg, #0d1b2a, #1a2744, #0d1b2a);
+    border-bottom: 1px solid #1e3a5f;
+    padding: 24px 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 24px rgba(0,0,0,.5);
+  }
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .monitor-label { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  #status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #475569; transition: background .3s, box-shadow .3s;
+  }
+  #status-dot.loading { background: #fbbf24; box-shadow: 0 0 8px #fbbf24; animation: blink 1s infinite; }
+  #status-dot.ok      { background: #22c55e; box-shadow: 0 0 8px #22c55e; animation: none; }
+  .monitor-text { font-size: 11px; letter-spacing: 3px; color: #64748b; text-transform: uppercase; font-family: monospace; }
+  h1 { font-size: 26px; font-weight: 700; color: #f1f5f9; letter-spacing: -.5px; }
+  .subtitle { font-size: 13px; color: #64748b; margin-top: 4px; font-family: sans-serif; }
+
+  #ultima-consulta { display: none; background: #0f1f35; border: 1px solid #1e3a5f; border-radius: 8px; padding: 10px 16px; text-align: right; }
+  .uc-label { font-size: 11px; color: #475569; font-family: monospace; margin-bottom: 2px; }
+  .uc-hora  { font-size: 13px; color: #93c5fd; font-family: monospace; }
+  .uc-data  { font-size: 11px; color: #475569; font-family: monospace; }
+
+  /* ── Corpo ── */
+  #corpo { max-width: 900px; margin: 0 auto; padding: 28px 24px; }
+
+  /* ── Painel API Key ── */
+  #painel-apikey {
+    background: #0f1929;
+    border: 1px solid #2d5a8e;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  .apikey-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .apikey-info {
+    font-size: 12px;
+    color: #64748b;
+    font-family: sans-serif;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .apikey-info a { color: #60a5fa; text-decoration: none; }
+  .apikey-info a:hover { text-decoration: underline; }
+  #apikey-status {
+    font-size: 11px;
+    font-family: monospace;
+    margin-top: 6px;
+    min-height: 16px;
+  }
+  #apikey-status.ok  { color: #4ade80; }
+  #apikey-status.err { color: #f87171; }
+
+  /* ── Filtros ── */
+  #painel-filtros {
+    background: #0f1929;
+    border: 1px solid #1e3a5f;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+  }
+  .filtros-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+  .campo { flex: 1 1 140px; }
+  .campo.estreito { flex: 1 1 130px; }
+  .campo label {
+    display: block; font-size: 11px; color: #64748b;
+    text-transform: uppercase; letter-spacing: 1px;
+    font-family: sans-serif; margin-bottom: 6px;
+  }
+  .campo input[type="date"],
+  .campo input[type="password"],
+  .campo input[type="text"],
+  .campo select {
+    width: 100%; padding: 9px 12px;
+    background: #0a0f1a; border: 1px solid #1e3a5f;
+    border-radius: 6px; color: #e2e8f0; font-size: 13px;
+    font-family: monospace; cursor: pointer;
+    color-scheme: dark; outline: none;
+  }
+  .campo input.erro { border-color: #7f1d1d; }
+  .campo select { font-family: sans-serif; }
+  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.6); cursor: pointer; }
+  select option { background: #0a0f1a; }
+
+  .btn-primario {
+    flex: 0 0 auto; padding: 10px 24px;
+    background: linear-gradient(135deg, #1d4ed8, #2563eb);
+    border: none; border-radius: 8px; color: #fff;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    font-family: sans-serif; letter-spacing: .3px;
+    box-shadow: 0 4px 12px rgba(37,99,235,.35);
+    transition: all .2s; white-space: nowrap;
+  }
+  .btn-primario:disabled { background: #1e3a5f; box-shadow: none; cursor: not-allowed; }
+  .btn-secundario {
+    flex: 0 0 auto; padding: 10px 16px;
+    background: #0a0f1a; border: 1px solid #1e3a5f;
+    border-radius: 8px; color: #93c5fd;
+    font-size: 13px; cursor: pointer;
+    font-family: sans-serif; transition: all .2s; white-space: nowrap;
+  }
+  .btn-secundario:hover { border-color: #2d5a8e; }
+
+  #erro-datas { display: none; margin-top: 12px; padding: 8px 14px; background: #1f0f0f; border: 1px solid #7f1d1d; border-radius: 6px; color: #fca5a5; font-size: 13px; font-family: sans-serif; }
+
+  /* ── Stats ── */
+  #stats { display: none; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+  .stat-card { flex: 1 1 150px; background: #0f1929; border: 1px solid #1e3a5f; border-radius: 10px; padding: 14px 18px; }
+  .stat-num { font-size: 26px; font-weight: 700; line-height: 1; }
+  .stat-lbl { font-size: 11px; color: #64748b; margin-top: 4px; font-family: sans-serif; }
+
+  /* ── Estados ── */
+  #loading-box { display: none; background: #0f1929; border: 1px solid #1e3a5f; border-radius: 12px; padding: 48px 24px; text-align: center; }
+  .loading-icon  { font-size: 32px; margin-bottom: 16px; }
+  .loading-title { color: #93c5fd; font-size: 16px; margin-bottom: 8px; font-family: sans-serif; }
+  .loading-sub   { color: #475569; font-size: 13px; font-family: sans-serif; }
+
+  #erro-api { display: none; background: #1f0f0f; border: 1px solid #7f1d1d; border-radius: 10px; padding: 16px 20px; margin-bottom: 20px; color: #fca5a5; font-size: 14px; font-family: sans-serif; }
+
+  #estado-inicial { background: #0f1929; border: 1px dashed #1e3a5f; border-radius: 12px; padding: 56px 24px; text-align: center; }
+  .ei-icon  { font-size: 40px; margin-bottom: 16px; }
+  .ei-title { color: #94a3b8; font-size: 16px; margin-bottom: 8px; font-family: sans-serif; }
+  .ei-sub   { color: #475569; font-size: 13px; font-family: sans-serif; max-width: 380px; margin: 0 auto; }
+  .ei-sub strong { color: #60a5fa; }
+
+  /* ── Cards ── */
+  #lista { display: flex; flex-direction: column; gap: 14px; }
+  .card { background: #0f1929; border: 1px solid #1a2744; border-radius: 12px; overflow: hidden; transition: border-color .2s; }
+  .card.aberto { border-color: #2d5a8e; }
+  .card-header { padding: 18px 22px; cursor: pointer; display: flex; gap: 14px; align-items: flex-start; }
+  .card-barra  { width: 4px; min-width: 4px; border-radius: 4px; align-self: stretch; margin-top: 2px; }
+  .card-meta   { flex: 1; min-width: 0; }
+  .card-tags   { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; align-items: center; }
+  .tag         { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-family: monospace; }
+  .tag-tributo { background: #1a2744; color: #94a3b8; }
+  .card-titulo  { font-size: 15px; font-weight: 600; color: #f1f5f9; margin-bottom: 4px; line-height: 1.3; }
+  .card-norma   { font-size: 12px; color: #64748b; font-family: monospace; }
+  .card-chevron { color: #475569; font-size: 18px; flex-shrink: 0; margin-top: 2px; transition: transform .2s; user-select: none; }
+  .card.aberto .card-chevron { transform: rotate(180deg); }
+  .card-body  { display: none; border-top: 1px solid #1a2744; padding: 20px 22px 24px; }
+  .card.aberto .card-body { display: block; }
+
+  .secao-label { font-size: 11px; color: #475569; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; font-family: sans-serif; }
+  .secao-texto { font-size: 14px; color: #cbd5e1; line-height: 1.7; font-family: sans-serif; margin-bottom: 20px; }
+
+  .row-dois    { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+  .col-aplica  { flex: 1 1 200px; }
+  .col-vigencia{ flex: 1 1 160px; }
+  .aplica-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .aplica-tag  { font-size: 11px; padding: 3px 9px; border-radius: 20px; background: #1a2744; color: #93c5fd; border: 1px solid #2d3f5e; font-family: sans-serif; }
+  .vigencia-val{ font-size: 13px; color: #fbbf24; font-family: monospace; }
+
+  .checklist   { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .check-item  { display: flex; gap: 10px; align-items: flex-start; padding: 10px 14px; background: #0a0f1a; border-radius: 8px; border: 1px solid #1a2744; }
+  .check-num   { width: 20px; height: 20px; min-width: 20px; border: 1.5px solid #2d5a8e; border-radius: 4px; margin-top: 1px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #2d5a8e; font-family: monospace; flex-shrink: 0; }
+  .check-texto { font-size: 13px; color: #cbd5e1; line-height: 1.5; font-family: sans-serif; }
+
+  .comunicado-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .btn-copiar { padding: 5px 14px; background: #1e3a5f; border: 1px solid #2d5a8e; border-radius: 6px; color: #93c5fd; font-size: 11px; cursor: pointer; font-family: sans-serif; transition: all .2s; }
+  .btn-copiar.copiado { background: #14532d; border-color: #22c55e; color: #4ade80; }
+  .comunicado-texto { background: #070c17; border: 1px solid #1a2744; border-radius: 8px; padding: 14px 16px; font-size: 13px; color: #94a3b8; line-height: 1.7; font-family: sans-serif; white-space: pre-wrap; }
+
+  /* ── Rodapé ── */
+  #rodape { margin-top: 36px; padding-top: 20px; border-top: 1px solid #1a2744; text-align: center; font-size: 11px; color: #334155; font-family: monospace; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0a0f1a; }
+  ::-webkit-scrollbar-thumb { background: #1e3a5f; border-radius: 3px; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div id="header">
+  <div class="header-inner">
+    <div>
+      <div class="monitor-label">
+        <div id="status-dot"></div>
+        <span class="monitor-text">Monitor Legislativo</span>
+      </div>
+      <h1>Radar Tributário</h1>
+      <p class="subtitle">Legislação federal, estadual e municipal · Para contadores</p>
+    </div>
+    <div id="ultima-consulta">
+      <div class="uc-label">Última consulta</div>
+      <div class="uc-hora" id="uc-hora"></div>
+      <div class="uc-data" id="uc-data"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Corpo -->
+<div id="corpo">
+
+  <!-- API Key -->
+  <div id="painel-apikey">
+    <div class="apikey-row">
+      <div class="campo" style="flex:1 1 300px">
+        <label for="api-key">Chave da API Anthropic</label>
+        <input type="password" id="api-key" placeholder="sk-ant-..." autocomplete="off" />
+      </div>
+      <button class="btn-secundario" onclick="salvarKey()">💾 Salvar</button>
+      <button class="btn-secundario" onclick="limparKey()">🗑 Limpar</button>
+    </div>
+    <div id="apikey-status"></div>
+    <div class="apikey-info">
+      🔒 A chave é salva apenas no seu navegador (localStorage) e nunca enviada a terceiros. ·
+      <a href="https://console.anthropic.com/settings/keys" target="_blank">Obter chave →</a>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div id="painel-filtros">
+    <div class="filtros-row">
+      <div class="campo">
+        <label for="data-inicio">Data início</label>
+        <input type="date" id="data-inicio" value="2024-10-01" />
+      </div>
+      <div class="campo">
+        <label for="data-fim">Data fim</label>
+        <input type="date" id="data-fim" />
+      </div>
+      <div class="campo estreito">
+        <label for="filtro-esfera">Esfera</label>
+        <select id="filtro-esfera">
+          <option value="Todos">Todas</option>
+          <option value="Federal">Federal</option>
+          <option value="Estadual">Estadual</option>
+          <option value="Municipal">Municipal</option>
+        </select>
+      </div>
+      <div class="campo estreito">
+        <label for="filtro-impacto">Impacto</label>
+        <select id="filtro-impacto">
+          <option value="Todos">Todos</option>
+          <option value="Alto">Alto</option>
+          <option value="Médio">Médio</option>
+          <option value="Baixo">Baixo</option>
+        </select>
+      </div>
+      <button class="btn-primario" id="btn-buscar">🔍 Consultar Agora</button>
+    </div>
+    <div id="erro-datas"></div>
+  </div>
+
+  <!-- Stats -->
+  <div id="stats" style="display:none;flex-wrap:wrap;gap:12px;margin-bottom:24px">
+    <div class="stat-card"><div class="stat-num" id="stat-total" style="color:#60a5fa">0</div><div class="stat-lbl">Alterações encontradas</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-alto"  style="color:#f87171">0</div><div class="stat-lbl">Impacto Alto</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-fed"   style="color:#60a5fa">0</div><div class="stat-lbl">Federais</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-est"   style="color:#4ade80">0</div><div class="stat-lbl">Estaduais / Municipais</div></div>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading-box">
+    <div class="loading-icon">⚖️</div>
+    <div class="loading-title">Consultando legislação tributária...</div>
+    <div class="loading-sub">Buscando Diário Oficial, RFB, SEFAZ e fontes municipais</div>
+  </div>
+
+  <!-- Erro API -->
+  <div id="erro-api"></div>
+
+  <!-- Estado inicial -->
+  <div id="estado-inicial">
+    <div class="ei-icon">📋</div>
+    <div class="ei-title">Pronto para monitorar a legislação</div>
+    <p class="ei-sub">Insira sua chave da API, defina o período e clique em <strong>Consultar Agora</strong></p>
+  </div>
+
+  <!-- Lista -->
+  <div id="lista"></div>
+
+  <!-- Rodapé -->
+  <div id="rodape">
+    Radar Tributário · Caráter informativo — não substitui análise jurídica individual
+    <span style="color:#334155"> · </span><a href="#" onclick="document.getElementById('painel-apikey').style.display='block';document.getElementById('api-key').focus();return false;" style="color:#475569;text-decoration:none;font-size:11px">trocar chave da API</a>
+    <div id="rodape-periodo" style="margin-top:4px"></div>
+  </div>
+</div>
+
+<script>
+// ── Constantes ──────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'radar_tributario_apikey';
+
+const SYSTEM_PROMPT = `Você é um advogado tributarista especializado em monitoramento legislativo brasileiro. Sua função é buscar e analisar mudanças recentes na legislação tributária (federal, estadual e municipal) e apresentar cada alteração de forma estruturada para contadores.
+
+Para cada alteração legislativa encontrada, você DEVE retornar um JSON válido com este formato exato:
+
+{
+  "alteracoes": [
+    {
+      "id": "string_unica_sem_espacos",
+      "titulo": "título curto e claro da alteração",
+      "norma": "tipo e número da norma (ex: IN RFB 2.xxx/2025, Lei 15.xxx/2025)",
+      "data": "data de publicação ou vigência",
+      "esfera": "Federal",
+      "tributos": ["IRPJ", "CSLL"],
+      "impacto": "Alto",
+      "resumo": "resumo executivo em 2-3 frases, linguagem clara para o contador repassar ao cliente",
+      "aplica_a": ["Simples Nacional", "Lucro Presumido"],
+      "vigencia": "quando entra em vigor",
+      "checklist": ["ação concreta 1", "ação concreta 2", "ação concreta 3"],
+      "comunicado_cliente": "texto pronto para o contador copiar e enviar ao cliente, em linguagem simples e acessível"
+    }
+  ],
+  "periodo_consultado": "descrição do período pesquisado",
+  "total_encontradas": 5,
+  "ultima_atualizacao": "04/05/2026 10:00"
+}
+
+Valores válidos para "esfera": "Federal", "Estadual" ou "Municipal".
+Valores válidos para "impacto": "Alto", "Médio" ou "Baixo".
+
+Inclua: leis, medidas provisórias, instruções normativas da RFB, portarias, soluções de consulta relevantes, decisões do CARF, alterações no Simples Nacional, mudanças no eSocial, SPED e Reforma Tributária (EC 132/2023 e LC 214/2024).
+
+Retorne APENAS o JSON válido, sem texto antes ou depois, sem markdown, sem blocos de código.`;
+
+const ESFERA_COR = {
+  Federal:   { bg:'#1e3a5f', text:'#60a5fa', border:'#2d5a8e' },
+  Estadual:  { bg:'#1e3d2f', text:'#4ade80', border:'#2d5f46' },
+  Municipal: { bg:'#3d2d1e', text:'#fb923c', border:'#5f4a2d' },
+};
+const IMPACTO_COR = {
+  'Alto':  { bg:'#3d1e1e', text:'#f87171', dot:'#ef4444' },
+  'Médio': { bg:'#3d3019', text:'#fbbf24', dot:'#f59e0b' },
+  'Baixo': { bg:'#1e3328', text:'#4ade80', dot:'#22c55e' },
+};
+
+// ── Estado ───────────────────────────────────────────────────────────────────
+let todasAlteracoes = [];
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+const hoje = new Date().toISOString().split('T')[0];
+document.getElementById('data-fim').value = hoje;
+document.getElementById('data-fim').max   = hoje;
+document.getElementById('data-inicio').max = hoje;
+
+// Carregar chave salva — esconde painel se já configurada
+const keySalva = localStorage.getItem(STORAGE_KEY);
+if (keySalva) {
+  document.getElementById('api-key').value = keySalva;
+  document.getElementById('painel-apikey').style.display = 'none';
+}
+
+// ── Gerenciamento da API Key ──────────────────────────────────────────────────
+function salvarKey() {
+  const val = document.getElementById('api-key').value.trim();
+  if (!val.startsWith('sk-ant-')) {
+    setStatusKey('⚠ Chave inválida — deve começar com sk-ant-', 'err');
+    return;
+  }
+  localStorage.setItem(STORAGE_KEY, val);
+  document.getElementById('painel-apikey').style.display = 'none';
+}
+
+function limparKey() {
+  localStorage.removeItem(STORAGE_KEY);
+  document.getElementById('api-key').value = '';
+  document.getElementById('painel-apikey').style.display = 'block';
+  setStatusKey('Chave removida. Insira uma nova chave.', 'err');
+}
+
+function setStatusKey(msg, tipo) {
+  const el = document.getElementById('apikey-status');
+  el.textContent = msg;
+  el.className = tipo;
+}
+
+function getKey() {
+  return document.getElementById('api-key').value.trim();
+}
+
+// ── Helpers de UI ─────────────────────────────────────────────────────────────
+function setLoading(on) {
+  const btn = document.getElementById('btn-buscar');
+  document.getElementById('loading-box').style.display = on ? 'block' : 'none';
+  btn.disabled    = on;
+  btn.textContent = on ? '⏳ Buscando...' : '🔍 Consultar Agora';
+  const dot = document.getElementById('status-dot');
+  if (on) dot.className = 'loading';
+}
+
+function mostrarErroApi(msg) {
+  const el = document.getElementById('erro-api');
+  el.textContent   = msg ? '⚠️ ' + msg : '';
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function mostrarErroDatas(msg) {
+  const el = document.getElementById('erro-datas');
+  el.textContent   = msg ? '⚠️ ' + msg : '';
+  el.style.display = msg ? 'block' : 'none';
+  ['data-inicio','data-fim'].forEach(id =>
+    document.getElementById(id).classList.toggle('erro', !!msg)
+  );
+}
+
+function formatarBR(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+function atualizarStats(lista) {
+  const el = document.getElementById('stats');
+  if (!lista.length) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  document.getElementById('stat-total').textContent = lista.length;
+  document.getElementById('stat-alto').textContent  = lista.filter(a => a.impacto === 'Alto').length;
+  document.getElementById('stat-fed').textContent   = lista.filter(a => a.esfera === 'Federal').length;
+  document.getElementById('stat-est').textContent   = lista.filter(a => a.esfera !== 'Federal').length;
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderCard(alt) {
+  const ec = ESFERA_COR[alt.esfera]   || ESFERA_COR.Federal;
+  const ic = IMPACTO_COR[alt.impacto] || IMPACTO_COR['Baixo'];
+
+  const tribTags = (alt.tributos || []).slice(0,3)
+    .map(t => `<span class="tag tag-tributo">${t}</span>`).join('');
+
+  const aplicaTags = (alt.aplica_a || [])
+    .map(p => `<span class="aplica-tag">${p}</span>`).join('');
+
+  const checkItems = (alt.checklist || []).map((item, i) => `
+    <div class="check-item">
+      <div class="check-num">${i+1}</div>
+      <span class="check-texto">${item}</span>
+    </div>`).join('');
+
+  const comunicadoEsc = (alt.comunicado_cliente || '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  return `
+  <div class="card" id="card-${alt.id}">
+    <div class="card-header" onclick="toggleCard('${alt.id}')">
+      <div class="card-barra" style="background:${ic.dot}"></div>
+      <div class="card-meta">
+        <div class="card-tags">
+          <span class="tag" style="background:${ec.bg};color:${ec.text};border:1px solid ${ec.border}">${alt.esfera}</span>
+          <span class="tag" style="background:${ic.bg};color:${ic.text}">⬤ ${alt.impacto}</span>
+          ${tribTags}
+        </div>
+        <div class="card-titulo">${alt.titulo}</div>
+        <div class="card-norma">${alt.norma} · ${alt.data}</div>
+      </div>
+      <div class="card-chevron">▾</div>
+    </div>
+    <div class="card-body">
+      <div class="secao-label">Resumo</div>
+      <div class="secao-texto">${alt.resumo}</div>
+      <div class="row-dois">
+        <div class="col-aplica">
+          <div class="secao-label">Aplica-se a</div>
+          <div class="aplica-tags">${aplicaTags}</div>
+        </div>
+        <div class="col-vigencia">
+          <div class="secao-label">Vigência</div>
+          <div class="vigencia-val">📅 ${alt.vigencia}</div>
+        </div>
+      </div>
+      <div class="secao-label" style="margin-bottom:10px">Checklist do Contador</div>
+      <div class="checklist">${checkItems}</div>
+      <div class="comunicado-header">
+        <div class="secao-label" style="margin-bottom:0">Comunicado pronto para o cliente</div>
+        <button class="btn-copiar" id="btn-copiar-${alt.id}" onclick="copiar('${alt.id}')">📋 Copiar</button>
+      </div>
+      <div class="comunicado-texto" id="comunicado-${alt.id}">${comunicadoEsc}</div>
+    </div>
+  </div>`;
+}
+
+function renderLista(lista) {
+  const listaEl = document.getElementById('lista');
+  const ei      = document.getElementById('estado-inicial');
+  if (!lista.length) {
+    listaEl.innerHTML = '';
+    ei.style.display  = 'block';
+    return;
+  }
+  ei.style.display  = 'none';
+  listaEl.innerHTML = lista.map(renderCard).join('');
+}
+
+function toggleCard(id) {
+  const card    = document.getElementById('card-' + id);
+  const jaAberto = card.classList.contains('aberto');
+  document.querySelectorAll('.card.aberto').forEach(c => c.classList.remove('aberto'));
+  if (!jaAberto) card.classList.add('aberto');
+}
+
+function copiar(id) {
+  const texto = document.getElementById('comunicado-' + id).textContent;
+  navigator.clipboard.writeText(texto).then(() => {
+    const btn = document.getElementById('btn-copiar-' + id);
+    btn.textContent = '✓ Copiado!';
+    btn.classList.add('copiado');
+    setTimeout(() => { btn.textContent = '📋 Copiar'; btn.classList.remove('copiado'); }, 2500);
+  });
+}
+
+function aplicarFiltros() {
+  const esfera  = document.getElementById('filtro-esfera').value;
+  const impacto = document.getElementById('filtro-impacto').value;
+  return todasAlteracoes.filter(a => {
+    if (esfera  !== 'Todos' && a.esfera  !== esfera)  return false;
+    if (impacto !== 'Todos' && a.impacto !== impacto) return false;
+    return true;
+  });
+}
+
+['filtro-esfera','filtro-impacto'].forEach(id =>
+  document.getElementById(id).addEventListener('change', () => renderLista(aplicarFiltros()))
+);
+
+// ── Busca principal ───────────────────────────────────────────────────────────
+document.getElementById('btn-buscar').addEventListener('click', async () => {
+  const apiKey    = getKey();
+  const dataInicio = document.getElementById('data-inicio').value;
+  const dataFim    = document.getElementById('data-fim').value;
+
+  if (!apiKey || !apiKey.startsWith('sk-ant-')) {
+    setStatusKey('⚠ Insira uma chave de API válida antes de consultar.', 'err');
+    document.getElementById('api-key').focus();
+    return;
+  }
+  if (!dataInicio || !dataFim) {
+    mostrarErroDatas('Preencha as duas datas antes de consultar.');
+    return;
+  }
+  if (dataInicio > dataFim) {
+    mostrarErroDatas('A data de início não pode ser posterior à data de fim.');
+    return;
+  }
+
+  mostrarErroDatas('');
+  mostrarErroApi('');
+  setLoading(true);
+  document.getElementById('lista').innerHTML = '';
+  document.getElementById('estado-inicial').style.display = 'none';
+  document.getElementById('stats').style.display = 'none';
+
+  const periodoLabel = `de ${formatarBR(dataInicio)} a ${formatarBR(dataFim)}`;
+  const esfera  = document.getElementById('filtro-esfera').value;
+  const impacto = document.getElementById('filtro-impacto').value;
+  const filtroTexto = [
+    esfera  !== 'Todos' ? `esfera ${esfera}`   : '',
+    impacto !== 'Todos' ? `impacto ${impacto}` : '',
+  ].filter(Boolean).join(', ');
+
+  const userContent = `Busque as principais alterações na legislação tributária brasileira ${periodoLabel}${filtroTexto ? ', com foco em: ' + filtroTexto : ''}.
+
+Inclua mudanças federais (RFB, PGFN, Receita Federal, Congresso Nacional), estaduais (ICMS, SEFAZ) e municipais (ISS) que impactem empresas e pessoas físicas de qualquer porte.
+
+Priorize alterações com impacto prático imediato para contadores e seus clientes.
+
+Retorne APENAS o JSON válido conforme o formato especificado, sem texto adicional.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: userContent }],
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `HTTP ${res.status}`);
+    }
+
+    const data  = await res.json();
+    const texto = (data.content || [])
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join('');
+
+    const limpo = texto.replace(/```json|```/g, '').trim();
+    const match = limpo.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('Resposta fora do formato esperado. Tente novamente.');
+
+    const parsed = JSON.parse(match[0]);
+    todasAlteracoes = parsed.alteracoes || [];
+
+    atualizarStats(todasAlteracoes);
+
+    const agora = new Date();
+    document.getElementById('uc-hora').textContent = agora.toLocaleTimeString('pt-BR');
+    document.getElementById('uc-data').textContent = agora.toLocaleDateString('pt-BR');
+    document.getElementById('ultima-consulta').style.display = 'block';
+    document.getElementById('status-dot').className = 'ok';
+    document.getElementById('rodape-periodo').textContent =
+      'Período consultado: ' + (parsed.periodo_consultado || periodoLabel);
+
+    renderLista(aplicarFiltros());
+
+  } catch(e) {
+    mostrarErroApi(e.message);
+    document.getElementById('estado-inicial').style.display = 'block';
+    document.getElementById('status-dot').className = '';
+  } finally {
+    setLoading(false);
+  }
+});
+</script>
+</body>
+</html>
