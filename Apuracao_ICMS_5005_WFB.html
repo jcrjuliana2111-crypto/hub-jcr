@@ -600,13 +600,22 @@ function lerPlanilha(file) {
     const reader = new FileReader();
     reader.onload = e => {
       try {
-        const wb = XLSX.read(e.target.result, {type:'array'});
+        console.log('Lendo arquivo:', file.name, file.size, 'bytes');
+        const data = new Uint8Array(e.target.result);
+        console.log('Primeiros bytes:', Array.from(data.slice(0,8)).map(b=>b.toString(16)).join(' '));
+        const wb = XLSX.read(data, {type:'array', cellText:false, raw:true});
+        console.log('Sheets encontradas:', wb.SheetNames);
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+        const raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
+        console.log('Total de linhas:', raw.length);
+        raw.slice(0, 10).forEach((r, i) => console.log('Linha ' + i + ':', JSON.stringify(r)));
         res(raw);
-      } catch(err) { rej(err); }
+      } catch(err) {
+        console.error('Erro ao ler planilha:', err.message, err);
+        rej(err);
+      }
     };
-    reader.onerror = rej;
+    reader.onerror = e => { console.error('FileReader error', e); rej(e); };
     reader.readAsArrayBuffer(file);
   });
 }
