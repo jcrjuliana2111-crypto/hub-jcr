@@ -477,8 +477,9 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <div class="upload-title">Arraste a planilha aqui</div>
       <div class="upload-sub">Movimentação Fiscal — Entradas e Saídas com Produtos (.xls / .xlsx)</div>
       <div style="margin-top:20px">
-        <input type="file" id="fileInput" accept=".xls,.xlsx" style="display:none">
+        <input type="file" id="fileInput" accept=".xls,.xlsx" style="position:absolute;opacity:0;width:1px;height:1px;overflow:hidden">
         <label for="fileInput" class="upload-btn" style="cursor:pointer;display:inline-block">📂 Selecionar planilha</label>
+        <button class="upload-btn" onclick="var f=document.getElementById('fileInput');if(f){f.click();}else{document.querySelector('label[for=fileInput]').click();}" style="margin-left:8px">📂 Selecionar planilha (alt)</button>
       </div>
     </div>
 
@@ -611,11 +612,22 @@ function lerPlanilha(file) {
 }
 
 function encontrarHeaderRow(raw) {
-  for (let i = 0; i < Math.min(20, raw.length); i++) {
-    const row = raw[i].map(v => String(v||'').toLowerCase());
-    if (row.some(v => v.includes('tipo')) && row.some(v => v.includes('cfop'))) {
-      return i;
-    }
+  // Junta todas as células das linhas vizinhas (células mescladas podem
+  // ficar espalhadas entre linhas adjacentes no sheet_to_json)
+  for (let i = 0; i < Math.min(25, raw.length); i++) {
+    // Concatena a linha atual com a próxima (cobre células mescladas verticalmente)
+    const janela = [...(raw[i]||[]), ...((raw[i+1]||[]))];
+    const row = janela.map(v => String(v||'').trim().toLowerCase().replace(/\n/g,' ').replace(/\s+/g,' '));
+    const temTipo = row.some(v => v === 'tipo' || v.startsWith('tipo '));
+    const temCFOP = row.some(v => v.includes('cfop'));
+    if (temTipo && temCFOP) return i;
+  }
+  // Fallback: aceita qualquer linha com 'tipo' E alguma coluna fiscal
+  for (let i = 0; i < Math.min(25, raw.length); i++) {
+    const row = (raw[i]||[]).map(v => String(v||'').trim().toLowerCase().replace(/\n/g,' '));
+    const temTipo = row.some(v => v === 'tipo' || v.startsWith('tipo'));
+    const temFiscal = row.some(v => v.includes('cfop') || v.includes('base') || v.includes('icms'));
+    if (temTipo && temFiscal) return i;
   }
   return -1;
 }
