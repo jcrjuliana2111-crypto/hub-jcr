@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apuração ICMS · Lei 5.005/2012 · DF</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg:        #0d1117;
+    --surface:   #161b22;
+    --surface2:  #1c2128;
+    --border:    #30363d;
+    --azul:      #1f6feb;
+    --azul-cl:   #388bfd;
+    --verde:     #238636;
+    --verde-cl:  #3fb950;
+    --laranja:   #d29922;
+    --laranja-cl:#e3b341;
+    --vermelho:  #da3633;
+    --verm-cl:   #f85149;
+    --cinza:     #8b949e;
+    --txt:       #e6edf3;
+    --txt2:      #c9d1d9;
+    --mono:      'IBM Plex Mono', monospace;
+    --sans:      'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--txt);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--azul-cl);
+    letter-spacing: 0.05em;
+    line-height: 1.3;
+  }
+  .logo span { color: var(--cinza); font-weight: 400; }
+  .badge {
+    background: rgba(31,111,235,.15);
+    border: 1px solid rgba(56,139,253,.3);
+    color: var(--azul-cl);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: .05em;
+  }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+  /* ── UPLOAD ZONE ── */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 48px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    background: var(--surface);
+    position: relative;
+    overflow: hidden;
+  }
+  .upload-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(31,111,235,.08) 0%, transparent 70%);
+  }
+  .upload-zone:hover, .upload-zone.drag {
+    border-color: var(--azul);
+    background: rgba(31,111,235,.05);
+  }
+  .upload-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .upload-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--txt);
+    margin-bottom: 8px;
+  }
+  .upload-sub {
+    font-size: 13px;
+    color: var(--cinza);
+    font-family: var(--mono);
+  }
+  .upload-btn {
+    display: inline-block;
+    margin-top: 20px;
+    background: var(--azul);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    transition: background .15s;
+    letter-spacing: .03em;
+  }
+  .upload-btn:hover { background: var(--azul-cl); }
+  #fileInput { display: none; }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--cinza);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin: 36px 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    background: var(--surface2);
+    color: var(--cinza);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid rgba(48,54,61,.5);
+    color: var(--txt2);
+    font-size: 13px;
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  .mono { font-family: var(--mono); }
+  .right { text-align: right; }
+  .center { text-align: center; }
+
+  /* ── TAGS DE CLASSIFICAÇÃO ── */
+  .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: .04em;
+    white-space: nowrap;
+  }
+  .tag-v1    { background: rgba(35,134,54,.2);  color: var(--verde-cl);   border: 1px solid rgba(63,185,80,.25); }
+  .tag-v2    { background: rgba(210,153,34,.15); color: var(--laranja-cl); border: 1px solid rgba(227,179,65,.3); }
+  .tag-v3    { background: rgba(31,111,235,.15); color: var(--azul-cl);    border: 1px solid rgba(56,139,253,.3); }
+  .tag-v4    { background: rgba(56,139,253,.1);  color: #79c0ff;           border: 1px solid rgba(121,192,255,.3); }
+  .tag-v5    { background: rgba(139,201,255,.1); color: #a5d6ff;           border: 1px solid rgba(165,214,255,.2); }
+  .tag-imp   { background: rgba(218,54,51,.15);  color: var(--verm-cl);    border: 1px solid rgba(248,81,73,.3); }
+  .tag-ent   { background: rgba(139,148,158,.1); color: var(--cinza);      border: 1px solid rgba(139,148,158,.2); }
+  .tag-warn  { background: rgba(210,153,34,.15); color: var(--laranja-cl); border: 1px solid rgba(227,179,65,.3); }
+  .tag-dev   { background: rgba(248,81,73,.1);   color: var(--verm-cl);    border: 1px solid rgba(248,81,73,.2); }
+
+  /* ── GRID DE RESULTADOS ── */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: 4px;
+  }
+  @media(max-width:700px){ .results-grid{ grid-template-columns:1fr; } }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .result-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .card-azul::before   { background: var(--azul); }
+  .card-verde::before  { background: var(--verde-cl); }
+  .card-laranja::before{ background: var(--laranja-cl); }
+  .card-verm::before   { background: var(--verm-cl); }
+  .card-destaque {
+    border-color: var(--azul);
+    background: rgba(31,111,235,.07);
+  }
+  .card-destaque::before { background: linear-gradient(90deg, var(--azul), var(--azul-cl)); }
+
+  .card-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--cinza);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .card-value {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--txt);
+    line-height: 1;
+  }
+  .card-value.verde  { color: var(--verde-cl); }
+  .card-value.azul   { color: var(--azul-cl); }
+  .card-value.laranja{ color: var(--laranja-cl); }
+  .card-value.verm   { color: var(--verm-cl); }
+  .card-sub {
+    font-size: 11px;
+    color: var(--cinza);
+    margin-top: 6px;
+    font-family: var(--mono);
+  }
+
+  /* ── FORMULA BLOCK ── */
+  .formula-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .formula-header {
+    background: var(--surface2);
+    padding: 10px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--cinza);
+    letter-spacing: .06em;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+  }
+  .formula-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(48,54,61,.4);
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .formula-row:last-child { border-bottom: none; }
+  .formula-key {
+    color: var(--azul-cl);
+    font-weight: 600;
+    min-width: 120px;
+    font-size: 12px;
+  }
+  .formula-eq { color: var(--cinza); font-size: 12px; flex: 1; }
+  .formula-val { color: var(--verde-cl); font-weight: 700; min-width: 130px; text-align: right; }
+  .formula-row.total-row {
+    background: rgba(31,111,235,.07);
+    border-top: 1px solid var(--azul);
+  }
+  .formula-row.total-row .formula-key { color: var(--txt); font-size: 13px; }
+  .formula-row.total-row .formula-val { color: var(--azul-cl); font-size: 15px; }
+
+  /* ── EFD BLOCK ── */
+  .efd-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .efd-row {
+    display: grid;
+    grid-template-columns: 70px 130px 1fr 120px;
+    gap: 0;
+    border-bottom: 1px solid rgba(48,54,61,.4);
+    align-items: center;
+  }
+  .efd-row:last-child { border-bottom: none; }
+  .efd-reg {
+    padding: 12px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    border-right: 1px solid var(--border);
+  }
+  .reg-e110 { background: rgba(31,111,235,.12); color: var(--azul-cl); }
+  .reg-e111 { background: rgba(35,134,54,.12);  color: var(--verde-cl); }
+  .reg-e115 { background: rgba(210,153,34,.12); color: var(--laranja-cl); }
+  .efd-campo {
+    padding: 10px 12px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--cinza);
+    border-right: 1px solid var(--border);
+  }
+  .efd-desc { padding: 10px 14px; font-size: 12px; color: var(--txt2); }
+  .efd-val {
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+    color: var(--txt);
+  }
+
+  /* ── ALERTA ── */
+  .alert {
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .alert-verm { background: rgba(218,54,51,.1); border: 1px solid rgba(248,81,73,.3); color: var(--verm-cl); }
+  .alert-laranja { background: rgba(210,153,34,.1); border: 1px solid rgba(227,179,65,.3); color: var(--laranja-cl); }
+  .alert-verde { background: rgba(35,134,54,.1); border: 1px solid rgba(63,185,80,.3); color: var(--verde-cl); }
+  .alert-azul { background: rgba(31,111,235,.1); border: 1px solid rgba(56,139,253,.3); color: var(--azul-cl); }
+
+  /* ── MISC ── */
+  .hidden { display: none; }
+  .loader {
+    text-align: center;
+    padding: 40px;
+    font-family: var(--mono);
+    color: var(--cinza);
+    font-size: 13px;
+  }
+  .loader span { display: inline-block; animation: pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:.3} 50%{opacity:1} }
+
+  .period-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--azul-cl);
+    display: inline-block;
+    margin-bottom: 20px;
+  }
+
+  .warn-aliq {
+    color: var(--verm-cl);
+    font-weight: 600;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 28px 0;
+  }
+
+  /* ── BOTÃO NOVA PLANILHA ── */
+  .btn-reset {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--cinza);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .15s;
+    margin-left: auto;
+    display: block;
+    margin-top: 8px;
+  }
+  .btn-reset:hover { border-color: var(--azul-cl); color: var(--azul-cl); }
+
+  .footer-note {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--cinza);
+    text-align: center;
+    margin-top: 48px;
+    line-height: 1.8;
+    opacity: .6;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">ICMS · LEI 5.005/2012 · DF<br><span>Apuração Automática por Período</span></div>
+  </div>
+  <div class="badge">ADI 002/2021</div>
+  <div class="badge">Decreto 43.062/2022</div>
+</header>
+
+<div class="container">
+
+  <!-- UPLOAD -->
+  <div id="uploadSection">
+    <div class="section-title">Upload da Planilha</div>
+    <div class="upload-zone" id="dropZone">
+      <span class="upload-icon">📊</span>
+      <div class="upload-title">Arraste a planilha aqui</div>
+      <div class="upload-sub">Movimentação Fiscal — Entradas e Saídas com Produtos (.xls / .xlsx)</div>
+      <label class="upload-btn" for="fileInput">Selecionar arquivo</label>
+      <input type="file" id="fileInput" accept=".xls,.xlsx">
+    </div>
+
+    <div class="section-title" style="margin-top:28px">Estrutura esperada</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Tipo</th><th>Inscrição</th><th>Documento</th><th>Nome</th>
+            <th>CFOP</th><th>Cód. Prod.</th><th>Descrição</th><th>NCM</th>
+            <th>Qtd</th><th>Vl. Unitário</th><th>Base ICMS</th><th>Aliq. ICMS</th>
+            <th>Valor ICMS</th><th>Valor Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag tag-ent">Entrada</span></td>
+            <td class="mono" style="color:var(--cinza)">CNPJ</td>
+            <td class="mono">3302</td>
+            <td style="color:var(--cinza)">World Food…</td>
+            <td class="mono">2152</td><td class="mono">312</td>
+            <td style="color:var(--cinza)">BATATA CONG…</td>
+            <td class="mono">20041000</td>
+            <td class="mono right">25.200</td><td class="mono right">5,07</td>
+            <td class="mono right">127.678,32</td><td class="mono right">4%</td>
+            <td class="mono right">5.107,13</td><td class="mono right">127.678,32</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-v1">Saída</span></td>
+            <td class="mono" style="color:var(--cinza)">CNPJ</td>
+            <td class="mono">3</td>
+            <td style="color:var(--cinza)">S.A. Atacadista…</td>
+            <td class="mono">5102</td><td class="mono">163</td>
+            <td style="color:var(--cinza)">BATATA CONG…</td>
+            <td class="mono">20041000</td>
+            <td class="mono right">960</td><td class="mono right">8,85</td>
+            <td class="mono right">8.496,00</td><td class="mono right">12%</td>
+            <td class="mono right">1.019,52</td><td class="mono right">8.496,00</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- LOADER -->
+  <div id="loader" class="loader hidden">
+    <span>Processando planilha e aplicando Lei 5.005/2012…</span>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div id="results" class="hidden"></div>
+
+</div>
+
+<script>
+// ── CLASSIFICAÇÃO DE CFOP ────────────────────────────────────────────────
+const CFOP_ENTRADA_INT    = [1101,1102,1111,1113,1116,1117,1118,1120,1121,1122,1124,1125,1151,1152];
+const CFOP_ENTRADA_INTER  = [2101,2102,2111,2113,2116,2117,2118,2120,2121,2122,2124,2125,2151,2152];
+const CFOP_SAI_INT        = [5101,5102,5103,5104,5105,5106,5151,5152,5405,5401,5403,5404];
+const CFOP_SAI_INTER      = [6101,6102,6103,6104,6105,6106,6108,6151,6152];
+const CFOP_DEV_VENDA      = [1201,1202,1203,1204];
+const CFOP_DEV_COMPRA     = [5201,5202,5205,5206,5207,6201,6202,6205,6206,6207];
+
+function classificar(tipo, cfop, aliq) {
+  cfop = parseInt(cfop);
+  aliq = parseFloat(aliq);
+  tipo = String(tipo).trim();
+
+  if (tipo === 'Entrada') {
+    if (CFOP_DEV_VENDA.includes(cfop)) return 'DEV_VENDA_REC'; // devolução recebida
+    if (CFOP_ENTRADA_INT.includes(cfop))   return aliq <= 12 ? 'E_INTERNA' : 'E_INTERNA';
+    if (CFOP_ENTRADA_INTER.includes(cfop)) {
+      if (aliq === 4)  return 'E_IMPORT_4PCT';
+      if (aliq === 7)  return 'E_INTER_7PCT';
+      if (aliq === 12) return 'E_INTER_12PCT';
+      return 'E_INTER_OUTRO';
+    }
+    return 'E_OUTROS';
+  }
+
+  if (tipo === 'Saída') {
+    if (CFOP_DEV_COMPRA.includes(cfop)) return 'DEV_COMPRA_ENV'; // fora da fórmula
+    if (CFOP_DEV_VENDA.includes(cfop))  return 'DEV_VENDA_ENV';  // fora da fórmula
+    // Saídas internas
+    if (CFOP_SAI_INT.includes(cfop)) return 'V1'; // internas tributadas (exceto bebidas)
+    // Saídas interestaduais
+    if (CFOP_SAI_INTER.includes(cfop)) {
+      if (aliq === 4) return 'S_IMPORT_4PCT'; // importado 4% — fora da fórmula
+      // Se destinatário não contribuinte → V3 (precisaria de info adicional; padrão = V5)
+      return 'V5'; // interestadual tributada
+    }
+    return 'S_OUTROS';
+  }
+  return 'OUTROS';
+}
+
+// NCMs de bebidas alcoólicas para V2
+const NCM_BEBIDAS_ALCO = ['2204','2205','2206','2207','2208'];
+function isBebidaAlcoolica(ncm) {
+  if (!ncm) return false;
+  const s = String(ncm).trim().substring(0,4);
+  return NCM_BEBIDAS_ALCO.includes(s);
+}
+
+function fmt(v) {
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  return 'R$ ' + parseFloat(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function fmtN(v) {
+  if (!v && v !== 0) return '—';
+  return parseFloat(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function pct(v) { return parseFloat(v||0).toFixed(1) + '%'; }
+
+// ── LEITURA DA PLANILHA ──────────────────────────────────────────────────
+function lerPlanilha(file) {
+  return new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const wb = XLSX.read(e.target.result, {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+        res(raw);
+      } catch(err) { rej(err); }
+    };
+    reader.onerror = rej;
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function encontrarHeaderRow(raw) {
+  for (let i = 0; i < Math.min(20, raw.length); i++) {
+    const row = raw[i].map(v => String(v||'').toLowerCase());
+    if (row.some(v => v.includes('tipo')) && row.some(v => v.includes('cfop'))) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function parsear(raw) {
+  const hi = encontrarHeaderRow(raw);
+  if (hi < 0) throw new Error('Cabeçalho não encontrado. Verifique o formato da planilha.');
+
+  const headers = raw[hi].map(v => String(v||'').trim().toLowerCase()
+    .replace(/\n/g,' ').replace(/\s+/g,' '));
+
+  const idxOf = (...keys) => {
+    for (const k of keys) {
+      const i = headers.findIndex(h => h.includes(k));
+      if (i >= 0) return i;
+    }
+    return -1;
+  };
+
+  const iT   = idxOf('tipo');
+  const iCFOP= idxOf('cfop');
+  const iBase= idxOf('base');
+  const iAliq= idxOf('aliq');
+  const iICMS= idxOf('valor do icms','vl_icms','icms');
+  const iVlTot= idxOf('valor total','vl_total','total');
+  const iNome= idxOf('nome','emit','dest');
+  const iNF  = idxOf('documento','nf','doc');
+  const iNCM = idxOf('ncm');
+  const iQtd = idxOf('quantidade','qtd');
+
+  const rows = [];
+  let periodo = '';
+
+  for (let i = 0; i < raw.length; i++) {
+    const row = raw[i];
+    // Detectar período
+    const rowStr = (row||[]).map(v=>String(v||'')).join(' ');
+    if (rowStr.includes('Movimentação') || rowStr.includes('Período') || rowStr.includes('período')) {
+      const m = rowStr.match(/(\d{2}\/\d{2}\/\d{4})\s+até\s+(\d{2}\/\d{2}\/\d{4})/);
+      if (m) periodo = `${m[1]} a ${m[2]}`;
+    }
+    if (i <= hi) continue;
+
+    const tipo = String(row[iT]||'').trim();
+    if (!['Entrada','Saída','Saida','entrada','saída','saida'].includes(tipo)) continue;
+
+    const cfop  = parseInt(row[iCFOP]) || 0;
+    const base  = parseFloat(row[iBase]) || 0;
+    const aliq  = parseFloat(row[iAliq]) || 0;
+    const icms  = parseFloat(row[iICMS]) || 0;
+    const total = parseFloat(row[iVlTot]) || 0;
+    const nome  = String(row[iNome]||'').trim();
+    const nf    = String(row[iNF]||'').trim();
+    const ncm   = String(row[iNCM]||'').trim();
+    const qtd   = parseFloat(row[iQtd]) || 0;
+
+    const tipoNorm = tipo.charAt(0).toUpperCase() + tipo.slice(1).toLowerCase()
+      .replace('saida','saída');
+
+    const classif = classificar(tipoNorm, cfop, aliq);
+
+    // Reclassificar V1 para V2 se NCM de bebida alcoólica
+    const classifFinal = (classif === 'V1' && isBebidaAlcoolica(ncm)) ? 'V2' : classif;
+
+    // Alíquota correta esperada
+    let aliqCorreta = aliq;
+    if (classifFinal === 'V1') aliqCorreta = 12;
+    if (classifFinal === 'V2') aliqCorreta = 15;
+    if (classifFinal === 'V5') aliqCorreta = 12;
+    if (classifFinal === 'S_IMPORT_4PCT') aliqCorreta = 4;
+
+    const aliqOk = Math.abs(aliq - aliqCorreta) < 0.01;
+    const icmsCorreto = base * aliqCorreta / 100;
+
+    rows.push({tipo:tipoNorm, cfop, base, aliq, icms, total, nome, nf, ncm, qtd,
+               classif: classifFinal, aliqCorreta, aliqOk, icmsCorreto});
+  }
+
+  return {rows, periodo};
+}
+
+// ── APURAÇÃO LEI 5.005/2012 ──────────────────────────────────────────────
+function apurar(rows) {
+  const ent = rows.filter(r => r.tipo === 'Entrada');
+  const sai = rows.filter(r => r.tipo === 'Saída');
+
+  // Entradas
+  const BCo_interno  = ent.filter(r=>r.classif==='E_INTERNA').reduce((s,r)=>s+r.base,0);
+  const BCo_inter7   = ent.filter(r=>r.classif==='E_INTER_7PCT').reduce((s,r)=>s+r.base,0);
+  const BCo_inter12  = ent.filter(r=>r.classif==='E_INTER_12PCT').reduce((s,r)=>s+r.base,0);
+  const BCo_imp4     = ent.filter(r=>r.classif==='E_IMPORT_4PCT').reduce((s,r)=>s+r.base,0);
+  const BCo = BCo_interno + BCo_inter7 + BCo_inter12 + BCo_imp4;
+
+  const cred_entrada_total = ent.filter(r=>!['DEV_VENDA_REC','OUTROS'].includes(r.classif))
+                                .reduce((s,r)=>s+r.icms,0);
+  const cred_dev_venda = ent.filter(r=>r.classif==='DEV_VENDA_REC').reduce((s,r)=>s+r.icms,0);
+
+  // Saídas tributadas na fórmula
+  const V1 = sai.filter(r=>r.classif==='V1').reduce((s,r)=>s+r.base,0);
+  const V2 = sai.filter(r=>r.classif==='V2').reduce((s,r)=>s+r.base,0);
+  const V3 = sai.filter(r=>r.classif==='V3').reduce((s,r)=>s+r.base,0);
+  const V4 = sai.filter(r=>r.classif==='V4').reduce((s,r)=>s+r.base,0);
+  const V5 = sai.filter(r=>r.classif==='V5').reduce((s,r)=>s+r.base,0);
+  const VTB = V1 + V2 + V3 + V4 + V5;
+
+  // Saídas fora da fórmula
+  const S_imp4 = sai.filter(r=>r.classif==='S_IMPORT_4PCT').reduce((s,r)=>s+r.base,0);
+
+  // VcV = VTB + importados 4% + isentos/NT (por ora só os identificados)
+  const VcV = VTB + S_imp4;
+
+  // BC das Entradas
+  const BC_ent = VcV > 0 ? BCo * VTB / VcV : 0;
+
+  // Parcelas
+  const ICMS1 = VTB > 0 ? V1 * 0.13 - (BC_ent * V1 / VTB * 0.12) : 0;
+  const ICMS2 = VTB > 0 ? V2 * 0.15 - (BC_ent * V2 / VTB * 0.12) : 0;
+  const ICMS3 = VTB > 0 ? V3 * 0.12 - (BC_ent * V3 / VTB * 0.12) : 0;
+  const ICMS4 = VTB > 0 ? V4 * 0.12 - (BC_ent * V4 / VTB * 0.12) : 0;
+  const ICMS5 = VTB > 0 ? V5 * 0.12 - (BC_ent * V5 / VTB * 0.07) : 0;
+  const ICMS_form = ICMS1 + ICMS2 + ICMS3 + ICMS4 + ICMS5;
+
+  // Importados 4% — débito × crédito proporcional
+  const deb_imp4 = S_imp4 * 0.04;
+  const prop_inter = (V1 + S_imp4) > 0 ? S_imp4 / (V1 + S_imp4) : 0;
+  const cred_imp4_prop = cred_entrada_total * prop_inter;
+  const ICMS_imp4_liq = Math.max(0, deb_imp4 - cred_imp4_prop);
+
+  const ICMS_total = ICMS_form + ICMS_imp4_liq - cred_dev_venda;
+
+  // NF-e destacado vs correto
+  const ICMS_NF_saidas = sai.filter(r=>!['DEV_COMPRA_ENV','DEV_VENDA_ENV','S_OUTROS'].includes(r.classif))
+                            .reduce((s,r)=>s+r.icms,0);
+  const ICMS_NF_correto = sai.filter(r=>!['DEV_COMPRA_ENV','DEV_VENDA_ENV','S_OUTROS'].includes(r.classif))
+                             .reduce((s,r)=>s+r.icmsCorreto,0);
+
+  // Alertas
+  const aliqErradas = rows.filter(r=>!r.aliqOk && r.tipo==='Saída' && 
+    !['DEV_COMPRA_ENV','DEV_VENDA_ENV','S_OUTROS'].includes(r.classif));
+
+  return {
+    BCo, BCo_interno, BCo_inter7, BCo_inter12, BCo_imp4,
+    V1, V2, V3, V4, V5, VTB, S_imp4, VcV, BC_ent,
+    ICMS1, ICMS2, ICMS3, ICMS4, ICMS5, ICMS_form,
+    deb_imp4, cred_imp4_prop, ICMS_imp4_liq,
+    cred_dev_venda, ICMS_total,
+    ICMS_NF_saidas, ICMS_NF_correto,
+    cred_entrada_total,
+    aliqErradas,
+    divergencia_NF: ICMS_NF_saidas - ICMS_NF_correto
+  };
+}
+
+// ── RENDERIZAÇÃO ─────────────────────────────────────────────────────────
+function tagClass(classif) {
+  const map = {
+    'V1':'tag-v1','V2':'tag-v2','V3':'tag-v3','V4':'tag-v4','V5':'tag-v5',
+    'S_IMPORT_4PCT':'tag-imp',
+    'E_IMPORT_4PCT':'tag-ent','E_INTERNA':'tag-ent','E_INTER_7PCT':'tag-ent',
+    'E_INTER_12PCT':'tag-ent','DEV_VENDA_REC':'tag-dev','DEV_COMPRA_ENV':'tag-dev',
+  };
+  return map[classif] || 'tag-ent';
+}
+function tagLabel(classif) {
+  const map = {
+    'V1':'V1 — Interno','V2':'V2 — Beb.Alc.','V3':'V3 — Não Contrib.',
+    'V4':'V4 — Inter. 12%','V5':'V5 — Interestadual',
+    'S_IMPORT_4PCT':'⚠ Imp. 4% (fora)',
+    'E_IMPORT_4PCT':'Ent. Import. 4%','E_INTERNA':'Ent. Interna',
+    'E_INTER_7PCT':'Ent. Inter. 7%','E_INTER_12PCT':'Ent. Inter. 12%',
+    'DEV_VENDA_REC':'Dev. Venda Rec.','DEV_COMPRA_ENV':'Dev. Compra Env.',
+    'E_INTER_OUTRO':'Ent. Inter.','S_OUTROS':'Outros','OUTROS':'Outros',
+  };
+  return map[classif] || classif;
+}
+
+function renderizar(rows, apu, periodo) {
+  const el = document.getElementById('results');
+  el.classList.remove('hidden');
+
+  const alertas = [];
+  if (apu.aliqErradas.length > 0) {
+    const nfs = [...new Set(apu.aliqErradas.map(r=>`NF ${r.nf}`))].join(', ');
+    alertas.push(`<div class="alert alert-verm"><div class="alert-icon">🔴</div><div><strong>Alíquota incorreta nas NF-e:</strong> ${apu.aliqErradas.length} item(ns) com alíquota divergente da esperada (${nfs}). O ICMS destacado está incorreto — necessário reemitir ou verificar se há redução de base de cálculo prevista no RICMS/DF para o NCM.</div></div>`);
+  }
+  if (apu.ICMS_NF_saidas > 0) {
+    alertas.push(`<div class="alert alert-laranja"><div class="alert-icon">🟠</div><div><strong>ICMS declarado na EFD vs. NF-e:</strong> O ICMS total nas NF-e de saída é ${fmt(apu.ICMS_NF_saidas)}. Pelo regime da Lei 5.005/2012 o valor a recolher é ${fmt(apu.ICMS_total)}. A EFD deve ser ajustada com os registros E110/E111/E115.</div></div>`);
+  }
+  if (apu.cred_dev_venda > 0) {
+    alertas.push(`<div class="alert alert-azul"><div class="alert-icon">ℹ️</div><div><strong>Crédito de devolução identificado:</strong> ${fmt(apu.cred_dev_venda)} deduzido do ICMS total a recolher (lançar direto no E110).</div></div>`);
+  }
+
+  // Tabela de lançamentos
+  const tRows = rows.map(r => {
+    const aliqCell = r.aliqOk
+      ? `<td class="mono right">${r.aliq}%</td>`
+      : `<td class="mono right warn-aliq" title="Esperado: ${r.aliqCorreta}%">${r.aliq}% ⚠</td>`;
+    const icmsCell = r.aliqOk
+      ? `<td class="mono right">${fmtN(r.icms)}</td>`
+      : `<td class="mono right warn-aliq">${fmtN(r.icms)}</td>`;
+    const icmsOkCell = r.aliqOk
+      ? `<td class="mono right" style="color:var(--cinza)">—</td>`
+      : `<td class="mono right" style="color:var(--verde-cl)">${fmtN(r.icmsCorreto)}</td>`;
+    return `<tr>
+      <td><span class="tag ${r.tipo==='Entrada'?'tag-ent':'tag-v1'}" style="background:rgba(139,148,158,.08)">${r.tipo}</span></td>
+      <td class="mono">${r.nf}</td>
+      <td class="mono">${r.cfop}</td>
+      <td style="color:var(--cinza);font-size:12px">${r.nome.substring(0,35)}</td>
+      <td class="mono">${r.ncm}</td>
+      <td class="mono right">${fmtN(r.base)}</td>
+      ${aliqCell}${icmsCell}${icmsOkCell}
+      <td><span class="tag ${tagClass(r.classif)}">${tagLabel(r.classif)}</span></td>
+    </tr>`;
+  }).join('');
+
+  // Fórmulas
+  const formRows = [
+    ['BCo','Base de cálculo das entradas tributadas', apu.BCo],
+    ['VTB','V1+V2+V3+V4+V5 (saídas tributadas na fórmula)', apu.VTB],
+    ['VcV','VTB + importados 4% + isentos/NT', apu.VcV],
+    ['BC das Entradas','BCo × VTB / VcV', apu.BC_ent],
+  ].map(([k,eq,v]) => `<div class="formula-row">
+    <div class="formula-key">${k}</div>
+    <div class="formula-eq">${eq}</div>
+    <div class="formula-val">${fmt(v)}</div>
+  </div>`).join('');
+
+  const parcelasData = [
+    ['ICMS1','V1×13% − (BC_Ent×V1/VTB)×12%', apu.V1, apu.ICMS1, 'DF000123'],
+    ['ICMS2','V2×15% − (BC_Ent×V2/VTB)×12%', apu.V2, apu.ICMS2, 'DF000124'],
+    ['ICMS3','V3×12% − (BC_Ent×V3/VTB)×12%', apu.V3, apu.ICMS3, 'DF000125'],
+    ['ICMS4','V4×12% − (BC_Ent×V4/VTB)×12%', apu.V4, apu.ICMS4, 'DF000126'],
+    ['ICMS5','V5×12% − (BC_Ent×V5/VTB)×7%',  apu.V5, apu.ICMS5, 'DF000127'],
+  ];
+  const parcelasRows = parcelasData.map(([nome,form,vn,icms,cod]) => `
+    <div class="formula-row ${icms===0&&vn===0?'':''}">
+      <div class="formula-key" style="color:${icms>0?'var(--azul-cl)':'var(--cinza)'}">${nome}</div>
+      <div class="formula-eq" style="color:${icms>0?'var(--txt2)':'var(--cinza)'}">Vn=${fmt(vn)} | ${form}</div>
+      <div class="formula-val" style="color:${icms>0?'var(--verde-cl)':'var(--cinza)'}">
+        ${icms>0?fmt(icms):'R$ 0,00'}
+        <span style="font-size:10px;color:var(--cinza);margin-left:6px">${cod}</span>
+      </div>
+    </div>`).join('');
+
+  // EFD
+  const efdRows = [
+    ['E110','Campo 05\nVL_ESTORNOS_CRED','Estorno créditos de entrada (anula créditos escriturados nas NF-e entrada)','DF010228',apu.cred_entrada_total,'reg-e110'],
+    ['E110','Campo 09\nVL_ESTORNOS_DEB','Estorno débitos de saída (anula débitos escriturados nas NF-e saída — aliq. correta)','DF030521',apu.ICMS_NF_correto,'reg-e110'],
+    ['E110','Campo 03\nVL_AJ_DEBITOS','ICMS total apurado pelo regime (ICMS1+2+3+4+5 + importados 4%)','—',apu.ICMS_total,'reg-e110'],
+    ['E111','ICMS1','Parcela saídas internas — '+fmt(apu.ICMS1),'DF000123',apu.ICMS1,'reg-e111'],
+    ['E111','ICMS2','Parcela bebidas alcoólicas — '+fmt(apu.ICMS2),'DF000124',apu.ICMS2,'reg-e111'],
+    ['E111','ICMS3','Parcela interestadual não contrib. — '+fmt(apu.ICMS3),'DF000125',apu.ICMS3,'reg-e111'],
+    ['E111','ICMS4','Parcela interestadual entrada 12% — '+fmt(apu.ICMS4),'DF000126',apu.ICMS4,'reg-e111'],
+    ['E111','ICMS5','Parcela demais interestaduais — '+fmt(apu.ICMS5),'DF000127',apu.ICMS5,'reg-e111'],
+    ['E115','VTB1=V1','Valor declaratório V1','DF000036',apu.V1,'reg-e115'],
+    ['E115','VTB2=V2','Valor declaratório V2','DF000037',apu.V2,'reg-e115'],
+    ['E115','VTB3=V3','Valor declaratório V3','DF000038',apu.V3,'reg-e115'],
+    ['E115','VTB4=V4','Valor declaratório V4','DF000039',apu.V4,'reg-e115'],
+    ['E115','VTB5=V5','Valor declaratório V5','DF000040',apu.V5,'reg-e115'],
+    ['E115','VTB','Valor declaratório VTB total','DF000041',apu.VTB,'reg-e115'],
+    ['E115','VcV','Valor declaratório VcV','DF000042',apu.VcV,'reg-e115'],
+    ['E115','BCo','Valor declaratório BCo','DF000043',apu.BCo,'reg-e115'],
+    ['E115','BC Ent.','Valor declaratório BC das Entradas','DF000044',apu.BC_ent,'reg-e115'],
+  ].map(([reg,campo,desc,cod,val,cls]) => `
+    <div class="efd-row">
+      <div class="efd-reg ${cls}">${reg}</div>
+      <div class="efd-campo">${campo}</div>
+      <div class="efd-desc">${desc} <span style="font-family:var(--mono);font-size:10px;color:var(--azul-cl)">${cod}</span></div>
+      <div class="efd-val">${fmt(val)}</div>
+    </div>`).join('');
+
+  el.innerHTML = `
+    <div class="period-badge">📅 Período: ${periodo || 'identificado na planilha'}</div>
+    <button class="btn-reset" onclick="resetar()">↺ Carregar nova planilha</button>
+
+    ${alertas.length ? `<div class="section-title">Alertas</div>${alertas.join('')}` : ''}
+
+    <div class="section-title">Lançamentos Classificados</div>
+    <div class="table-wrap" style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th>Tipo</th><th>NF</th><th>CFOP</th><th>Nome</th><th>NCM</th>
+          <th class="right">Base ICMS</th><th class="right">Alíq.</th>
+          <th class="right">ICMS NF</th><th class="right">ICMS Correto</th>
+          <th>Classificação</th>
+        </tr></thead>
+        <tbody>${tRows}</tbody>
+      </table>
+    </div>
+
+    <div class="section-title">Variáveis da Fórmula</div>
+    <div class="formula-block">
+      <div class="formula-header"><span>FÓRMULA — ADI 002/2021, art. 2°, inciso II</span><span style="color:var(--azul-cl)">BCo × VTB / VcV</span></div>
+      ${formRows}
+    </div>
+
+    <div class="section-title">Parcelas ICMS1 a ICMS5</div>
+    <div class="formula-block">
+      <div class="formula-header"><span>PARCELAS — ADI 002/2021, alínea f, inciso II, art. 2°</span></div>
+      ${parcelasRows}
+      ${apu.S_imp4 > 0 ? `
+      <div class="formula-row" style="background:rgba(218,54,51,.05);border-top:1px solid rgba(248,81,73,.2)">
+        <div class="formula-key" style="color:var(--verm-cl)">Imp. 4%</div>
+        <div class="formula-eq" style="color:var(--txt2)">Fora da fórmula — débito ${fmt(apu.deb_imp4)} − crédito prop. ${fmt(apu.cred_imp4_prop)}</div>
+        <div class="formula-val" style="color:var(--laranja-cl)">${fmt(apu.ICMS_imp4_liq)} <span style="font-size:10px;color:var(--cinza)">E110 C03</span></div>
+      </div>` : ''}
+      ${apu.cred_dev_venda > 0 ? `
+      <div class="formula-row">
+        <div class="formula-key" style="color:var(--cinza)">(−) Dev. Venda</div>
+        <div class="formula-eq">Crédito devolução de venda recebida (E110)</div>
+        <div class="formula-val" style="color:var(--cinza)">${fmt(-apu.cred_dev_venda)}</div>
+      </div>` : ''}
+      <div class="formula-row total-row">
+        <div class="formula-key">TOTAL A RECOLHER</div>
+        <div class="formula-eq">ICMS1+2+3+4+5 + Importados 4% − Dev. Venda</div>
+        <div class="formula-val">${fmt(apu.ICMS_total)}</div>
+      </div>
+    </div>
+
+    <div class="section-title">Resumo</div>
+    <div class="results-grid">
+      <div class="result-card card-destaque">
+        <div class="card-label">ICMS a Recolher — Regime Lei 5.005</div>
+        <div class="card-value azul">${fmt(apu.ICMS_total)}</div>
+        <div class="card-sub">ICMS1+2+3+4+5 + Imp.4%</div>
+      </div>
+      <div class="result-card card-laranja">
+        <div class="card-label">ICMS nas NF-e de Saída</div>
+        <div class="card-value ${apu.divergencia_NF > 0 ? 'verm' : ''}">${fmt(apu.ICMS_NF_saidas)}</div>
+        <div class="card-sub">O que o fisco lê nas NF-e</div>
+      </div>
+      <div class="result-card card-verde">
+        <div class="card-label">ICMS Correto nas NF-e (alíq. correta)</div>
+        <div class="card-value verde">${fmt(apu.ICMS_NF_correto)}</div>
+        <div class="card-sub">Se alíquotas estivessem corretas</div>
+      </div>
+      <div class="result-card card-azul">
+        <div class="card-label">BCo — Base Entradas</div>
+        <div class="card-value">${fmt(apu.BCo)}</div>
+        <div class="card-sub">Base proporcional para crédito</div>
+      </div>
+      <div class="result-card card-verde">
+        <div class="card-label">VTB — Saídas Tributadas Fórmula</div>
+        <div class="card-value">${fmt(apu.VTB)}</div>
+        <div class="card-sub">V1=${fmt(apu.V1)} V2=${fmt(apu.V2)} V3=${fmt(apu.V3)} V4=${fmt(apu.V4)} V5=${fmt(apu.V5)}</div>
+      </div>
+      <div class="result-card card-azul">
+        <div class="card-label">BC das Entradas (BCo×VTB/VcV)</div>
+        <div class="card-value">${fmt(apu.BC_ent)}</div>
+        <div class="card-sub">EFD: DF000044</div>
+      </div>
+    </div>
+
+    <div class="section-title">Lançamentos na EFD ICMS/IPI</div>
+    <div class="efd-block">${efdRows}</div>
+
+    <div class="footer-note">
+      Lei nº 5.005/2012 · Decreto nº 43.062/2022 · ADI nº 002/2021 · Resolução Senado nº 13/2012<br>
+      Solução de Consulta 014/2023 · Portaria nº 028/2014<br>
+      Esta ferramenta é auxiliar de cálculo. Confirme os valores com o contador responsável antes de retificar a EFD.
+    </div>
+  `;
+}
+
+// ── EVENTOS ──────────────────────────────────────────────────────────────
+function resetar() {
+  document.getElementById('uploadSection').classList.remove('hidden');
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('fileInput').value = '';
+}
+
+async function processarArquivo(file) {
+  document.getElementById('uploadSection').classList.add('hidden');
+  document.getElementById('loader').classList.remove('hidden');
+
+  try {
+    const raw = await lerPlanilha(file);
+    const {rows, periodo} = parsear(raw);
+    if (rows.length === 0) throw new Error('Nenhum lançamento encontrado. Verifique se a planilha tem colunas Tipo, CFOP, Base ICMS, Aliq. ICMS, Valor ICMS.');
+    const apu = apurar(rows);
+    document.getElementById('loader').classList.add('hidden');
+    renderizar(rows, apu, periodo);
+  } catch(err) {
+    document.getElementById('loader').classList.add('hidden');
+    document.getElementById('uploadSection').classList.remove('hidden');
+    alert('Erro ao processar planilha:\n' + err.message);
+  }
+}
+
+document.getElementById('fileInput').addEventListener('change', e => {
+  if (e.target.files[0]) processarArquivo(e.target.files[0]);
+});
+
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('drag');
+  if (e.dataTransfer.files[0]) processarArquivo(e.dataTransfer.files[0]);
+});
+</script>
+</body>
+</html>
