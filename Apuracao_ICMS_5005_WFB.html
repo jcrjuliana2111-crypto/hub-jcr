@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Apuração ICMS · Lei 5.005/2012 · DF</title>
 <script>/*! xlsx.js (C) 2013-present SheetJS -- http://sheetjs.com */
@@ -449,6 +450,11 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     line-height: 1.8;
     opacity: .6;
   }
+
+  /* ── Fallbacks Internet Explorer ── */
+  .upload-zone { border: 2px dashed #0047AB; padding: 40px 20px; text-align: center; border-radius: 12px; background: #f0f4ff; }
+  .upload-btn { background: #0047AB; color: #fff; border: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; cursor: pointer; }
+  label.upload-btn { background: #0047AB; color: #fff; border: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; cursor: pointer; text-decoration: none; }
 </style>
 </head>
 <body>
@@ -471,8 +477,9 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <div class="upload-title">Arraste a planilha aqui</div>
       <div class="upload-sub">Movimentação Fiscal — Entradas e Saídas com Produtos (.xls / .xlsx)</div>
       <div style="margin-top:20px">
-        <input type="file" id="fileInput" accept=".xls,.xlsx" style="display:none">
-        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">📂 Selecionar planilha</button>
+        <input type="file" id="fileInput" accept=".xls,.xlsx" style="position:absolute;opacity:0;width:1px;height:1px;overflow:hidden">
+        <label for="fileInput" class="upload-btn" style="cursor:pointer;display:inline-block">📂 Selecionar planilha</label>
+        <button class="upload-btn" onclick="var f=document.getElementById('fileInput');if(f){f.click();}else{document.querySelector('label[for=fileInput]').click();}" style="margin-left:8px">📂 Selecionar planilha (alt)</button>
       </div>
     </div>
 
@@ -1000,18 +1007,29 @@ async function processarArquivo(file) {
   }
 }
 
-document.getElementById('fileInput').addEventListener('change', e => {
-  if (e.target.files[0]) processarArquivo(e.target.files[0]);
-});
-
-const dz = document.getElementById('dropZone');
-dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
-dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
-dz.addEventListener('drop', e => {
-  e.preventDefault();
-  dz.classList.remove('drag');
-  if (e.dataTransfer.files[0]) processarArquivo(e.dataTransfer.files[0]);
-});
+function iniciarEventos() {
+  var fi = document.getElementById('fileInput');
+  if (fi) {
+    fi.addEventListener('change', function(e) {
+      if (e.target.files[0]) processarArquivo(e.target.files[0]);
+    });
+  }
+  var dz = document.getElementById('dropZone');
+  if (dz) {
+    dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('drag'); });
+    dz.addEventListener('dragleave', function() { dz.classList.remove('drag'); });
+    dz.addEventListener('drop', function(e) {
+      e.preventDefault();
+      dz.classList.remove('drag');
+      if (e.dataTransfer.files[0]) processarArquivo(e.dataTransfer.files[0]);
+    });
+  }
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', iniciarEventos);
+} else {
+  iniciarEventos();
+}
 </script>
 </body>
 </html>
