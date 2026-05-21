@@ -477,9 +477,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <div class="upload-title">Arraste a planilha aqui</div>
       <div class="upload-sub">Movimentação Fiscal — Entradas e Saídas com Produtos (.xls / .xlsx)</div>
       <div style="margin-top:20px">
-        <input type="file" id="fileInput" accept=".xls,.xlsx" style="position:absolute;opacity:0;width:1px;height:1px;overflow:hidden">
+        <input type="file" id="fileInput" accept=".xls,.xlsx" style="display:none">
         <label for="fileInput" class="upload-btn" style="cursor:pointer;display:inline-block">📂 Selecionar planilha</label>
-        <button class="upload-btn" onclick="var f=document.getElementById('fileInput');if(f){f.click();}else{document.querySelector('label[for=fileInput]').click();}" style="margin-left:8px">📂 Selecionar planilha (alt)</button>
       </div>
     </div>
 
