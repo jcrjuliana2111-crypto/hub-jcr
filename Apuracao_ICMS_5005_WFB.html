@@ -1006,6 +1006,9 @@ async function processarArquivo(file) {
 
   try {
     const raw = await lerPlanilha(file);
+    // DIAGNÓSTICO: mostra as primeiras 10 linhas no console
+    console.log('=== DIAGNÓSTICO raw ===');
+    raw.slice(0, 10).forEach((r, i) => console.log('Linha ' + i + ':', JSON.stringify(r)));
     const {rows, periodo} = parsear(raw);
     if (rows.length === 0) throw new Error('Nenhum lançamento encontrado. Verifique se a planilha tem colunas Tipo, CFOP, Base ICMS, Aliq. ICMS, Valor ICMS.');
     const apu = apurar(rows);
