@@ -112,6 +112,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     position: absolute;
     inset: 0;
     background: radial-gradient(ellipse at 50% 0%, rgba(31,111,235,.08) 0%, transparent 70%);
+    pointer-events: none;
   }
   .upload-zone:hover, .upload-zone.drag {
     border-color: var(--azul);
@@ -470,9 +471,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <div class="upload-title">Arraste a planilha aqui</div>
       <div class="upload-sub">Movimentação Fiscal — Entradas e Saídas com Produtos (.xls / .xlsx)</div>
       <div style="margin-top:20px">
-        <input type="file" id="fileInput" accept=".xls,.xlsx"
-          style="display:none">
-        <label for="fileInput" class="upload-btn">📂 Selecionar planilha</label>
+        <input type="file" id="fileInput" accept=".xls,.xlsx" style="display:none">
+        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">📂 Selecionar planilha</button>
       </div>
     </div>
 
