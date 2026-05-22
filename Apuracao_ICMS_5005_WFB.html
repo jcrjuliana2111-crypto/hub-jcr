@@ -456,6 +456,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .upload-btn { background: #0047AB; color: #fff; border: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; cursor: pointer; }
   label.upload-btn { background: #0047AB; color: #fff; border: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; cursor: pointer; text-decoration: none; }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 </head>
 <body>
 
@@ -475,11 +476,13 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <div class="upload-zone" id="dropZone">
       <span class="upload-icon">📊</span>
       <div class="upload-title">Arraste a planilha aqui</div>
-      <div class="upload-sub">Movimentação Fiscal — Entradas e Saídas com Produtos (.xls / .xlsx)</div>
+      <div class="upload-sub">Movimentação Fiscal — Entradas e Saídas com Produtos</div>
       <div style="margin-top:20px">
-        <input type="file" id="fileInput" accept=".xls,.xlsx" style="position:absolute;opacity:0;width:1px;height:1px;overflow:hidden">
+        <input type="file" id="fileInput" accept=".xlsx" style="position:absolute;opacity:0;width:1px;height:1px;overflow:hidden">
         <label for="fileInput" class="upload-btn" style="cursor:pointer;display:inline-block">📂 Selecionar planilha</label>
-        <button class="upload-btn" onclick="var f=document.getElementById('fileInput');if(f){f.click();}else{document.querySelector('label[for=fileInput]').click();}" style="margin-left:8px">📂 Selecionar planilha (alt)</button>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:#f59e0b;font-family:monospace">
+        ⚠️ O arquivo deve estar no formato <strong>.xlsx</strong>. No Excel: <em>Arquivo → Salvar como → Excel Workbook (.xlsx)</em>
       </div>
     </div>
 
@@ -531,6 +534,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
   <!-- RESULTADOS -->
   <div id="results" class="hidden"></div>
+  <div id="estoqueSection"></div>
 
 </div>
 
@@ -603,12 +607,41 @@ function lerPlanilha(file) {
         console.log('Lendo arquivo:', file.name, file.size, 'bytes');
         const data = new Uint8Array(e.target.result);
         console.log('Primeiros bytes:', Array.from(data.slice(0,8)).map(b=>b.toString(16)).join(' '));
-        const wb = XLSX.read(data, {type:'array', cellText:false, raw:true});
-        console.log('Sheets encontradas:', wb.SheetNames);
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
-        console.log('Total de linhas:', raw.length);
-        raw.slice(0, 10).forEach((r, i) => console.log('Linha ' + i + ':', JSON.stringify(r)));
+        // Tenta ler com bookSheets para forçar leitura completa
+        const wb = XLSX.read(data, {type:'array', raw:true, cellNF:false, cellStyles:false, sheetStubs:true, bookVBA:false, WTF:false});
+        console.log('SheetNames:', wb.SheetNames);
+        // Pega a primeira sheet disponível
+        const wsKey = wb.SheetNames[0] || Object.keys(wb.Sheets).filter(k=>!k.startsWith('!'))[0];
+        const ws = wb.Sheets[wsKey];
+        console.log('wsKey:', wsKey, '| ws:', !!ws);
+        if (!ws) throw new Error('Sheet não encontrada. Salve o arquivo como .xlsx no Excel e tente novamente.');
+        console.log('ws[!ref]:', ws['!ref']);
+        // Tenta sheet_to_json normal
+        let raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
+        console.log('Linhas (normal):', raw.length);
+        // Se vazio, tenta com sheetStubs e blankrows
+        if (raw.length === 0) {
+          raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:false, blankrows:false});
+          console.log('Linhas (defval string):', raw.length);
+        }
+        // Se ainda vazio, tenta ler célula a célula usando !ref
+        if (raw.length === 0 && ws['!ref']) {
+          console.log('Tentando leitura manual por células...');
+          const range = XLSX.utils.decode_range(ws['!ref']);
+          console.log('Range:', JSON.stringify(range));
+          for (let r = range.s.r; r <= Math.min(range.e.r, range.s.r+10); r++) {
+            const rowArr = [];
+            for (let c = range.s.c; c <= range.e.c; c++) {
+              const addr = XLSX.utils.encode_cell({r,c});
+              const cell = ws[addr];
+              rowArr.push(cell ? cell.v : null);
+            }
+            console.log('Linha manual ' + r + ':', JSON.stringify(rowArr.slice(0,10)));
+            raw.push(rowArr);
+          }
+        }
+        raw.slice(0, 5).forEach((r, i) => console.log('Linha ' + i + ':', JSON.stringify(r)));
+        if (raw.length === 0) throw new Error('Planilha lida mas sem dados.\n\nO arquivo .xls está em formato legado não suportado.\nNo Excel: Arquivo → Salvar como → Excel Workbook (.xlsx)\nE importe o arquivo .xlsx gerado.');
         res(raw);
       } catch(err) {
         console.error('Erro ao ler planilha:', err.message, err);
@@ -620,23 +653,19 @@ function lerPlanilha(file) {
   });
 }
 
+function normalCell(v) {
+  // Remove aspas simples e quebras de linha dos valores do ERP
+  return String(v||'').replace(/^'+|'+$/g,'').trim().toLowerCase()
+    .replace(/\r\n/g,' ').replace(/\r/g,' ').replace(/\n/g,' ').replace(/\s+/g,' ');
+}
+
 function encontrarHeaderRow(raw) {
-  // Junta todas as células das linhas vizinhas (células mescladas podem
-  // ficar espalhadas entre linhas adjacentes no sheet_to_json)
   for (let i = 0; i < Math.min(25, raw.length); i++) {
-    // Concatena a linha atual com a próxima (cobre células mescladas verticalmente)
-    const janela = [...(raw[i]||[]), ...((raw[i+1]||[]))];
-    const row = janela.map(v => String(v||'').trim().toLowerCase().replace(/\n/g,' ').replace(/\s+/g,' '));
-    const temTipo = row.some(v => v === 'tipo' || v.startsWith('tipo '));
-    const temCFOP = row.some(v => v.includes('cfop'));
+    const row = (raw[i]||[]).map(normalCell);
+    const temTipo = row.some(v => v === 'tipo');
+    const temCFOP = row.some(v => v === 'cfop' || v.includes('cfop'));
+    console.log('HeaderSearch linha', i, '| temTipo:', temTipo, '| temCFOP:', temCFOP, '| amostra:', JSON.stringify(row.filter(Boolean).slice(0,5)));
     if (temTipo && temCFOP) return i;
-  }
-  // Fallback: aceita qualquer linha com 'tipo' E alguma coluna fiscal
-  for (let i = 0; i < Math.min(25, raw.length); i++) {
-    const row = (raw[i]||[]).map(v => String(v||'').trim().toLowerCase().replace(/\n/g,' '));
-    const temTipo = row.some(v => v === 'tipo' || v.startsWith('tipo'));
-    const temFiscal = row.some(v => v.includes('cfop') || v.includes('base') || v.includes('icms'));
-    if (temTipo && temFiscal) return i;
   }
   return -1;
 }
@@ -645,8 +674,7 @@ function parsear(raw) {
   const hi = encontrarHeaderRow(raw);
   if (hi < 0) throw new Error('Cabeçalho não encontrado. Verifique o formato da planilha.');
 
-  const headers = raw[hi].map(v => String(v||'').trim().toLowerCase()
-    .replace(/\n/g,' ').replace(/\s+/g,' '));
+  const headers = raw[hi].map(normalCell);
 
   const idxOf = (...keys) => {
     for (const k of keys) {
@@ -666,6 +694,8 @@ function parsear(raw) {
   const iNF  = idxOf('documento','nf','doc');
   const iNCM = idxOf('ncm');
   const iQtd = idxOf('quantidade','qtd');
+  const iCod = idxOf('codigo prod','cod. prod','codigo do produto','cod prod');
+  const iDesc= idxOf('descri');
 
   const rows = [];
   let periodo = '';
@@ -680,21 +710,22 @@ function parsear(raw) {
     }
     if (i <= hi) continue;
 
-    const tipo = String(row[iT]||'').trim();
-    if (!['Entrada','Saída','Saida','entrada','saída','saida'].includes(tipo)) continue;
+    const tipo = String(row[iT]||'').replace(/^'+|'+$/g,'').trim();
+    const tipoLow = tipo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    if (!['entrada','saida'].includes(tipoLow)) continue;
 
     const cfop  = parseInt(row[iCFOP]) || 0;
     const base  = parseFloat(row[iBase]) || 0;
     const aliq  = parseFloat(row[iAliq]) || 0;
     const icms  = parseFloat(row[iICMS]) || 0;
     const total = parseFloat(row[iVlTot]) || 0;
-    const nome  = String(row[iNome]||'').trim();
-    const nf    = String(row[iNF]||'').trim();
-    const ncm   = String(row[iNCM]||'').trim();
+    const nome  = String(row[iNome]||'').replace(/^'+|'+$/g,'').trim();
+    const nf    = String(row[iNF]||'').replace(/^'+|'+$/g,'').trim();
+    const ncm   = String(row[iNCM]||'').replace(/^'+|'+$/g,'').trim();
     const qtd   = parseFloat(row[iQtd]) || 0;
 
-    const tipoNorm = tipo.charAt(0).toUpperCase() + tipo.slice(1).toLowerCase()
-      .replace('saida','saída');
+    // Normaliza tipo independente de acentuação
+    const tipoNorm = tipoLow === 'saida' ? 'Saída' : 'Entrada';
 
     const classif = classificar(tipoNorm, cfop, aliq);
 
@@ -711,8 +742,10 @@ function parsear(raw) {
     const aliqOk = Math.abs(aliq - aliqCorreta) < 0.01;
     const icmsCorreto = base * aliqCorreta / 100;
 
+    const cod  = String(row[iCod] ||'').replace(/^'+|'+$/g,'').trim();
+    const desc = String(row[iDesc]||'').replace(/^'+|'+$/g,'').trim();
     rows.push({tipo:tipoNorm, cfop, base, aliq, icms, total, nome, nf, ncm, qtd,
-               classif: classifFinal, aliqCorreta, aliqOk, icmsCorreto});
+               cod, desc, classif: classifFinal, aliqCorreta, aliqOk, icmsCorreto});
   }
 
   return {rows, periodo};
@@ -790,6 +823,146 @@ function apurar(rows) {
   };
 }
 
+// ── CONTROLE DE ESTOQUE ──────────────────────────────────────────────────────
+
+const ESTOQUE_KEY = 'icms5005_estoque_v1';
+
+function carregarEstoque() {
+  try {
+    const raw = localStorage.getItem(ESTOQUE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e) { return {}; }
+}
+
+function salvarEstoque(est) {
+  localStorage.setItem(ESTOQUE_KEY, JSON.stringify(est));
+}
+
+function itemKey(cod, desc) {
+  return (desc || cod || '?');
+}
+
+function atualizarEstoque(rows, periodo) {
+  const est = carregarEstoque();
+  if (!est._historico) est._historico = {};
+
+  // Se o período já foi processado, remove os movimentos antigos antes de reimportar
+  if (est._historico[periodo]) {
+    Object.keys(est).forEach(key => {
+      if (key === '_historico') return;
+      est[key].movimentos = est[key].movimentos.filter(m => m.periodo !== periodo);
+      est[key].saldo = est[key].movimentos.reduce((s, m) => s + m.delta, 0);
+    });
+  }
+
+  est._historico[periodo] = { processadoEm: new Date().toISOString() };
+
+  // Processar movimentos do período
+  rows.forEach(r => {
+    const key = itemKey(r.cod, r.desc);
+    if (!est[key]) {
+      est[key] = { cod: r.cod, desc: r.desc, ncm: r.ncm, saldo: 0, movimentos: [] };
+    }
+    const delta = r.tipo === 'Entrada' ? r.qtd : -r.qtd;
+    est[key].saldo += delta;
+    est[key].movimentos.push({
+      periodo, nf: r.nf, tipo: r.tipo, cfop: r.cfop, qtd: r.qtd,
+      delta, saldoApos: est[key].saldo
+    });
+    if (est[key].movimentos.length > 200) est[key].movimentos.shift();
+  });
+
+  salvarEstoque(est);
+  return est;
+}
+
+function limparEstoque() {
+  if (confirm('Apagar todo o histórico de estoque? Esta ação não pode ser desfeita.')) {
+    localStorage.removeItem(ESTOQUE_KEY);
+    alert('Estoque zerado. Reimporte a planilha para reconstruir.');
+  }
+}
+
+function desfazerPeriodo(periodo) {
+  const est = carregarEstoque();
+  // Remove movimentos do período e reconstrói saldos
+  Object.keys(est).forEach(key => {
+    if (key === '_historico') return;
+    est[key].movimentos = est[key].movimentos.filter(m => m.periodo !== periodo);
+    est[key].saldo = est[key].movimentos.reduce((s, m) => s + m.delta, 0);
+  });
+  if (est._historico) delete est._historico[periodo];
+  salvarEstoque(est);
+  alert(`Período ${periodo} removido do estoque.`);
+  renderizarEstoque();
+}
+
+function renderizarEstoque() {
+  const est = carregarEstoque();
+  const itens = Object.entries(est)
+    .filter(([k]) => k !== '_historico')
+    .map(([k, v]) => v)
+    .sort((a, b) => a.desc.localeCompare(b.desc));
+
+  const negativos = itens.filter(i => i.saldo < 0);
+  const periodos  = Object.keys(est._historico || {}).sort();
+
+  const el = document.getElementById('estoqueSection');
+  if (!el) return;
+
+  el.innerHTML = `
+    <div class="section-title" style="margin-top:32px">Controle de Estoque Acumulado</div>
+    ${negativos.length > 0 ? `
+      <div class="alert alert-verm" style="margin-bottom:16px">
+        <div class="alert-icon">🔴</div>
+        <div><strong>Estoque negativo detectado em ${negativos.length} item(ns):</strong>
+        ${negativos.map(i => `<br>• ${i.cod} — ${i.desc}: <strong>${i.saldo.toLocaleString('pt-BR', {maximumFractionDigits:3})} un.</strong>`).join('')}
+        </div>
+      </div>` : `
+      <div class="alert alert-verde" style="margin-bottom:16px">
+        <div class="alert-icon">✅</div>
+        <div><strong>Todos os saldos positivos.</strong> Nenhum item com estoque negativo.</div>
+      </div>`}
+    <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <span style="font-family:var(--mono);font-size:12px;color:var(--cinza)">
+        Períodos processados: ${periodos.length === 0 ? 'nenhum' : periodos.join(', ')}
+      </span>
+      <button onclick="limparEstoque()" style="margin-left:auto;background:#7f1d1d;color:#fff;border:none;padding:6px 14px;border-radius:4px;font-size:12px;cursor:pointer">🗑 Zerar estoque</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Descrição</th>
+            <th>NCM</th>
+            <th class="right">Entradas (un.)</th>
+            <th class="right">Saídas (un.)</th>
+            <th class="right">Saldo atual (un.)</th>
+            <th class="center">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itens.map(item => {
+            const entradas = item.movimentos.filter(m => m.tipo === 'Entrada').reduce((s,m) => s + m.qtd, 0);
+            const saidas   = item.movimentos.filter(m => m.tipo !== 'Entrada').reduce((s,m) => s + m.qtd, 0);
+            const neg = item.saldo < 0;
+            const zero = item.saldo === 0;
+            const statusBg = neg ? 'background:#fee2e2' : zero ? 'background:#fef9c3' : 'background:#dcfce7';
+            const statusTxt = neg ? '🔴 NEGATIVO' : zero ? '🟡 ZERADO' : '🟢 OK';
+            return `<tr style="${neg ? 'background:#fff5f5' : ''}">
+              <td>${item.desc}</td>
+              <td class="mono center">${item.ncm}</td>
+              <td class="mono right">${entradas.toLocaleString('pt-BR', {maximumFractionDigits:3})}</td>
+              <td class="mono right">${saidas.toLocaleString('pt-BR', {maximumFractionDigits:3})}</td>
+              <td class="mono right" style="${neg?'color:#dc2626;font-weight:700':''}">${item.saldo.toLocaleString('pt-BR', {maximumFractionDigits:3})}</td>
+              <td class="center"><span style="padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;${statusBg}">${statusTxt}</span></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
 // ── RENDERIZAÇÃO ─────────────────────────────────────────────────────────
 function tagClass(classif) {
   const map = {
@@ -813,9 +986,418 @@ function tagLabel(classif) {
   return map[classif] || classif;
 }
 
+async function exportarXLSX(rows, apu, periodo) {
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Apuração ICMS Lei 5.005/2012';
+  const f2 = v => v == null ? 0 : Math.round(v * 100) / 100;
+
+  // Paleta de cores
+  const COR = {
+    azulEsc:   '1F3864', azulMed:  '2E75B6', azulCla: 'BDD7EE',
+    cinzaEsc:  '404040', cinzaMed: '808080', cinzaCla: 'F2F2F2',
+    verdeEsc:  '375623', verdeMed: '70AD47', verdeCla: 'E2EFDA',
+    amareloEsc:'7F6000', amareloMed:'FFC000', amareloCla:'FFF2CC',
+    vermelhoEsc:'C00000',vermelhoMed:'FF0000',vermelhoCla:'FFE0E0',
+    branco:    'FFFFFF', preto:    '000000',
+    laranjaEsc:'843C0C', laranjaaMed:'ED7D31', laranjaaCla:'FCE4D6',
+  };
+
+  function hdr(ws, row, col, value, bgColor, fontColor, bold, size) {
+    const cell = ws.getCell(row, col);
+    cell.value = value;
+    cell.font = { bold: bold !== false, color: { argb: 'FF' + (fontColor || COR.branco) }, size: size || 11 };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + bgColor } };
+    cell.alignment = { vertical: 'middle', wrapText: true };
+    cell.border = {
+      top:    { style: 'thin', color: { argb: 'FF' + COR.cinzaMed } },
+      bottom: { style: 'thin', color: { argb: 'FF' + COR.cinzaMed } },
+      left:   { style: 'thin', color: { argb: 'FF' + COR.cinzaMed } },
+      right:  { style: 'thin', color: { argb: 'FF' + COR.cinzaMed } },
+    };
+    return cell;
+  }
+
+  function data(ws, row, col, value, bgColor, fontColor, bold, numFmt, align) {
+    const cell = ws.getCell(row, col);
+    cell.value = value;
+    cell.font = { bold: !!bold, color: { argb: 'FF' + (fontColor || COR.preto) }, size: 10 };
+    if (bgColor) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + bgColor } };
+    if (numFmt) cell.numFmt = numFmt;
+    cell.alignment = { vertical: 'middle', horizontal: align || 'left', wrapText: true };
+    cell.border = {
+      top:    { style: 'hair', color: { argb: 'FFCCCCCC' } },
+      bottom: { style: 'hair', color: { argb: 'FFCCCCCC' } },
+      left:   { style: 'hair', color: { argb: 'FFCCCCCC' } },
+      right:  { style: 'hair', color: { argb: 'FFCCCCCC' } },
+    };
+    return cell;
+  }
+
+  function merge(ws, r1, c1, r2, c2) {
+    ws.mergeCells(r1, c1, r2, c2);
+  }
+
+  function titulo(ws, row, text, cols) {
+    merge(ws, row, 1, row, cols);
+    const cell = ws.getCell(row, 1);
+    cell.value = text;
+    cell.font = { bold: true, size: 12, color: { argb: 'FF' + COR.branco } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + COR.azulEsc } };
+    cell.alignment = { vertical: 'middle', horizontal: 'left' };
+    ws.getRow(row).height = 22;
+  }
+
+  function bloco(ws, row, text, cols, cor) {
+    merge(ws, row, 1, row, cols);
+    const cell = ws.getCell(row, 1);
+    cell.value = text;
+    cell.font = { bold: true, size: 11, color: { argb: 'FF' + COR.branco } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + (cor || COR.azulMed) } };
+    cell.alignment = { vertical: 'middle' };
+    ws.getRow(row).height = 18;
+  }
+
+  // ── ABA 1: Lançamentos ─────────────────────────────────────────────
+  const ws1 = wb.addWorksheet('1. Lançamentos');
+  ws1.columns = [
+    { width: 10 }, { width: 8 }, { width: 8 }, { width: 38 },
+    { width: 12 }, { width: 14 }, { width: 10 }, { width: 14 },
+    { width: 12 }, { width: 14 }, { width: 40 }
+  ];
+
+  // Linha 1 — Título
+  titulo(ws1, 1, `WORLD FOOD BUSINESS — ${periodo} | Lançamentos Classificados — Lei 5.005/2012 (DF)`, 11);
+  // Linha 2 — Subtítulo
+  merge(ws1, 2, 1, 2, 11);
+  const sub1 = ws1.getCell(2, 1);
+  sub1.value = `Período: ${periodo}`;
+  sub1.font = { italic: true, size: 10, color: { argb: 'FF' + COR.cinzaEsc } };
+  sub1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + COR.azulCla } };
+  sub1.alignment = { vertical: 'middle' };
+  ws1.getRow(2).height = 16;
+
+  // Linha 3 — Cabeçalho
+  const cabLanc = ['Tipo','NF','CFOP','Destinatário/Remetente','NCM','Base ICMS (R$)','Alíq. NF','ICMS NF (R$)','Alíq. Correta','ICMS Correto (R$)','Classificação Lei 5.005'];
+  cabLanc.forEach((h, i) => hdr(ws1, 3, i + 1, h, COR.azulMed, COR.branco));
+  ws1.getRow(3).height = 30;
+
+  const labelClassif = {
+    'V1':'V1 — saída interna tributada','V2':'V2 — bebida alcoólica',
+    'V3':'V3 — não contribuinte','V4':'V4 — interestadual 12%','V5':'V5 — interestadual 7%',
+    'S_IMPORT_4PCT':'FORA FÓRMULA — interestadual importado 4% (Res. 13/2012)',
+    'E_IMPORT_4PCT':'Entrada interestadual importado 4%','E_INTERNA':'Entrada interna',
+    'E_INTER_7PCT':'Entrada interestadual 7%','E_INTER_12PCT':'Entrada interestadual 12%',
+    'DEV_VENDA_REC':'Devolução venda recebida','DEV_COMPRA_ENV':'Devolução compra enviada',
+  };
+
+  let linha = 4;
+  rows.forEach(r => {
+    const isEntrada = r.tipo === 'Entrada';
+    const aliqOk = r.aliqOk;
+    const bgRow = isEntrada ? COR.verdeCla : (aliqOk ? COR.branco : COR.vermelhoCla);
+    const lbl = (labelClassif[r.classif] || r.classif) + (!aliqOk && r.aliq !== r.aliqCorreta ? ` (alíq. NF ${r.aliq}% incorreta)` : '');
+
+    data(ws1, linha, 1, r.tipo,            bgRow, isEntrada ? COR.verdeEsc : COR.cinzaEsc, true);
+    data(ws1, linha, 2, r.nf,              bgRow, null, false, null, 'center');
+    data(ws1, linha, 3, r.cfop,            bgRow, null, false, null, 'center');
+    data(ws1, linha, 4, r.nome,            bgRow);
+    data(ws1, linha, 5, r.ncm,             bgRow, null, false, null, 'center');
+    data(ws1, linha, 6, f2(r.base),        bgRow, null, false, '#,##0.00', 'right');
+    data(ws1, linha, 7, r.aliq + '%',      bgRow, aliqOk ? null : COR.vermelhoEsc, !aliqOk, null, 'center');
+    data(ws1, linha, 8, f2(r.icms),        bgRow, null, false, '#,##0.00', 'right');
+    data(ws1, linha, 9, r.aliqCorreta + '%', bgRow, COR.verdeEsc, true, null, 'center');
+    data(ws1, linha, 10, f2(r.icmsCorreto), bgRow, null, false, '#,##0.00', 'right');
+    data(ws1, linha, 11, lbl,              bgRow, aliqOk ? null : COR.vermelhoEsc, !aliqOk);
+    ws1.getRow(linha).height = 18;
+    linha++;
+  });
+
+  // Totais
+  const totBase = rows.reduce((s, r) => s + r.base, 0);
+  const totICMSnf = rows.reduce((s, r) => s + r.icms, 0);
+  const totICMSok = rows.reduce((s, r) => s + r.icmsCorreto, 0);
+  hdr(ws1, linha, 1, 'TOTAIS', COR.azulEsc, COR.branco);
+  hdr(ws1, linha, 2, '', COR.azulEsc);
+  hdr(ws1, linha, 3, '', COR.azulEsc);
+  hdr(ws1, linha, 4, '', COR.azulEsc);
+  hdr(ws1, linha, 5, '', COR.azulEsc);
+  const tcBase = hdr(ws1, linha, 6, f2(totBase), COR.azulEsc); tcBase.numFmt = '#,##0.00'; tcBase.alignment = { horizontal: 'right' };
+  hdr(ws1, linha, 7, '', COR.azulEsc);
+  const tcNF = hdr(ws1, linha, 8, f2(totICMSnf), COR.azulEsc); tcNF.numFmt = '#,##0.00'; tcNF.alignment = { horizontal: 'right' };
+  hdr(ws1, linha, 9, '', COR.azulEsc);
+  const tcOk = hdr(ws1, linha, 10, f2(totICMSok), COR.azulEsc); tcOk.numFmt = '#,##0.00'; tcOk.alignment = { horizontal: 'right' };
+  hdr(ws1, linha, 11, '← ICMS que deveria estar nas NF-e', COR.azulEsc);
+  ws1.getRow(linha).height = 20;
+  linha += 2;
+
+  if (apu.aliqErradas && apu.aliqErradas.length > 0) {
+    merge(ws1, linha, 1, linha, 11);
+    const alertCell = ws1.getCell(linha, 1);
+    alertCell.value = `⚠️ PROBLEMA: ${apu.aliqErradas.length} NF-e com alíquota incorreta. Alíquota correta pela Lei 5.005/2012 é 12%. As NF-e precisam ser canceladas e reemitidas.`;
+    alertCell.font = { bold: true, size: 10, color: { argb: 'FF' + COR.amareloEsc } };
+    alertCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + COR.amareloCla } };
+    alertCell.alignment = { wrapText: true, vertical: 'middle' };
+    ws1.getRow(linha).height = 36;
+  }
+
+  // ── ABA 2: Apuração Lei 5005 ───────────────────────────────────────
+  const ws2 = wb.addWorksheet('2. Apuração Lei 5005');
+  ws2.columns = [{ width: 58 }, { width: 18 }, { width: 35 }];
+
+  titulo(ws2, 1, `APURAÇÃO DO ICMS — LEI 5.005/2012 | ${periodo}`, 3);
+  merge(ws2, 2, 1, 2, 3);
+  const sub2 = ws2.getCell(2, 1);
+  sub2.value = 'World Food Business Importadora e Exportadora Ltda';
+  sub2.font = { italic: true, size: 10 };
+  sub2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + COR.azulCla } };
+  sub2.alignment = { vertical: 'middle' };
+
+  // Bloco 1
+  bloco(ws2, 4, 'BLOCO 1 — VARIÁVEIS DA FÓRMULA (ADI 002/2021, art. 2°, inciso II)', 3);
+  hdr(ws2, 5, 1, 'Variável', COR.azulMed); hdr(ws2, 5, 2, 'Valor (R$)', COR.azulMed); hdr(ws2, 5, 3, 'Observação', COR.azulMed);
+  const bloco1 = [
+    ['BCo  —  Base de cálculo das entradas tributadas (CFOP 2152, importado 4%)', f2(apu.BCo), 'Base proporcional para crédito'],
+    ['VTB  —  Valor tributado das vendas totais na fórmula (V1+V2+V3+V4+V5)', f2(apu.VTB), `V1=${f2(apu.V1)} | V2=${f2(apu.V2)} | V3=${f2(apu.V3)} | V4=${f2(apu.V4)} | V5=${f2(apu.V5)}`],
+    ['VcV  —  Valor contábil total das vendas (VTB + importados 4% interestadual)', f2(apu.VcV), `VTB ${f2(apu.VTB)} + Imp.4% ${f2(apu.S_imp4)}`],
+    ['BC das Entradas  —  BCo × VTB / VcV', f2(apu.BC_ent), 'Cod. EFD: DF000044'],
+  ];
+  bloco1.forEach(([d1, d2, d3], i) => {
+    const bg = i % 2 === 0 ? COR.branco : COR.cinzaCla;
+    data(ws2, 6 + i, 1, d1, bg);
+    data(ws2, 6 + i, 2, d2, bg, null, true, '#,##0.00', 'right');
+    data(ws2, 6 + i, 3, d3, bg, COR.cinzaEsc);
+  });
+
+  // Bloco 2
+  bloco(ws2, 11, 'BLOCO 2 — PARCELAS ICMS1 A ICMS5 (ADI 002/2021, alínea f, inciso II, art. 2°)', 3);
+  hdr(ws2, 12, 1, 'Parcela', COR.azulMed); hdr(ws2, 12, 2, 'Base (R$)', COR.azulMed); hdr(ws2, 12, 3, 'ICMS (R$) / Cod. EFD', COR.azulMed);
+  const parcelas = [
+    ['ICMS1  —  V1×13% − (BC_Ent×V1/VTB)×12%', f2(apu.V1), f2(apu.ICMS1), 'DF000123'],
+    ['ICMS2  —  V2×15% − (BC_Ent×V2/VTB)×12%', f2(apu.V2), f2(apu.ICMS2), 'DF000124'],
+    ['ICMS3  —  V3×12% − (BC_Ent×V3/VTB)×12%', f2(apu.V3), f2(apu.ICMS3), 'DF000125'],
+    ['ICMS4  —  V4×12% − (BC_Ent×V4/VTB)×12%', f2(apu.V4), f2(apu.ICMS4), 'DF000126'],
+    ['ICMS5  —  V5×12% − (BC_Ent×V5/VTB)×7%',  f2(apu.V5), f2(apu.ICMS5), 'DF000127'],
+  ];
+  parcelas.forEach(([desc, base, icms, cod], i) => {
+    const bg = i % 2 === 0 ? COR.branco : COR.cinzaCla;
+    data(ws2, 13 + i, 1, desc, bg);
+    data(ws2, 13 + i, 2, base, bg, null, false, '#,##0.00', 'right');
+    data(ws2, 13 + i, 3, `${icms.toLocaleString('pt-BR', {minimumFractionDigits:2})} — ${cod}`, bg, null, false, null, 'right');
+  });
+  // Subtotal
+  hdr(ws2, 18, 1, 'SUBTOTAL — ICMS PELO REGIME ESPECIAL (ICMS1+2+3+4+5)', COR.verdeMed, COR.branco);
+  hdr(ws2, 18, 2, '', COR.verdeMed);
+  const stCell = hdr(ws2, 18, 3, f2(apu.ICMS_form), COR.verdeMed); stCell.numFmt = '#,##0.00'; stCell.alignment = { horizontal: 'right' };
+
+  // Bloco 3
+  bloco(ws2, 20, 'BLOCO 3 — IMPORTADOS A 4% — APURAÇÃO SEPARADA (§6° art. 3° Decreto 43.062/2022)', 3, COR.laranjaEsc);
+  const bloco3 = [
+    [`Débito ICMS saída interestadual (CFOP 6102): ${f2(apu.S_imp4)} × 4%`, f2(apu.deb_imp4), ''],
+    ['(−) Crédito ICMS entrada proporcional', f2(-Math.abs(apu.cred_imp4_prop || 0)), ''],
+    ['ICMS importados líquido (débito − crédito proporcional)', f2(apu.ICMS_imp4_liq), ''],
+  ];
+  bloco3.forEach(([d1, d2, d3], i) => {
+    const bg = i % 2 === 0 ? COR.laranjaaCla : COR.branco;
+    data(ws2, 21 + i, 1, d1, bg);
+    data(ws2, 21 + i, 2, d2, bg, null, i === 2, '#,##0.00', 'right');
+    data(ws2, 21 + i, 3, d3, bg);
+  });
+
+  // Bloco 4 — Resumo
+  bloco(ws2, 25, 'BLOCO 4 — RESUMO FINAL DO PERÍODO', 3, COR.azulEsc);
+  hdr(ws2, 26, 1, 'ICMS pelo Regime Especial (ICMS1 a ICMS5)', COR.verdeCla, COR.verdeEsc);
+  hdr(ws2, 26, 2, '', COR.verdeCla);
+  const r26c3 = hdr(ws2, 26, 3, f2(apu.ICMS_form), COR.verdeCla, COR.verdeEsc); r26c3.numFmt = '#,##0.00'; r26c3.alignment = { horizontal: 'right' };
+  hdr(ws2, 27, 1, 'ICMS Importados a 4% — apuração separada', COR.laranjaaCla, COR.laranjaEsc);
+  hdr(ws2, 27, 2, '', COR.laranjaaCla);
+  const r27c3 = hdr(ws2, 27, 3, f2(apu.ICMS_imp4_liq), COR.laranjaaCla, COR.laranjaEsc); r27c3.numFmt = '#,##0.00'; r27c3.alignment = { horizontal: 'right' };
+  hdr(ws2, 28, 1, `ICMS TOTAL A RECOLHER — ${periodo.toUpperCase()}`, COR.azulEsc);
+  hdr(ws2, 28, 2, '', COR.azulEsc);
+  const totalCell = hdr(ws2, 28, 3, f2(apu.ICMS_total), COR.amareloMed, COR.amareloEsc); totalCell.numFmt = '#,##0.00'; totalCell.alignment = { horizontal: 'right' }; totalCell.font = { bold: true, size: 12, color: { argb: 'FF' + COR.amareloEsc } };
+
+  // ── ABA 3: EFD - Registros ─────────────────────────────────────────
+  const ws3 = wb.addWorksheet('3. EFD - Registros');
+  ws3.columns = [{ width: 10 }, { width: 14 }, { width: 52 }, { width: 14 }, { width: 16 }];
+
+  titulo(ws3, 1, `MAPA DE LANÇAMENTOS NA EFD ICMS/IPI — ${periodo}`, 5);
+  merge(ws3, 2, 1, 2, 5);
+  const sub3 = ws3.getCell(2, 1);
+  sub3.value = 'World Food Business | Registros E110, E111 e E115 — Lei 5.005/2012';
+  sub3.font = { italic: true, size: 10 };
+  sub3.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + COR.azulCla } };
+  sub3.alignment = { vertical: 'middle' };
+
+  ['Registro','Campo','Descrição do Lançamento','Código Ajuste','Valor (R$)'].forEach((h, i) => hdr(ws3, 3, i + 1, h, COR.azulMed));
+  ws3.getRow(3).height = 30;
+
+  const regs = [
+    ['E110','Campo 05\nVL_ESTORNOS_CRED','Estorno dos créditos de entrada escriturados\n(anula o crédito de entrada importado)','DF010228', f2(apu.cred_entrada_total), COR.vermelhoCla],
+    ['E110','Campo 09\nVL_ESTORNOS_DEB','Estorno dos débitos de saída escriturados\n(anula os débitos das NF-e de saída)','DF030521', f2(apu.ICMS_NF_correto), COR.vermelhoCla],
+    ['E110','Campo 03\nVL_AJ_DEBITOS','ICMS total apurado pelo regime especial\n(ICMS1+2+3+4+5 + Importados 4%)','—', f2(apu.ICMS_total), COR.amareloCla],
+    ['E111','ICMS1\nDF000123',`Parcela ICMS1: V1×13% − (BC_Ent×V1/VTB)×12%\n= ${f2(apu.V1)}×13% − ${f2(apu.BC_ent)}×12%`,'DF000123', f2(apu.ICMS1), COR.verdeCla],
+    ['E111','ICMS2–5\nZerado','Parcelas ICMS2, ICMS3, ICMS4, ICMS5 = zero no período','DF000124–DF000127', 0, COR.cinzaCla],
+    ['E115','VTB1=V1','Valor declaratório — saídas internas tributadas (V1)','DF000036', f2(apu.V1), COR.azulCla],
+    ['E115','VTB2–5=0','Valores declaratórios V2, V3, V4, V5 = zero','DF000037–DF000040', 0, COR.cinzaCla],
+    ['E115','VTB total','Valor declaratório VTB total (V1+V2+V3+V4+V5)','DF000041', f2(apu.VTB), COR.azulCla],
+    ['E115','VcV','Valor declaratório — valor contábil total das vendas','DF000042', f2(apu.VcV), COR.azulCla],
+    ['E115','BCo','Valor declaratório — base de cálculo das entradas','DF000043', f2(apu.BCo), COR.azulCla],
+    ['E115','BC Ent.','Valor declaratório — BC das entradas (BCo×VTB/VcV)','DF000044', f2(apu.BC_ent), COR.azulCla],
+  ];
+  regs.forEach(([reg, campo, desc, cod, val, bg], i) => {
+    data(ws3, 4 + i, 1, reg,   bg, null, true, null, 'center');
+    data(ws3, 4 + i, 2, campo, bg, null, false, null, 'center');
+    data(ws3, 4 + i, 3, desc,  bg);
+    data(ws3, 4 + i, 4, cod,   bg, null, false, null, 'center');
+    const vc = data(ws3, 4 + i, 5, val, bg, null, true, '#,##0.00', 'right');
+    ws3.getRow(4 + i).height = 36;
+  });
+
+  // ── ABA 4: Diagnóstico ────────────────────────────────────────────
+  const ws4 = wb.addWorksheet('4. Diagnóstico');
+  ws4.columns = [{ width: 52 }, { width: 18 }, { width: 35 }];
+
+  titulo(ws4, 1, `DIAGNÓSTICO DA DIVERGÊNCIA SEFAZ/DF — ${periodo}`, 3);
+  merge(ws4, 2, 1, 2, 3);
+  const sub4 = ws4.getCell(2, 1);
+  sub4.value = 'Tipo 02: ICMS declarado EFD × ICMS destacado NF-e emitidas';
+  sub4.font = { italic: true, size: 10 };
+  sub4.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + COR.azulCla } };
+  sub4.alignment = { vertical: 'middle' };
+
+  bloco(ws4, 4, '1. O QUE A SEFAZ IDENTIFICA', 3, COR.cinzaEsc);
+  const icmsNFerrado = apu.ICMS_NF_saidas || 0;
+  const icmsNFcerto  = apu.ICMS_NF_correto || 0;
+  const divergencia  = icmsNFerrado - icmsNFcerto;
+  const diag1 = [
+    ['ICMS informado na EFD (E110 campo débitos)', 0, 'Empresa declarou R$ 0,00 (EFD não retificada)'],
+    ['ICMS destacado nas NF-e emitidas (lido pela SEFAZ)', f2(icmsNFerrado), 'Calculado com alíquota das NF-e'],
+    ['Divergência apontada — ' + periodo, f2(divergencia), ''],
+  ];
+  diag1.forEach(([d1, d2, d3], i) => {
+    data(ws4, 5 + i, 1, d1, i === 2 ? COR.vermelhoCla : COR.cinzaCla, i === 2 ? COR.vermelhoEsc : null, i === 2);
+    data(ws4, 5 + i, 2, d2, i === 2 ? COR.vermelhoCla : COR.cinzaCla, i === 2 ? COR.vermelhoEsc : null, i === 2, '#,##0.00', 'right');
+    data(ws4, 5 + i, 3, d3, i === 2 ? COR.vermelhoCla : COR.cinzaCla, COR.cinzaEsc);
+  });
+
+  bloco(ws4, 9, '2. CAUSAS IDENTIFICADAS', 3, COR.cinzaEsc);
+  bloco(ws4, 10, '  CAUSA 1 — EFD não escriturou o ICMS pelo regime especial', 3, COR.amareloEsc);
+  merge(ws4, 11, 1, 11, 3);
+  data(ws4, 11, 1, 'A empresa está credenciada na Lei 5.005/2012 mas a EFD foi entregue sem os lançamentos de ajuste (E111 DF000123 etc.) e sem o ajuste a débito no E110.', COR.amareloCla);
+  ws4.getRow(11).height = 40;
+
+  if (apu.aliqErradas && apu.aliqErradas.length > 0) {
+    bloco(ws4, 13, '  CAUSA 2 — NF-e emitidas com alíquota incorreta', 3, COR.vermelhoEsc);
+    merge(ws4, 14, 1, 14, 3);
+    data(ws4, 14, 1, `${apu.aliqErradas.length} NF-e de saída interna emitidas com alíquota incorreta. A alíquota correta para operações internas no DF é 12%.`, COR.vermelhoCla);
+    ws4.getRow(14).height = 36;
+  }
+
+  bloco(ws4, 16, '3. ICMS REAL DO PERÍODO × O QUE ESTÁ NAS NF-e', 3, COR.cinzaEsc);
+  const comp = [
+    ['ICMS nas NF-e de saída (alíquota das NF-e)', f2(icmsNFerrado), COR.vermelhoCla, COR.vermelhoEsc],
+    ['ICMS correto nas NF-e (alíquota correta)', f2(icmsNFcerto), COR.verdeCla, COR.verdeEsc],
+    ['Excesso de ICMS destacado nas NF-e', f2(divergencia), COR.amareloMed, COR.amareloEsc],
+    ['', null, COR.branco, COR.branco],
+    ['ICMS real a recolher pela Lei 5.005/2012 (fórmula ICMS1 + importados)', f2(apu.ICMS_total), COR.amareloCla, COR.amareloEsc],
+  ];
+  comp.forEach(([d1, d2, bg, fg], i) => {
+    merge(ws4, 17 + i, 1, 17 + i, 2);
+    data(ws4, 17 + i, 1, d1, bg, fg, true);
+    data(ws4, 17 + i, 2, d2, bg, fg, true, '#,##0.00', 'right');
+    data(ws4, 17 + i, 3, '', bg);
+  });
+
+  bloco(ws4, 23, '4. AÇÕES NECESSÁRIAS', 3, COR.cinzaEsc);
+  const acoes = [
+    ['🔴 URGENTE — Retificar EFD do período', 'Incluir os lançamentos corretos: estornos E110 (campos 05 e 09), ajuste a débito E110 campo 03, registros E111 e E115.', COR.vermelhoCla, COR.vermelhoEsc],
+    ['🟠 NECESSÁRIO — Verificar alíquotas das NF-e', 'Confirmar se as NF-e de saída estão com alíquota correta (12% internas, 4% interestadual importado). Se incorretas, cancelar e reemitir.', COR.laranjaaCla, COR.laranjaEsc],
+    ['🟢 MONITORAR — Acompanhar demais períodos', 'Aplicar a mesma metodologia para todos os períodos sob o regime da Lei 5.005/2012.', COR.verdeCla, COR.verdeEsc],
+  ];
+  acoes.forEach(([titulo_a, desc, bg, fg], i) => {
+    bloco(ws4, 24 + i * 3, '  ' + titulo_a, 3, fg);
+    merge(ws4, 25 + i * 3, 1, 25 + i * 3, 3);
+    data(ws4, 25 + i * 3, 1, desc, bg);
+    ws4.getRow(25 + i * 3).height = 40;
+  });
+
+  // ── ABA 5: Estoque ────────────────────────────────────────────────────
+  const ws5 = wb.addWorksheet('5. Estoque');
+  ws5.columns = [{ width: 50 }, { width: 12 }, { width: 12 }, { width: 12 }, { width: 16 }, { width: 12 }];
+
+  titulo(ws5, 1, `CONTROLE DE ESTOQUE ACUMULADO — Posição em ${periodo}`, 6);
+  merge(ws5, 2, 1, 2, 6);
+  const sub5 = ws5.getCell(2, 1);
+  sub5.value = 'Empresa nova — estoque inicial zero em 09/2025. Saldo acumulado por período importado.';
+  sub5.font = { italic: true, size: 10 };
+  sub5.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + COR.azulCla } };
+  sub5.alignment = { vertical: 'middle' };
+
+  const estAtual = carregarEstoque();
+  const itensEst = Object.entries(estAtual)
+    .filter(([k]) => k !== '_historico')
+    .map(([k, v]) => v)
+    .sort((a, b) => a.desc.localeCompare(b.desc));
+
+  const periodosEst = Object.keys(estAtual._historico || {}).sort();
+  merge(ws5, 3, 1, 3, 6);
+  data(ws5, 3, 1, `Períodos processados: ${periodosEst.join(', ') || 'nenhum'}`, COR.cinzaCla, COR.cinzaEsc, false);
+
+  ['Descrição','NCM','Entradas (un.)','Saídas (un.)','Saldo Atual (un.)','Status'].forEach((h, i) => {
+    hdr(ws5, 4, i + 1, h, COR.azulMed);
+  });
+  ws5.getRow(4).height = 28;
+
+  itensEst.forEach((item, i) => {
+    const entradas = item.movimentos.filter(m => m.tipo === 'Entrada').reduce((s, m) => s + m.qtd, 0);
+    const saidas   = item.movimentos.filter(m => m.tipo !== 'Entrada').reduce((s, m) => s + m.qtd, 0);
+    const neg  = item.saldo < 0;
+    const zero = item.saldo === 0;
+    const bg   = neg ? COR.vermelhoCla : zero ? COR.amareloCla : COR.verdeCla;
+    const fg   = neg ? COR.vermelhoEsc : zero ? COR.amareloEsc : COR.verdeEsc;
+    const status = neg ? '🔴 NEGATIVO' : zero ? '🟡 ZERADO' : '🟢 OK';
+    const rowBg  = neg ? COR.vermelhoCla : (i % 2 === 0 ? COR.branco : COR.cinzaCla);
+
+    data(ws5, 5 + i, 1, item.desc, rowBg, neg ? COR.vermelhoEsc : null, neg);
+    data(ws5, 5 + i, 2, item.ncm,  rowBg, null, false, null, 'center');
+    data(ws5, 5 + i, 3, entradas,  rowBg, null, false, '#,##0.000', 'right');
+    data(ws5, 5 + i, 4, saidas,    rowBg, null, false, '#,##0.000', 'right');
+    const saldoCell = data(ws5, 5 + i, 5, item.saldo, neg ? COR.vermelhoCla : rowBg, neg ? COR.vermelhoEsc : null, neg, '#,##0.000', 'right');
+    data(ws5, 5 + i, 6, status, bg, fg, true, null, 'center');
+    ws5.getRow(5 + i).height = 18;
+  });
+
+  // Linha de alerta se houver negativos
+  const negativosEst = itensEst.filter(i => i.saldo < 0);
+  if (negativosEst.length > 0) {
+    const alertRow = 5 + itensEst.length + 1;
+    merge(ws5, alertRow, 1, alertRow, 6);
+    const alertCell5 = ws5.getCell(alertRow, 1);
+    alertCell5.value = `⚠️ ATENÇÃO: ${negativosEst.length} item(ns) com saldo negativo. Verificar se há NF-e de entrada faltando ou classificação incorreta de tipo.`;
+    alertCell5.font = { bold: true, size: 11, color: { argb: 'FF' + COR.amareloEsc } };
+    alertCell5.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + COR.amareloCla } };
+    alertCell5.alignment = { wrapText: true, vertical: 'middle' };
+    ws5.getRow(alertRow).height = 36;
+  }
+
+  // Gerar e baixar
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Apuracao_ICMS_5005_${(periodo||'').replace(/[\\/\s]/g,'_')}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+
 function renderizar(rows, apu, periodo) {
   const el = document.getElementById('results');
   el.classList.remove('hidden');
+  // Botão exportar — armazena referência para uso no onclick
+  window._exportData = {rows, apu, periodo};
 
   const alertas = [];
   if (apu.aliqErradas.length > 0) {
@@ -909,6 +1491,13 @@ function renderizar(rows, apu, periodo) {
     </div>`).join('');
 
   el.innerHTML = `
+    <div style="text-align:right;margin-bottom:16px">
+      <button onclick="exportarXLSX(window._exportData.rows, window._exportData.apu, window._exportData.periodo).catch(e=>alert('Erro ao exportar: '+e.message))"
+        style="background:#16a34a;color:#fff;font-family:var(--mono);font-size:13px;font-weight:600;
+               padding:10px 22px;border-radius:6px;border:none;cursor:pointer;letter-spacing:.03em">
+        ⬇️ Exportar planilha (.xlsx)
+      </button>
+    </div>`+`
     <div class="period-badge">📅 Período: ${periodo || 'identificado na planilha'}</div>
     <button class="btn-reset" onclick="resetar()">↺ Carregar nova planilha</button>
 
@@ -1023,6 +1612,8 @@ async function processarArquivo(file) {
     const apu = apurar(rows);
     document.getElementById('loader').classList.add('hidden');
     renderizar(rows, apu, periodo);
+    atualizarEstoque(rows, periodo);
+    renderizarEstoque();
   } catch(err) {
     document.getElementById('loader').classList.add('hidden');
     document.getElementById('uploadSection').classList.remove('hidden');
